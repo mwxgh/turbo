@@ -1,0 +1,5 @@
+/* Tailwind + shadcn theme from @repo/tailwind-config; this app is scanned
+   automatically, shared components need an explicit @source. */
+@import '@repo/tailwind-config';
+
+@source '../../../packages/ui/src';

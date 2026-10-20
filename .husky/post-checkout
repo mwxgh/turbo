@@ -1,0 +1,6 @@
+# Branch name check right after `git checkout -b` / `git switch -c` (git has no
+# pre-checkout hook, so this reports; pre-push blocks).
+# $3 = 1 for branch checkouts, 0 for file checkouts.
+[ "$3" = "1" ] || exit 0
+BRANCH=$(git symbolic-ref --quiet --short HEAD) || exit 0 # detached HEAD
+sh scripts/gitflow-check.sh --branch "$BRANCH" >/dev/null || true

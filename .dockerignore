@@ -1,0 +1,15 @@
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/*.tsbuildinfo
+**/src/generated
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.husky
+.vscode
+out
+npm-debug.log*
+.DS_Store

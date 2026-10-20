@@ -1,0 +1,12 @@
+# 1. Fast GitFlow checks for every branch being pushed:
+#    protected branches (no direct/force push to main, develop…) and branch names.
+#    stdin: <local ref> <local sha> <remote ref> <remote sha>
+while read -r _local_ref local_sha remote_ref remote_sha; do
+  sh scripts/gitflow-check.sh --push "$local_sha" "$remote_ref" "$remote_sha" || exit 1
+  case "$remote_ref" in refs/heads/*) ;; *) continue ;; esac # tags etc.
+  [ "$local_sha" = "0000000000000000000000000000000000000000" ] && continue # deletion
+  sh scripts/gitflow-check.sh --branch "${remote_ref#refs/heads/}" >/dev/null || exit 1
+done
+
+# 2. Same checks as CI before anything leaves this machine (turbo caches results)
+pnpm exec turbo run lint check-types test --output-logs=errors-only

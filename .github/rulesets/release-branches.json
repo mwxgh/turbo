@@ -1,0 +1,13 @@
+{
+  "bypass_actors": [],
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/release/**/*", "refs/heads/hotfix/**/*"],
+      "exclude": []
+    }
+  },
+  "enforcement": "active",
+  "name": "Release & hotfix branches (no force push)",
+  "rules": [{ "type": "non_fast_forward" }],
+  "target": "branch"
+}

@@ -1,0 +1,42 @@
+{
+  "printWidth": 80,
+  "semi": false,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "overrides": [
+    {
+      "files": ["*.js", "*.mjs", "*.ts", "*.tsx"],
+      "options": {
+        "plugins": [
+          "@trivago/prettier-plugin-sort-imports",
+          "prettier-plugin-tailwindcss",
+          "prettier-plugin-classnames",
+          "prettier-plugin-merge"
+        ],
+        "importOrder": [
+          "^node:(.*)$",
+          "^(react|react-dom)(/.*)?$",
+          "^next(/.*)?$",
+          "^@nestjs/(.*)$",
+          "<THIRD_PARTY_MODULES>",
+          "^@repo/(.*)$",
+          "^[.]"
+        ],
+        "importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"],
+        "importOrderSeparation": true,
+        "importOrderSortSpecifiers": true,
+        "importOrderSideEffects": false,
+        "tailwindStylesheet": "./packages/tailwind-config/shared-styles.css",
+        "tailwindFunctions": ["cn", "cva"],
+        "customFunctions": ["cn", "cva"],
+        "endingPosition": "absolute"
+      }
+    },
+    {
+      "files": ["*.json"],
+      "options": {
+        "plugins": ["prettier-plugin-sort-json"]
+      }
+    }
+  ]
+}

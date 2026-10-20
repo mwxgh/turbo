@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false
+  },
+  "exclude": ["node_modules", "dist"],
+  "extends": "@repo/typescript-config/node-library.json",
+  "include": ["src"]
+}

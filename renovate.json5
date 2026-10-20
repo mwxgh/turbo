@@ -1,0 +1,156 @@
+// Renovate: scans dependencies and opens PRs/MRs that bump them.
+// Works on GitHub (Mend Renovate app) and GitLab (scheduled `renovate` job in
+// .gitlab-ci.yml). Validate locally: pnpm renovate:check
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    // chore(deps): … – matches commitlint (scope "deps")
+    ':semanticCommits',
+  ],
+  timezone: 'Asia/Ho_Chi_Minh',
+  schedule: ['before 9am on monday'],
+
+  // GitFlow: dependency branches are work branches merged into develop
+  baseBranchPatterns: ['develop'],
+  branchPrefix: 'deps/',
+  labels: ['dependencies'],
+  prConcurrentLimit: 10,
+
+  // Wait before proposing a fresh release (supply-chain safety, like pnpm's minimumReleaseAge)
+  minimumReleaseAge: '3 days',
+  postUpdateOptions: ['pnpmDedupe'],
+  lockFileMaintenance: {
+    enabled: true,
+    schedule: ['before 9am on the first day of the month'],
+  },
+
+  // Security fixes skip the schedule and the release-age wait
+  osvVulnerabilityAlerts: true,
+  vulnerabilityAlerts: {
+    labels: ['security'],
+    schedule: ['at any time'],
+    minimumReleaseAge: null,
+  },
+
+  packageRules: [
+    // ---------- groups (one PR per group) ----------
+    {
+      description: 'pnpm catalog "tooling" (typescript, eslint, @types/node, tsx)',
+      matchDepTypes: ['pnpm.catalog.tooling'],
+      groupName: 'tooling',
+    },
+    {
+      description: 'pnpm catalog "nestjs": all @nestjs/* must share a version',
+      matchDepTypes: ['pnpm.catalog.nestjs'],
+      groupName: 'nestjs',
+    },
+    {
+      matchPackageNames: ['prisma', '@prisma/*'],
+      groupName: 'prisma',
+    },
+    {
+      matchPackageNames: [
+        'next',
+        '@next/*',
+        'react',
+        'react-dom',
+        '@types/react',
+        '@types/react-dom',
+      ],
+      groupName: 'react / next',
+    },
+    {
+      matchPackageNames: ['@tanstack/*'],
+      groupName: 'tanstack',
+    },
+    {
+      matchPackageNames: [
+        'tailwindcss',
+        '@tailwindcss/*',
+        'tw-animate-css',
+        'shadcn',
+        '@base-ui/*',
+        'class-variance-authority',
+        'cn',
+        'lucide-react',
+        'next-themes',
+      ],
+      groupName: 'tailwind & shadcn',
+    },
+    {
+      matchPackageNames: [
+        'typescript-eslint',
+        '@eslint/*',
+        'eslint-config-*',
+        'eslint-plugin-*',
+        '@next/eslint-plugin-next',
+        'globals',
+      ],
+      groupName: 'eslint plugins',
+    },
+    {
+      matchPackageNames: [
+        'husky',
+        'lint-staged',
+        '@commitlint/*',
+        'prettier',
+        '@trivago/prettier-plugin-sort-imports',
+      ],
+      groupName: 'git hooks & formatting',
+    },
+    {
+      description: 'pnpm/turbo: package.json, Dockerfiles and CI move together',
+      matchPackageNames: ['pnpm', 'turbo'],
+      groupName: 'pnpm / turbo',
+    },
+    {
+      matchManagers: ['github-actions', 'gitlabci'],
+      groupName: 'ci',
+    },
+    {
+      matchManagers: ['dockerfile', 'docker-compose'],
+      groupName: 'docker images',
+    },
+
+    // ---------- guards ----------
+    {
+      description: 'TS 7 has no compiler API yet (Nest CLI, typescript-eslint, @nestjs/swagger need it)',
+      matchPackageNames: ['typescript'],
+      allowedVersions: '<7',
+    },
+    {
+      description: 'Postgres major upgrades need a data migration: never automatic',
+      matchDatasources: ['docker'],
+      matchDepNames: ['postgres', '/^postgres:/'],
+      matchUpdateTypes: ['major'],
+      enabled: false,
+    },
+    {
+      description: 'Majors wait for approval in the Dependency Dashboard issue',
+      matchUpdateTypes: ['major'],
+      dependencyDashboardApproval: true,
+      labels: ['dependencies', 'major'],
+    },
+  ],
+
+  customManagers: [
+    {
+      description: 'pnpm/turbo installed globally in Dockerfiles',
+      customType: 'regex',
+      managerFilePatterns: ['/(^|/)deploy/[^/]+\\.Dockerfile$/'],
+      matchStrings: [
+        'npm install -g (?<depName>pnpm|turbo)@(?<currentValue>\\d+\\.\\d+\\.\\d+)',
+      ],
+      datasourceTemplate: 'npm',
+    },
+    {
+      description: 'PNPM_VERSION in GitLab CI',
+      customType: 'regex',
+      managerFilePatterns: ['/(^|/)\\.gitlab-ci\\.yml$/'],
+      matchStrings: ["PNPM_VERSION: '(?<currentValue>\\d+\\.\\d+\\.\\d+)'"],
+      depNameTemplate: 'pnpm',
+      datasourceTemplate: 'npm',
+    },
+  ],
+}

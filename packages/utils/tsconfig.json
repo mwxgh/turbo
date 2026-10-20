@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "lib": ["es2023", "DOM"]
+  },
+  "exclude": ["node_modules", "dist"],
+  "extends": "@repo/typescript-config/node-library.json",
+  "include": ["src"]
+}

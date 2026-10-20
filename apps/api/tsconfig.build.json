@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "src",
+    "outDir": "dist",
+    "preserveWatchOutput": true
+  },
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"],
+  "extends": "./tsconfig.json",
+  "include": ["src"]
+}

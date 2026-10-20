@@ -1,0 +1,12 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      // `next build` and `next typegen` both write .next/types; run them sequentially.
+      "dependsOn": ["^build", "check-types"],
+      // NEXT_OUTPUT=standalone only in deploy/web.Dockerfile
+      "env": ["API_URL", "NEXT_OUTPUT"]
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": ["es2023", "DOM"]
+  },
+  "exclude": ["node_modules"],
+  "extends": "@repo/typescript-config/node-library.json",
+  "include": ["tests", "playwright.config.ts"]
+}

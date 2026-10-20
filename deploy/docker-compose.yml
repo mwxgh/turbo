@@ -1,0 +1,108 @@
+# Usage:
+#   cp deploy/.env.example deploy/.env
+#   pnpm infra:up     # PostgreSQL only (apps run on the host with `pnpm dev`)
+#   pnpm stack:up     # + migrate, api, socket, web from the Dockerfiles (profile "app")
+
+name: ${COMPOSE_PROJECT_NAME:-turbo-base}
+
+services:
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-17-alpine}
+    restart: ${RESTART_POLICY:-no}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+    ports:
+      - '${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ---------- Apps (profile "app") ----------
+  migrate:
+    profiles: [app]
+    build:
+      context: ..
+      dockerfile: deploy/nest.Dockerfile
+      args: { APP: api }
+      target: migrate
+    environment:
+      DATABASE_URL: &database-url postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-app}?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    profiles: [app]
+    build:
+      context: ..
+      dockerfile: deploy/nest.Dockerfile
+      args: { APP: api }
+    restart: ${RESTART_POLICY:-no}
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      PORT: 4000
+      DATABASE_URL: *database-url
+      CORS_ORIGINS: ${WEB_ORIGIN:-http://localhost:3000}
+    ports:
+      - '${APP_BIND:-127.0.0.1}:${API_PORT:-4000}:4000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'wget -qO- http://127.0.0.1:4000/api/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  socket:
+    profiles: [app]
+    build:
+      context: ..
+      dockerfile: deploy/nest.Dockerfile
+      args: { APP: socket }
+    restart: ${RESTART_POLICY:-no}
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      PORT: 4001
+      CORS_ORIGINS: ${WEB_ORIGIN:-http://localhost:3000}
+    ports:
+      - '${APP_BIND:-127.0.0.1}:${SOCKET_PORT:-4001}:4001'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:4001/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  web:
+    profiles: [app]
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+      args:
+        # Browser-facing URLs, inlined at build time
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4000/api}
+        NEXT_PUBLIC_SOCKET_URL: ${PUBLIC_SOCKET_URL:-http://localhost:4001}
+        NEXT_PUBLIC_APP_ENV: ${APP_ENV:-dev}
+    restart: ${RESTART_POLICY:-no}
+    environment:
+      # Server-side calls stay inside the Docker network
+      API_URL: http://api:4000/api
+    ports:
+      - '${APP_BIND:-127.0.0.1}:${WEB_PORT:-3000}:3000'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
