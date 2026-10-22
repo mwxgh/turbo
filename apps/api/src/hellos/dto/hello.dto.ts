@@ -1,7 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger'
 
-/** Response shapes, for Swagger only (no validation). */
-export class HelloDto {
+import type { Jsonify } from 'type-fest'
+
+import type { Hello } from '@repo/db'
+
+/**
+ * Response shape, for Swagger only (no validation). `implements` keeps it in
+ * sync with the Prisma model as JSON (dates → ISO strings).
+ */
+export class HelloDto implements Jsonify<Hello> {
   @ApiProperty({ format: 'uuid' })
   id: string
 

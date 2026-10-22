@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ListQueryError,
   defineListSpec,
+  defineListSpecFor,
   listQueryToSearchParams,
   normalizeKeyword,
   parseListFilter,
@@ -147,6 +148,49 @@ describe('parseListSort', () => {
       'Cannot sort by "password". Allowed: name, createdAt, price',
     )
     expect(() => parseListSort(spec, 'name', 'up')).toThrow('asc or desc')
+  })
+})
+
+describe('defineListSpecFor', () => {
+  // Stand-in for a Prisma-generated model type
+  interface Post {
+    id: string
+    title: string
+    createdAt: Date
+  }
+
+  it('accepts model fields and relation paths', () => {
+    const postSpec = defineListSpecFor<Post>()({
+      keywordFields: ['title', 'author.name'],
+      sortable: ['title', 'createdAt'],
+      defaultSort: { field: 'createdAt', dir: 'desc' },
+      filters: {
+        title: { type: 'string' },
+        'author.name': { type: 'string' },
+        created: { type: 'date', path: 'createdAt' },
+      },
+    })
+    expect(parseListSort(postSpec, 'title')).toEqual({
+      path: 'title',
+      dir: 'asc',
+    })
+  })
+
+  it('rejects unknown fields at compile time (check-types)', () => {
+    defineListSpecFor<Post>()({
+      // @ts-expect-error – typo of `title`
+      sortable: ['titel'],
+      filters: {
+        // @ts-expect-error – `path` must be a model field
+        title: { type: 'string', path: 'name' },
+      },
+    })
+    defineListSpecFor<Post>()({
+      filters: {
+        // @ts-expect-error – not a field and no `path`
+        titel: { type: 'string' },
+      },
+    })
   })
 })
 

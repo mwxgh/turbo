@@ -8,6 +8,7 @@ import { healthQueryOptions } from '../lib/queries/health'
 import { getQueryClient } from '../lib/query-client'
 import { Chat } from './chat'
 import { HealthCard } from './health-card'
+import { UploadDemo } from './upload-demo'
 
 // Always render at request time so the first health status is fresh.
 export const dynamic = 'force-dynamic'
@@ -31,6 +32,7 @@ export default async function Home() {
       </HydrationBoundary>
 
       <Chat />
+      <UploadDemo />
     </main>
   )
 }

@@ -6,7 +6,7 @@ import { ListQueryExceptionFilter, VALIDATOR_OPTIONS } from '@repo/decorators'
 import { AppEnv } from '@repo/utils'
 
 import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter.js'
-import { corsOrigins, env } from './config/env.js'
+import { env } from './config/env.js'
 
 /** Global HTTP setup shared by `main.ts` and the e2e tests. */
 export function configureApp(
@@ -26,7 +26,7 @@ export function configureApp(
     new PrismaExceptionFilter(),
     new ListQueryExceptionFilter(),
   )
-  app.enableCors({ origin: corsOrigins, credentials: true })
+  app.enableCors({ origin: env.corsOrigins, credentials: true })
   app.enableShutdownHooks()
 
   // API docs on dev and stg (QA), never on prod

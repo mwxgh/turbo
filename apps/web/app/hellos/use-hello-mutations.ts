@@ -4,19 +4,15 @@ import { useMemo } from 'react'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import { toast } from '@repo/ui/components/sonner'
 import { type Paginated, totalPages } from '@repo/utils'
 
+import { withToast } from '../../lib/action-toast'
 import { hellosKeys } from '../../lib/queries/hellos'
-import type { Hello } from '../../lib/types'
-import {
-  type ActionState,
-  type HelloInput,
-  createHello,
-  deleteHello,
-  updateHello,
-} from './actions'
+import type { ActionState, Hello, HelloInput } from '../../lib/types'
+import { createHello, deleteHello, updateHello } from './actions'
 
-/** Server actions that refresh the cached hello list on success (stable object). */
+/** Server actions with toasts; refresh the cached hello list on success (stable object). */
 export function useHelloActions() {
   const queryClient = useQueryClient()
   return useMemo(() => {
@@ -26,9 +22,20 @@ export function useHelloActions() {
       return res
     }
     return {
-      create: async (input: HelloInput) => refresh(await createHello(input)),
+      create: async (input: HelloInput) =>
+        refresh(
+          await withToast(createHello(input), {
+            success: 'Hello created',
+            error: 'Could not create hello',
+          }),
+        ),
       update: async (id: string, input: HelloInput) =>
-        refresh(await updateHello(id, input)),
+        refresh(
+          await withToast(updateHello(id, input), {
+            success: 'Hello updated',
+            error: 'Could not update hello',
+          }),
+        ),
     }
   }, [queryClient])
 }
@@ -36,15 +43,16 @@ export function useHelloActions() {
 /** Delete with an optimistic update: the row disappears before the API answers. */
 export function useDeleteHello() {
   const queryClient = useQueryClient()
-  const key = hellosKeys.list()
+  // Every cached page / filter of the list
+  const lists = { queryKey: hellosKeys.lists() }
 
   return useMutation({
     mutationFn: (id: string) => deleteHello(id),
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: key })
-      const previous = queryClient.getQueryData<Paginated<Hello>>(key)
-      queryClient.setQueryData<Paginated<Hello>>(
-        key,
+      await queryClient.cancelQueries(lists)
+      const previous = queryClient.getQueriesData<Paginated<Hello>>(lists)
+      queryClient.setQueriesData<Paginated<Hello>>(
+        lists,
         (old) =>
           old && {
             ...old,
@@ -56,8 +64,11 @@ export function useDeleteHello() {
       return { previous }
     },
     // Put the row back if the API refused
+    onSuccess: () => toast.success('Hello deleted'),
     onError: (_error, _id, context) => {
-      queryClient.setQueryData(key, context?.previous)
+      for (const [key, data] of context?.previous ?? [])
+        queryClient.setQueryData(key, data)
+      toast.error('Could not delete hello')
     },
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: hellosKeys.all }),

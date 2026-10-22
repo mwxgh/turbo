@@ -1,11 +1,15 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { type Paginated, paginated } from '@repo/utils'
+import { DEFAULT_PAGE_SIZE, type Paginated, paginated } from '@repo/utils'
 
-import { hellosKeys } from '../../lib/queries/hellos'
-import { createTestQueryClient, renderWithQuery } from '../../lib/test-utils'
+import { hellosListQueryOptions } from '../../lib/queries/hellos'
+import {
+  chooseRowAction,
+  createTestQueryClient,
+  renderWithQuery,
+} from '../../lib/test-utils'
 import type { Hello } from '../../lib/types'
 import { HellosView } from './hellos-view'
 
@@ -19,19 +23,25 @@ const actions = vi.hoisted(() => ({
 }))
 vi.mock('./actions', () => actions)
 
+const { toast } = vi.hoisted(() => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}))
+vi.mock('@repo/ui/components/sonner', () => ({ toast }))
+
 const hello = (id: string, message: string): Hello => ({
   id,
   message,
   createdAt: '2026-10-20T12:47:00.000Z',
   updatedAt: '2026-10-20T12:47:00.000Z',
 })
+const firstPage = { page: 1, pageSize: DEFAULT_PAGE_SIZE }
 const page = (...items: Hello[]): Paginated<Hello> =>
-  paginated(items, items.length, { page: 1, pageSize: 100 })
+  paginated(items, items.length, firstPage)
 
 /** Like the server prefetch + HydrationBoundary: the cache starts filled. */
 function renderPrefetched(data: Paginated<Hello>) {
   const queryClient = createTestQueryClient()
-  queryClient.setQueryData(hellosKeys.list(), data)
+  queryClient.setQueryData(hellosListQueryOptions(firstPage).queryKey, data)
   return renderWithQuery(<HellosView />, queryClient)
 }
 
@@ -42,9 +52,7 @@ describe('HellosView', () => {
 
   it('renders prefetched data without a request', () => {
     renderPrefetched(page(hello('h1', 'Xin chào')))
-    expect(
-      screen.getByRole('heading', { name: 'Hellos (1)' }),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Showing 1–1 of 1')).toBeInTheDocument()
     expect(screen.getByText('Xin chào')).toBeInTheDocument()
     expect(apiFetch).not.toHaveBeenCalled()
   })
@@ -61,9 +69,8 @@ describe('HellosView', () => {
 
     expect(actions.createHello).toHaveBeenCalledWith({ message: 'New one' })
     expect(await screen.findByText('New one')).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: 'Hellos (2)' }),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Showing 1–2 of 2')).toBeInTheDocument()
+    expect(toast.success).toHaveBeenCalledWith('Hello created')
   })
 
   it('does not refetch when the API rejects the input', async () => {
@@ -77,6 +84,9 @@ describe('HellosView', () => {
       'Record already exists',
     )
     expect(apiFetch).not.toHaveBeenCalled()
+    expect(toast.error).toHaveBeenCalledWith('Could not create hello', {
+      description: 'Record already exists',
+    })
   })
 
   it('removes a row optimistically, before the API answers', async () => {
@@ -86,15 +96,14 @@ describe('HellosView', () => {
     apiFetch.mockResolvedValue(page(hello('h2', 'Hello')))
 
     const row = screen.getByRole('row', { name: /Xin chào/ })
-    await userEvent.click(within(row).getByRole('button', { name: 'Delete' }))
+    await chooseRowAction(row, 'Delete')
 
     // Gone while the request is still pending
     expect(screen.queryByText('Xin chào')).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: 'Hellos (1)' }),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Showing 1–1 of 1')).toBeInTheDocument()
     finish()
     await waitFor(() => expect(apiFetch).toHaveBeenCalled()) // settled → refetch
+    expect(toast.success).toHaveBeenCalledWith('Hello deleted')
   })
 
   it('puts the row back when the delete fails', async () => {
@@ -103,12 +112,11 @@ describe('HellosView', () => {
     apiFetch.mockResolvedValue(page(hello('h1', 'Xin chào')))
 
     const row = screen.getByRole('row', { name: /Xin chào/ })
-    await userEvent.click(within(row).getByRole('button', { name: 'Delete' }))
+    await chooseRowAction(row, 'Delete')
 
     expect(await screen.findByText('Xin chào')).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: 'Hellos (1)' }),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Showing 1–1 of 1')).toBeInTheDocument()
+    expect(toast.error).toHaveBeenCalledWith('Could not delete hello')
   })
 
   it('offers a retry when loading fails', async () => {

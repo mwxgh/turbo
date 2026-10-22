@@ -5,7 +5,15 @@ export class ApiError extends Error {
     readonly status: number,
     readonly body: unknown,
   ) {
-    super(`API request failed with status ${status}`)
+    // Nest error bodies carry the reason: { message: string | string[] }
+    const message = (body as { message?: unknown } | null)?.message
+    super(
+      Array.isArray(message)
+        ? message.join(', ')
+        : typeof message === 'string'
+          ? message
+          : `API request failed with status ${status}`,
+    )
   }
 }
 

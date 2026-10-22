@@ -15,6 +15,7 @@ export default {
         'web',
         'ui',
         'db',
+        'redis',
         'decorators',
         'utils',
         'socket-events',

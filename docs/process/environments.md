@@ -4,7 +4,8 @@ status: reviewed
 applies-to: api, socket, web, CI/CD
 enforced-by:
   - packages/utils/src/app-env.ts (AppEnv)
-  - apps/{api,socket}/src/config/env.ts (APP_ENV)
+  - packages/decorators/src/env.ts (BaseEnv: NODE_ENV, APP_ENV, HOST, CORS_ORIGINS, REDIS_URL)
+  - apps/{api,socket}/src/config/env.ts (Env extends BaseEnv)
   - apps/web/lib/env.ts (NEXT_PUBLIC_APP_ENV)
   - .gitlab-ci.yml, .github/workflows/ci.yml
 ---
@@ -30,10 +31,10 @@ Luồng: `feature/*` → `develop` (**dev**) → `release/X.Y.Z` (**stg**) → `
 
 `APP_ENV` (dev | stg | prod) cho biết app **chạy ở đâu**; `NODE_ENV` chỉ cho biết **chạy thế nào** (stg và prod đều là build `production`). Không dùng `NODE_ENV` để rẽ nhánh theo môi trường.
 
-| App             | Biến                  | Đọc lúc          | Định nghĩa                                                                                    |
-| --------------- | --------------------- | ---------------- | --------------------------------------------------------------------------------------------- |
-| `api`, `socket` | `APP_ENV`             | runtime          | `src/config/env.ts` (`@EnumField(AppEnv)`, mặc định `dev`, sai giá trị → app không khởi động) |
-| `web`           | `NEXT_PUBLIC_APP_ENV` | **build** (bake) | `lib/env.ts` (`parseAppEnv`, sai giá trị → `next build` fail) → mỗi môi trường một image web  |
+| App             | Biến                  | Đọc lúc          | Định nghĩa                                                                                   |
+| --------------- | --------------------- | ---------------- | -------------------------------------------------------------------------------------------- |
+| `api`, `socket` | `APP_ENV`             | runtime          | `BaseEnv` (`@EnumField(AppEnv)`, mặc định `dev`, sai giá trị → app không khởi động)          |
+| `web`           | `NEXT_PUBLIC_APP_ENV` | **build** (bake) | `lib/env.ts` (`parseAppEnv`, sai giá trị → `next build` fail) → mỗi môi trường một image web |
 
 ```ts
 import { AppEnv } from '@repo/utils'
@@ -51,15 +52,17 @@ if (env.APP_ENV !== AppEnv.Prod) {
 
 Khai báo ở CI/CD variables (GitLab: _environment scope_; GitHub: _Environments_) hoặc nơi deploy, **không** commit giá trị thật vào repo.
 
-| Biến                                           | Dùng bởi          | Khi        | Ví dụ `dev` / `stg` / `prod`                                                  |
-| ---------------------------------------------- | ----------------- | ---------- | ----------------------------------------------------------------------------- |
-| `APP_ENV`                                      | api, socket       | runtime    | `dev` / `stg` / `prod`                                                        |
-| `DATABASE_URL`                                 | api, migrate      | runtime    | DB riêng cho từng môi trường                                                  |
-| `CORS_ORIGINS`                                 | api, socket       | runtime    | `https://dev.example.com` / `https://stg.example.com` / `https://example.com` |
-| `PUBLIC_API_URL` → `NEXT_PUBLIC_API_URL`       | web               | build (CI) | `https://api.dev.example.com/api` / …                                         |
-| `PUBLIC_SOCKET_URL` → `NEXT_PUBLIC_SOCKET_URL` | web               | build (CI) | `https://socket.dev.example.com` / …                                          |
-| `NEXT_PUBLIC_APP_ENV`                          | web               | build (CI) | CI tự đặt theo môi trường build (`BUILD_STAGE` / `STAGE`)                     |
-| `API_URL`                                      | web (server-side) | runtime    | URL nội bộ của api trong cụm                                                  |
+| Biến                                           | Dùng bởi          | Khi        | Ví dụ `dev` / `stg` / `prod`                                                                 |
+| ---------------------------------------------- | ----------------- | ---------- | -------------------------------------------------------------------------------------------- |
+| `APP_ENV`                                      | api, socket       | runtime    | `dev` / `stg` / `prod`                                                                       |
+| `DATABASE_URL`                                 | api, migrate      | runtime    | DB riêng cho từng môi trường                                                                 |
+| `REDIS_URL`                                    | api, socket       | runtime    | Redis có thể dùng chung giữa môi trường: key/kênh tự có prefix `APP_ENV:`                    |
+| `STORAGE_CORE_S3_SERVERS`, `STORAGE_BUCKET`    | api               | runtime    | Bắt buộc. Định dạng btp (JSON danh sách server S3 / MinIO); bucket riêng cho từng môi trường |
+| `CORS_ORIGINS`                                 | api, socket       | runtime    | `https://dev.example.com` / `https://stg.example.com` / `https://example.com`                |
+| `PUBLIC_API_URL` → `NEXT_PUBLIC_API_URL`       | web               | build (CI) | `https://api.dev.example.com/api` / …                                                        |
+| `PUBLIC_SOCKET_URL` → `NEXT_PUBLIC_SOCKET_URL` | web               | build (CI) | `https://socket.dev.example.com` / …                                                         |
+| `NEXT_PUBLIC_APP_ENV`                          | web               | build (CI) | CI tự đặt theo môi trường build (`BUILD_STAGE` / `STAGE`)                                    |
+| `API_URL`                                      | web (server-side) | runtime    | URL nội bộ của api trong cụm                                                                 |
 
 Local: `.env` / `.env.local` của từng app (copy từ `.env.example`, mặc định `dev`). Docker Compose: `APP_ENV` trong `deploy/.env` (dùng cho api, socket và build web).
 

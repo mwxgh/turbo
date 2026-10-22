@@ -1,14 +1,21 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
-  "globalPassThroughEnv": ["APP_ENV", "DATABASE_URL", "TEST_DATABASE_URL"],
+  "globalPassThroughEnv": [
+    "APP_ENV",
+    "DATABASE_URL",
+    "TEST_DATABASE_URL",
+    "REDIS_URL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**"]
     },
+    // Type-aware lint resolves workspace packages through their built .d.ts
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^build"],
+      "env": ["ESLINT_TYPE_CHECK"]
     },
     "check-types": {
       "dependsOn": ["^build"]

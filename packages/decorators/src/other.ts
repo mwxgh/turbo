@@ -1,3 +1,5 @@
+import { applyDecorators } from '@nestjs/common'
+
 import { Type } from 'class-transformer'
 import {
   IsDate,
@@ -13,7 +15,6 @@ import {
   type BaseFieldOptions,
   TransformEach,
   baseDecorators,
-  composeDecorators,
   mainOptions,
 } from './core.js'
 
@@ -66,7 +67,7 @@ export function EnumField(
   // IsIn over the real values: IsEnum also accepts the names of numeric enums
   // ('High' for `enum P { High = 2 }`) because of TS reverse mappings
   decorators.push(IsIn(enumValues(entity), mainOptions(options, each)))
-  return composeDecorators(...decorators)
+  return applyDecorators(...decorators)
 }
 
 export interface DateFieldOptions extends BaseFieldOptions {
@@ -91,7 +92,7 @@ export function DateField(options: DateFieldOptions = {}): PropertyDecorator {
   )
   if (min) decorators.push(MinDate(min, each))
   if (max) decorators.push(MaxDate(max, each))
-  return composeDecorators(...decorators)
+  return applyDecorators(...decorators)
 }
 
 /** ISO 8601 date string, kept as a string. */
@@ -103,7 +104,7 @@ export function DateStringField(
     format: 'date-time',
   })
   decorators.push(IsISO8601({ strict: true }, mainOptions(options, each)))
-  return composeDecorators(...decorators)
+  return applyDecorators(...decorators)
 }
 
 /** Nested object (or array of objects with `each`), validated recursively. */
@@ -117,7 +118,7 @@ export function ClassField(
     ValidateNested(each),
     Type(type),
   )
-  return composeDecorators(...decorators)
+  return applyDecorators(...decorators)
 }
 
 /** Free-form JSON object (no nested validation). Parses JSON strings from forms. */
@@ -137,5 +138,5 @@ export function JsonField(options: BaseFieldOptions = {}): PropertyDecorator {
     }),
     IsObject(mainOptions(options, each)),
   )
-  return composeDecorators(...decorators)
+  return applyDecorators(...decorators)
 }

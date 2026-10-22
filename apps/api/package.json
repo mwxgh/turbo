@@ -16,12 +16,15 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.1153.0",
+    "@aws-sdk/s3-presigned-post": "3.1153.0",
     "@nestjs/common": "catalog:nestjs",
     "@nestjs/core": "catalog:nestjs",
     "@nestjs/platform-express": "catalog:nestjs",
     "@nestjs/swagger": "catalog:nestjs",
     "@repo/db": "workspace:*",
     "@repo/decorators": "workspace:*",
+    "@repo/redis": "workspace:*",
     "@repo/utils": "workspace:*",
     "class-transformer": "catalog:nestjs",
     "class-validator": "catalog:nestjs",
@@ -41,6 +44,7 @@
     "@vitest/coverage-v8": "catalog:tooling",
     "eslint": "catalog:tooling",
     "supertest": "7.3.1",
+    "type-fest": "5.10.0",
     "typescript": "catalog:tooling",
     "vitest": "catalog:tooling"
   }

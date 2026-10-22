@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false
+  },
+  "exclude": ["node_modules", "dist"],
+  "extends": "@repo/typescript-config/node-library.json",
+  "include": ["src", "test", "vitest.config.ts", "vitest.e2e.config.ts"]
+}

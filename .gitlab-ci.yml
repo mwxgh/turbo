@@ -66,11 +66,14 @@ check:
   services:
     - name: postgres:17-alpine
       alias: postgres
+    - name: redis:8-alpine
+      alias: redis
   variables:
     POSTGRES_DB: app
     POSTGRES_USER: app
     POSTGRES_PASSWORD: app
     DATABASE_URL: postgresql://app:app@postgres:5432/app?schema=public
+    REDIS_URL: redis://redis:6379
     PRISMA_HIDE_UPDATE_MESSAGE: '1'
     TURBO_TELEMETRY_DISABLED: '1'
     HUSKY: '0'
@@ -92,9 +95,9 @@ check:
     - pnpm db:deploy
     - pnpm db:check
     # Backend e2e: api on <db>_test, socket over a real port
-    - pnpm turbo run test:e2e --filter=api --filter=socket --cache-dir=.turbo/cache
+    - pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis --cache-dir=.turbo/cache
 
-# Browser e2e: Playwright starts api, socket and web against Postgres.
+# Browser e2e: Playwright starts api, socket and web against Postgres + Redis.
 # Debian image: Playwright's browser dependencies need apt.
 e2e:
   stage: check
@@ -102,6 +105,8 @@ e2e:
   services:
     - name: postgres:17-alpine
       alias: postgres
+    - name: redis:8-alpine
+      alias: redis
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -111,6 +116,10 @@ e2e:
     POSTGRES_USER: app
     POSTGRES_PASSWORD: app
     DATABASE_URL: postgresql://app:app@postgres:5432/app?schema=public
+    REDIS_URL: redis://redis:6379
+    # Uploads are mocked in the browser test; the api only needs valid config
+    STORAGE_CORE_S3_SERVERS: '[{"NAME":"default","CONFIG":{"ENDPOINT":"http://storage.test","KEY":"test","SECRET":"test-secret"}}]'
+    STORAGE_BUCKET: test
     PRISMA_HIDE_UPDATE_MESSAGE: '1'
     TURBO_TELEMETRY_DISABLED: '1'
     HUSKY: '0'

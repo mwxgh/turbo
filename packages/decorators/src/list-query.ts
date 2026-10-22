@@ -52,7 +52,8 @@ export class ListQueryDto extends PaginationQueryDto implements ListQuery {
 }
 
 const describeFilters = (spec: ListSpec): string => {
-  const lines = Object.entries(spec.filters ?? {}).map(([key, field]) => {
+  const lines = Object.entries(spec.filters ?? {}).flatMap(([key, field]) => {
+    if (!field) return []
     const values = field.values ? ` (${field.values.join(' | ')})` : ''
     const nullable = field.nullable ? ', nullable' : ''
     return `- \`${key}\`: ${field.type}${values}${nullable} – ${FILTER_OPERATORS[field.type].join(', ')}`

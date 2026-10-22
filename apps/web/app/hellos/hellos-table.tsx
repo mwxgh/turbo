@@ -2,17 +2,25 @@
 
 import { useMemo, useState } from 'react'
 
-import { Button } from '@repo/ui/components/button'
-import { DataTable, dataTableColumns } from '@repo/ui/components/data-table'
+import { Pencil, Trash2 } from 'lucide-react'
+
+import {
+  DataTable,
+  actionsColumn,
+  dataTableColumns,
+  useListTable,
+} from '@repo/ui/components/data-table'
 import { formatDateTime } from '@repo/utils'
 
+import { hellosListQueryOptions } from '../../lib/queries/hellos'
 import type { Hello } from '../../lib/types'
 import { HelloForm } from './hello-form'
 import { useDeleteHello, useHelloActions } from './use-hello-mutations'
 
 const col = dataTableColumns<Hello>()
 
-export function HellosTable({ hellos }: { hellos: Hello[] }) {
+/** Server-side list: sort, search, date filter and pages go through the API (URL state). */
+export function HellosTable() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const actions = useHelloActions()
   const { mutate: removeHello } = useDeleteHello()
@@ -22,7 +30,7 @@ export function HellosTable({ hellos }: { hellos: Hello[] }) {
       col.columns([
         col.accessor('message', {
           header: 'Message',
-          sortFn: 'alphanumeric',
+          enableSorting: true,
           cell: ({ row }) =>
             row.original.id === editingId ? (
               <HelloForm
@@ -40,47 +48,47 @@ export function HellosTable({ hellos }: { hellos: Hello[] }) {
         }),
         col.accessor('createdAt', {
           header: 'Created',
-          sortFn: 'datetime',
-          // ISO strings compare as dates; displayed in Vietnam time
+          enableSorting: true,
+          meta: { filterVariant: 'dateRange' },
+          // Displayed in Vietnam time
           cell: ({ getValue }) => (
             <time dateTime={getValue()} className="text-muted-foreground">
               {formatDateTime(getValue())}
             </time>
           ),
         }),
-        col.display({
-          id: 'actions',
-          header: () => <span className="sr-only">Actions</span>,
-          cell: ({ row }) =>
-            row.original.id === editingId ? null : (
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditingId(row.original.id)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => removeHello(row.original.id)}
-                >
-                  Delete
-                </Button>
-              </div>
-            ),
-        }),
+        // The editor row has its own Save / Cancel
+        actionsColumn<Hello>((hello) =>
+          hello.id === editingId
+            ? []
+            : [
+                {
+                  label: 'Edit',
+                  icon: <Pencil />,
+                  onClick: () => setEditingId(hello.id),
+                },
+                {
+                  label: 'Delete',
+                  icon: <Trash2 />,
+                  variant: 'destructive',
+                  onClick: () => removeHello(hello.id),
+                },
+              ],
+        ),
       ]),
     [editingId, actions, removeHello],
   )
 
+  const list = useListTable({
+    columns,
+    listQuery: hellosListQueryOptions,
+    getRowId: (hello) => hello.id,
+  })
+
   return (
     <DataTable
-      columns={columns}
-      data={hellos}
-      getRowId={(hello) => hello.id}
-      filterPlaceholder="Search hellos…"
+      list={list}
+      searchPlaceholder="Search hellos…"
       emptyMessage="No hellos yet."
     />
   )

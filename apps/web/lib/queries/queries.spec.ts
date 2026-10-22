@@ -7,9 +7,14 @@ const { apiFetch } = vi.hoisted(() => ({ apiFetch: vi.fn() }))
 vi.mock('../api', () => ({ apiFetch }))
 
 describe('query options', () => {
-  it('nests list keys under hellosKeys.all for invalidation', () => {
-    expect(hellosListQueryOptions().queryKey).toEqual(['hellos', 'list'])
-    expect(hellosKeys.list().slice(0, 1)).toEqual([...hellosKeys.all])
+  it('keys each list query under hellosKeys.all (one cache entry per page/filter)', () => {
+    const query = { page: 2, pageSize: 20, keyword: 'xin' }
+    expect(hellosListQueryOptions(query).queryKey).toEqual([
+      'hellos',
+      'list',
+      query,
+    ])
+    expect(hellosKeys.lists().slice(0, 1)).toEqual([...hellosKeys.all])
   })
 
   it('polls health and does not retry (shows offline fast)', () => {
@@ -18,17 +23,20 @@ describe('query options', () => {
     expect(options.retry).toBe(false)
   })
 
-  it('fetch the expected API paths', async () => {
+  it('fetches the expected API paths', async () => {
     apiFetch.mockResolvedValue({})
     const ctx = {} as never
-    await hellosListQueryOptions().queryFn!(ctx)
+    await hellosListQueryOptions({
+      page: 1,
+      pageSize: 20,
+      sortBy: 'createdAt',
+      sortDir: 'desc',
+    }).queryFn!(ctx)
     await healthQueryOptions().queryFn!(ctx)
     expect(apiFetch).toHaveBeenNthCalledWith(
       1,
-      '/hellos?pageSize=100&sortBy=createdAt&sortDir=desc',
-      {
-        cache: 'no-store',
-      },
+      '/hellos?page=1&pageSize=20&sortBy=createdAt&sortDir=desc',
+      { cache: 'no-store' },
     )
     expect(apiFetch).toHaveBeenNthCalledWith(2, '/health', {
       cache: 'no-store',

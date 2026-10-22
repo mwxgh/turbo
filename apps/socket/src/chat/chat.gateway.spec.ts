@@ -14,8 +14,9 @@ function setup() {
   const client = {
     id: 'socket-1',
     rooms,
-    join: vi.fn(async (room: string) => {
+    join: vi.fn((room: string) => {
       rooms.add(room)
+      return Promise.resolve()
     }),
   }
   // Only the members the gateway touches are mocked

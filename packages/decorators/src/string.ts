@@ -1,3 +1,5 @@
+import { applyDecorators } from '@nestjs/common'
+
 import {
   IsEmail,
   IsNotEmpty,
@@ -17,7 +19,6 @@ import {
   type BaseFieldOptions,
   TransformEach,
   baseDecorators,
-  composeDecorators,
   mainOptions,
 } from './core.js'
 
@@ -77,7 +78,7 @@ function stringField(
   if (maxLength !== undefined) decorators.push(MaxLength(maxLength, each))
   if (pattern) decorators.push(Matches(pattern, each))
 
-  return composeDecorators(...decorators, ...extra)
+  return applyDecorators(...decorators, ...extra)
 }
 
 /** Trimmed string. */
@@ -140,7 +141,7 @@ export interface PhoneFieldOptions extends StringFieldOptions {
 
 /** Phone number; spaces, dots, dashes and parentheses are stripped first. */
 export function PhoneField(options: PhoneFieldOptions = {}): PropertyDecorator {
-  return composeDecorators(
+  return applyDecorators(
     TransformEach((v) =>
       typeof v === 'string' ? v.replace(/[\s.\-()]/g, '') : v,
     ),

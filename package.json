@@ -5,7 +5,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write --check .",
+    "format": "prettier --write .",
     "check-types": "turbo run check-types",
     "dev:api": "turbo run dev --filter=api",
     "dev:socket": "turbo run dev --filter=socket",
@@ -48,7 +48,7 @@
     "prettier-plugin-merge": "0.10.1",
     "prettier-plugin-sort-json": "4.2.0",
     "prettier-plugin-tailwindcss": "0.8.1",
-    "turbo": "^2.11.9",
+    "turbo": "2.11.9",
     "typescript": "catalog:tooling"
   },
   "packageManager": "pnpm@11.25.0",

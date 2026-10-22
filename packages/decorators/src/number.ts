@@ -1,3 +1,5 @@
+import { applyDecorators } from '@nestjs/common'
+
 import {
   IsBoolean,
   IsDivisibleBy,
@@ -12,7 +14,6 @@ import {
   type BaseFieldOptions,
   TransformEach,
   baseDecorators,
-  composeDecorators,
   mainOptions,
 } from './core.js'
 
@@ -60,7 +61,7 @@ export function NumberField(
   if (positive) decorators.push(IsPositive(each))
   if (multipleOf !== undefined) decorators.push(IsDivisibleBy(multipleOf, each))
 
-  return composeDecorators(...decorators)
+  return applyDecorators(...decorators)
 }
 
 export function IntField(
@@ -82,5 +83,5 @@ export function BooleanField(
     }),
     IsBoolean(mainOptions(options, each)),
   )
-  return composeDecorators(...decorators)
+  return applyDecorators(...decorators)
 }

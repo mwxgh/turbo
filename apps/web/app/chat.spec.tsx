@@ -89,7 +89,7 @@ beforeAll(() => {
       value: top,
     })
     this.dispatchEvent(new Event('scroll'))
-  } as Element['scrollTo']
+  }
 })
 afterAll(() => {
   layout.forEach((key, i) => {
@@ -160,6 +160,24 @@ describe('Chat', () => {
     expect(
       await screen.findByText('Join room "lobby" first'),
     ).toBeInTheDocument()
+  })
+
+  it('shows an error when the server does not ack in time', async () => {
+    const fake = socket.current!
+    fake.emitWithAck
+      .mockResolvedValueOnce({ ok: true, data: undefined })
+      .mockRejectedValueOnce(new Error('operation has timed out'))
+    render(<Chat />)
+    await fake.fire('connect')
+
+    const input = screen.getByPlaceholderText('Message #lobby')
+    await userEvent.type(input, 'hi')
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }))
+
+    expect(
+      await screen.findByText('The server did not answer. Try again.'),
+    ).toBeInTheDocument()
+    expect(input).toHaveValue('hi') // kept so the user can resend
   })
 
   it('virtualizes long histories (renders only visible rows)', async () => {
