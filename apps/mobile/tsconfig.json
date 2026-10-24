@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "exclude": ["node_modules", "android", "ios"],
+  "extends": "expo/tsconfig.base",
+  "include": ["src", "*.ts", "*.mts", "*.js", "*.mjs", "nativewind-env.d.ts"]
+}

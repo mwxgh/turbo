@@ -1,7 +1,8 @@
 import { queryOptions } from '@tanstack/react-query'
 
+import type { HealthResponse } from '@repo/types'
+
 import { apiFetch } from '../api'
-import type { HealthResponse } from '../types'
 
 export const HEALTH_POLL_MS = 10_000
 

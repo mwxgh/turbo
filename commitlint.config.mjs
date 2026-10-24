@@ -13,6 +13,7 @@ export default {
         'api',
         'socket',
         'web',
+        'mobile',
         'ui',
         'db',
         'types',

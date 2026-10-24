@@ -10,6 +10,7 @@
     "dev:api": "turbo run dev --filter=api",
     "dev:socket": "turbo run dev --filter=socket",
     "dev:web": "turbo run dev --filter=web",
+    "dev:mobile": "turbo run dev --filter=mobile",
     "start:api": "pnpm --filter api start",
     "start:socket": "pnpm --filter socket start",
     "start:web": "pnpm --filter web start",

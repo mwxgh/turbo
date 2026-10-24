@@ -1,3 +1,5 @@
+import { messageOf } from './api-fetch.js'
+
 /** Upload refused by the server: `status` 0 means it never answered (network). */
 export class UploadError extends Error {
   constructor(
@@ -8,13 +10,6 @@ export class UploadError extends Error {
     super(message ?? messageOf(body) ?? `Upload failed (${status})`)
     this.name = 'UploadError'
   }
-}
-
-/** Nest error bodies: `{ message: string | string[] }`. */
-function messageOf(body: unknown): string | undefined {
-  if (typeof body !== 'object' || body === null || !('message' in body)) return
-  const { message } = body
-  return Array.isArray(message) ? message.join(', ') : String(message)
 }
 
 export interface UploadOptions {
