@@ -1,4 +1,4 @@
-import { ApiProperty, type ApiPropertyOptions } from '@nestjs/swagger'
+import { ApiProperty } from '@nestjs/swagger'
 
 import { Transform } from 'class-transformer'
 import {
@@ -36,20 +36,6 @@ export interface BaseFieldOptions {
 /** Swagger schema bits that depend on the field type (type, format, enum, min, …). */
 export type ApiSchema = Record<string, unknown>
 
-/**
- * Combine property decorators into one (framework-agnostic `applyDecorators`).
- * Note: class-transformer runs `@Transform`s in reverse registration order, so
- * field transforms must not depend on each other's order (map items with
- * `TransformEach`, which treats a single value and an array the same way).
- */
-export function composeDecorators(
-  ...decorators: PropertyDecorator[]
-): PropertyDecorator {
-  return (target, key) => {
-    for (const decorator of decorators) decorator(target, key)
-  }
-}
-
 function presence({ optional, nullable }: BaseFieldOptions): PropertyDecorator {
   if (optional && nullable) return IsOptional()
   if (optional || nullable) {
@@ -83,7 +69,7 @@ function apiProperty(
           }
         : {}),
       ...schema,
-    } as ApiPropertyOptions),
+    }),
   ]
 }
 
@@ -115,7 +101,12 @@ export const mainOptions = (
 ): ValidationOptions =>
   options.message ? { ...each, message: options.message } : each
 
-/** `@Transform` that maps the value, or each item when it is an array. */
+/**
+ * `@Transform` that maps the value, or each item when it is an array.
+ * class-transformer runs `@Transform`s in reverse registration order, so field
+ * transforms must not depend on each other's order – mapping items keeps a
+ * single value and an array (after `ToArray`) equivalent.
+ */
 export const TransformEach = (fn: (value: unknown) => unknown) =>
   Transform(({ value }: { value: unknown }) =>
     Array.isArray(value) ? value.map(fn) : fn(value),

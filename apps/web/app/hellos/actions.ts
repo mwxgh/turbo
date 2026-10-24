@@ -3,10 +3,12 @@
 // Mutations for /hellos. The page's data lives in the TanStack Query cache:
 // callers invalidate `hellosKeys.all` after success (see use-hello-mutations).
 import { ApiError, apiFetch } from '../../lib/api'
-import type { ApiErrorBody, Hello } from '../../lib/types'
-
-export type HelloInput = { message: string }
-export type ActionState = { errors?: string[] }
+import type {
+  ActionState,
+  ApiErrorBody,
+  Hello,
+  HelloInput,
+} from '../../lib/types'
 
 /** Validation lives in the API's DTOs; surface its error messages to the form. */
 function toState(error: unknown): ActionState {

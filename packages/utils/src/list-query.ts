@@ -75,11 +75,18 @@ export const FILTER_OPERATORS: Record<
   date: ['eq', 'gt', 'gte', 'lt', 'lte', 'from', 'to'],
 }
 
-export interface FilterFieldSpec {
+/**
+ * Field names a spec may use for a model: its own columns (checked) plus
+ * relation paths with a dot (`author.name`, not checked – model types have no relations).
+ */
+export type ListField<TModel> =
+  Extract<keyof TModel, string> | `${string}.${string}`
+
+export interface FilterFieldSpec<F extends string = string> {
   type: FilterFieldType
   /** Database path when it differs from the filter key; dots go through relations (`author.name`). */
-  path?: string
-  /** Allowed values for `enum` fields. */
+  path?: F
+  /** Allowed values for `enum` fields (e.g. `Object.values(Status)` of a Prisma enum). */
   values?: readonly string[]
   /** `null` (IS NULL) / `{ not: null }` (IS NOT NULL) allowed. */
   nullable?: boolean
@@ -87,21 +94,40 @@ export interface FilterFieldSpec {
   caseInsensitive?: boolean
 }
 
-export interface ListSpec {
+/** `F`: allowed field names – `string`, or `ListField<Model>` via `defineListSpecFor`. */
+export interface ListSpec<F extends string = string> {
   /** Fields searched (OR, contains, case-insensitive) by `keyword`. */
-  keywordFields?: readonly string[]
+  keywordFields?: readonly F[]
   /** Fields `sortBy` may use (filter keys or database paths). */
-  sortable?: readonly string[]
-  defaultSort?: { field: string; dir: SortDirection }
+  sortable?: readonly F[]
+  defaultSort?: { field: F; dir: SortDirection }
   /** Unique field appended to every sort so pages are stable. Default `id`. */
-  tieBreaker?: string
-  filters?: Record<string, FilterFieldSpec>
+  tieBreaker?: F
+  filters?: { readonly [K in F]?: FilterFieldSpec<F> }
   /** Time zone of `date` filters. Default Asia/Ho_Chi_Minh. */
   timeZone?: string
 }
 
 /** Identity helper that keeps the literal types of a spec. */
 export const defineListSpec = <const S extends ListSpec>(spec: S): S => spec
+
+/**
+ * `defineListSpec` with field names checked against a model type, e.g. the
+ * Prisma-generated one – a typo or a renamed column fails at compile time:
+ *
+ *   export const helloListSpec = defineListSpecFor<Hello>()({ sortable: ['message'] })
+ */
+export const defineListSpecFor =
+  <TModel>() =>
+  <const S extends ListSpec<ListField<TModel>>>(
+    spec: S & AliasesNeedPath<S, ListField<TModel>>,
+  ): S =>
+    spec
+
+/** A filter key that is not a field (an alias) must say which field it reads via `path`. */
+type AliasesNeedPath<S, F> = S extends { filters: infer Filters }
+  ? { filters: { [K in keyof Filters]: K extends F ? unknown : { path: F } } }
+  : unknown
 
 /** Invalid keyword/filter/sort input – APIs map it to 400 Bad Request. */
 export class ListQueryError extends Error {
@@ -292,7 +318,7 @@ export function parseListSort(
     return {
       path:
         spec.filters?.[spec.defaultSort.field]?.path ?? spec.defaultSort.field,
-      dir: (dir as SortDirection | undefined) ?? spec.defaultSort.dir,
+      dir: dir ?? spec.defaultSort.dir,
     }
   }
   if (!spec.sortable?.includes(sortBy)) {
@@ -303,7 +329,7 @@ export function parseListSort(
   }
   return {
     path: spec.filters?.[sortBy]?.path ?? sortBy,
-    dir: (dir as SortDirection | undefined) ?? SortDirection.Asc,
+    dir: dir ?? SortDirection.Asc,
   }
 }
 

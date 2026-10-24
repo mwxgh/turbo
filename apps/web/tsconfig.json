@@ -1,11 +1,5 @@
 {
   "compilerOptions": {
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "strictNullChecks": true,
     "paths": {
       "@/*": ["./*"]
     }

@@ -69,18 +69,22 @@ export function Chat() {
     if (messages.length) virtualizer.scrollToIndex(messages.length - 1)
   }, [messages.length, virtualizer])
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const res = await getSocket().emitWithAck('chat:send', {
-      room: ROOM,
-      text,
-    })
-    if (res.ok) {
-      setText('')
-      setError(null)
-    } else {
-      setError(res.errors.join(', '))
-    }
+    getSocket()
+      .emitWithAck('chat:send', { room: ROOM, text })
+      .then(
+        (res) => {
+          if (res.ok) {
+            setText('')
+            setError(null)
+          } else {
+            setError(res.errors.join(', '))
+          }
+        },
+        // ackTimeout (lib/socket.ts) elapsed: server down or connection lost
+        () => setError('The server did not answer. Try again.'),
+      )
   }
 
   return (

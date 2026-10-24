@@ -59,8 +59,17 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
       DATABASE_URL: postgresql://app:app@localhost:5432/app?schema=public
+      REDIS_URL: redis://localhost:6379
       PRISMA_HIDE_UPDATE_MESSAGE: '1'
       TURBO_TELEMETRY_DISABLED: '1'
     steps:
@@ -88,9 +97,9 @@ jobs:
           pnpm db:check
 
       - name: Backend e2e (api on <db>_test, socket)
-        run: pnpm turbo run test:e2e --filter=api --filter=socket
+        run: pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis
 
-  # Browser e2e: Playwright starts api, socket and web against Postgres
+  # Browser e2e: Playwright starts api, socket and web against Postgres + Redis
   e2e:
     runs-on: ubuntu-latest
     services:
@@ -106,8 +115,20 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
       DATABASE_URL: postgresql://app:app@localhost:5432/app?schema=public
+      REDIS_URL: redis://localhost:6379
+      # Uploads are mocked in the browser test; the api only needs valid config
+      STORAGE_CORE_S3_SERVERS: '[{"NAME":"default","CONFIG":{"ENDPOINT":"http://storage.test","KEY":"test","SECRET":"test-secret"}}]'
+      STORAGE_BUCKET: test
       PRISMA_HIDE_UPDATE_MESSAGE: '1'
       TURBO_TELEMETRY_DISABLED: '1'
     steps:

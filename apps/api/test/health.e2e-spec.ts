@@ -24,7 +24,7 @@ describe('Health & docs (e2e)', () => {
       status: 'ok',
       service: 'api',
       env: 'dev',
-      checks: { database: 'up' },
+      checks: { database: 'up', redis: 'up' },
     })
   })
 

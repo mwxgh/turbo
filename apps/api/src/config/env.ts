@@ -1,43 +1,28 @@
 import {
-  EnumField,
+  BaseEnv,
   IntField,
   StringField,
   UrlField,
   validateEnv,
 } from '@repo/decorators'
-import { AppEnv } from '@repo/utils'
 
-export enum NodeEnv {
-  Development = 'development',
-  Test = 'test',
-  Production = 'production',
-}
-
-/** Environment variables. Property initializers are the defaults. */
-export class Env {
-  @EnumField(NodeEnv, { optional: true })
-  NODE_ENV: NodeEnv = NodeEnv.Development
-
-  /** Deployment environment: dev | stg | prod (see docs/process/environments.md). */
-  @EnumField(AppEnv, { optional: true })
-  APP_ENV: AppEnv = AppEnv.Dev
-
-  @StringField({ optional: true })
-  HOST = '0.0.0.0'
-
+/** Environment variables: shared ones in BaseEnv. Property initializers are the defaults. */
+export class Env extends BaseEnv {
   @IntField({ optional: true, min: 1, max: 65535 })
   PORT = 4000
 
-  /** Comma-separated list of allowed browser origins. */
-  @StringField({ optional: true })
-  CORS_ORIGINS = 'http://localhost:3000'
-
   @UrlField({ protocols: ['postgres', 'postgresql'] })
   DATABASE_URL: string
+
+  /**
+   * S3 / MinIO servers, btp format (the "default" one is used):
+   * [{"NAME":"default","CONFIG":{"ENDPOINT","PUBLIC_ENDPOINT","KEY","SECRET","REGION"}}]
+   */
+  @StringField()
+  STORAGE_CORE_S3_SERVERS: string
+
+  @StringField()
+  STORAGE_BUCKET: string
 }
 
 export const env = validateEnv(Env)
-
-export const corsOrigins = env.CORS_ORIGINS.split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean)

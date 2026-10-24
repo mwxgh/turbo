@@ -22,7 +22,7 @@ import {
 } from '@repo/socket-events'
 
 import { SubscribeEvent } from '../common/subscribe-event.decorator.js'
-import { corsOrigins } from '../config/env.js'
+import { env } from '../config/env.js'
 import { JoinRoomDto } from './dto/join-room.dto.js'
 import { SendMessageDto } from './dto/send-message.dto.js'
 
@@ -35,7 +35,7 @@ type AppSocket = Socket<ClientToServerEvents, ServerToClientEvents>
  */
 @WebSocketGateway({
   namespace: SOCKET_NAMESPACE,
-  cors: { origin: corsOrigins, credentials: true },
+  cors: { origin: env.corsOrigins, credentials: true },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(ChatGateway.name)

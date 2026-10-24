@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 
+import { ModeToggle } from '@repo/ui/components/mode-toggle'
 import { cn } from '@repo/ui/lib/utils'
 
 import { EnvBadge } from './env-badge'
@@ -9,7 +10,6 @@ import './globals.css'
 
 import { Providers } from './providers'
 
-// Variables consumed by the theme in @repo/tailwind-config (font-sans / font-mono)
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
   variable: '--font-sans',
@@ -30,7 +30,6 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    // next-themes sets the `dark` class before hydration
     <html
       lang="en"
       suppressHydrationWarning
@@ -40,8 +39,11 @@ export default function RootLayout({
         geistMono.variable,
       )}
     >
-      <body>
+      <body suppressHydrationWarning>
         <Providers>
+          <header className="flex justify-end px-4 pt-4">
+            <ModeToggle />
+          </header>
           {children}
           <EnvBadge />
         </Providers>

@@ -10,8 +10,9 @@ describe('SubscribeEvent', () => {
       @SubscribeEvent('chat:send')
       handle() {}
     }
-    expect(
-      Reflect.getMetadata(MESSAGE_METADATA, Gateway.prototype.handle),
-    ).toBe('chat:send')
+    // Reads metadata stored on the function; it is never called unbound
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const handler = Gateway.prototype.handle
+    expect(Reflect.getMetadata(MESSAGE_METADATA, handler)).toBe('chat:send')
   })
 })

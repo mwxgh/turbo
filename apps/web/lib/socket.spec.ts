@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { SOCKET_NAMESPACE } from '@repo/socket-events'
 
 import { publicEnv } from './env'
-import { getSocket } from './socket'
+import { ACK_TIMEOUT_MS, getSocket } from './socket'
 
 // vi.mock is hoisted above the imports, so ./socket gets the fake client
 const io = vi.hoisted(() => vi.fn(() => ({ id: 'fake' })))
@@ -21,6 +21,8 @@ describe('getSocket', () => {
       {
         autoConnect: false,
         withCredentials: true,
+        // acks never hang forever
+        ackTimeout: ACK_TIMEOUT_MS,
       },
     )
   })
