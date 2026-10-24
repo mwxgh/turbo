@@ -21,6 +21,7 @@
     "stack:up": "pnpm infra --profile app up -d --build --wait",
     "stack:down": "pnpm infra --profile app rm -sf migrate api socket web",
     "db:generate": "pnpm --filter @repo/db db:generate",
+    "db:types": "pnpm --filter @repo/db db:types",
     "db:migrate": "pnpm --filter @repo/db db:migrate",
     "db:push": "pnpm --filter @repo/db db:push",
     "db:deploy": "pnpm --filter @repo/db db:deploy",

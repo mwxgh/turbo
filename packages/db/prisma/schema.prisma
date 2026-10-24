@@ -5,6 +5,12 @@ generator client {
   importFileExtension = "js"
 }
 
+// Plain interfaces + enums for the web, committed in packages/types
+generator types {
+  provider = "tsx prisma/generators/types.ts"
+  output   = "../../types/src/generated"
+}
+
 datasource db {
   provider = "postgresql"
 }

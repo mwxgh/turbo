@@ -6,21 +6,11 @@ import {
 } from '@nestjs/common'
 
 import { InjectRedis, type Redis, pingRedis } from '@repo/redis'
-import type { AppEnv } from '@repo/utils'
 
 import { env } from '../config/env.js'
 import { PrismaService } from '../prisma/prisma.service.js'
 
 type Status = 'up' | 'down'
-
-export interface HealthResponse {
-  status: 'ok'
-  service: string
-  env: AppEnv
-  uptime: number
-  timestamp: string
-  checks: { database: 'up'; redis: 'up' }
-}
 
 const TIMEOUT_MS = 2_000
 
@@ -35,7 +25,7 @@ export class HealthController {
 
   /** 200 when the API, its database and Redis respond; 503 otherwise (load balancers / Docker). */
   @Get()
-  async check(): Promise<HealthResponse> {
+  async check() {
     const [database, redis] = await Promise.all([
       this.pingDatabase(),
       pingRedis(this.redis, TIMEOUT_MS),

@@ -15,6 +15,7 @@ export default {
         'web',
         'ui',
         'db',
+        'types',
         'redis',
         'decorators',
         'utils',

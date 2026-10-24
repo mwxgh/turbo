@@ -4,13 +4,15 @@ import { useMemo } from 'react'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import type { Hello } from '@repo/types'
 import { toast } from '@repo/ui/components/sonner'
 import { type Paginated, totalPages } from '@repo/utils'
 
 import { withToast } from '../../lib/action-toast'
 import { hellosKeys } from '../../lib/queries/hellos'
-import type { ActionState, Hello, HelloInput } from '../../lib/types'
+import type { ActionState } from '../../lib/types'
 import { createHello, deleteHello, updateHello } from './actions'
+import type { HelloInput } from './hello-form'
 
 /** Server actions with toasts; refresh the cached hello list on success (stable object). */
 export function useHelloActions() {

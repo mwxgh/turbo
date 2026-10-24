@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 
+import type { Hello } from '@repo/types'
 import {
   type ListQuery,
   type Paginated,
@@ -7,7 +8,6 @@ import {
 } from '@repo/utils'
 
 import { apiFetch } from '../api'
-import type { Hello } from '../types'
 
 /** Query keys: invalidate `hellosKeys.all` after any hello mutation. */
 export const hellosKeys = {
