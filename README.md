@@ -7,6 +7,7 @@ Monorepo base (pnpm + Turborepo) để copy làm khung cho các dự án mới.
 | `apps/api`                   | `api`                     | NestJS 12 REST API (prefix `/api`)                                                                 | 4000 |
 | `apps/socket`                | `socket`                  | NestJS 12 + Socket.IO gateway (namespace `/events`)                                                | 4001 |
 | `apps/web`                   | `web`                     | Next.js 16 (App Router)                                                                            | 3000 |
+| `apps/mobile`                | `mobile`                  | Expo SDK 58 (React Native, Expo Router, NativeWind)                                                | 8081 |
 | `packages/db`                | `@repo/db`                | Prisma 7 + PostgreSQL (schema, migrations, seed, client)                                           | –    |
 | `packages/types`             | `@repo/types`             | Interface model + enum sinh từ `schema.prisma` (commit sẵn, web dùng không cần Prisma)             | –    |
 | `packages/redis`             | `@repo/redis`             | Redis dùng chung cho backend (ioredis): `RedisModule`, `@InjectRedis()`, `RedisCache`, `pingRedis` | –    |
@@ -33,6 +34,7 @@ cp packages/db/.env.example packages/db/.env
 cp apps/api/.env.example apps/api/.env
 cp apps/socket/.env.example apps/socket/.env
 cp apps/web/.env.example apps/web/.env.local
+cp apps/mobile/.env.example apps/mobile/.env
 
 pnpm infra:up       # start PostgreSQL + Redis (đợi healthy)
 pnpm db:deploy      # apply migrations (pnpm build sẽ tự generate Prisma client)
@@ -42,6 +44,7 @@ pnpm dev            # chạy tất cả (build các package trước)
 pnpm dev:api        # chỉ api
 pnpm dev:socket
 pnpm dev:web
+pnpm dev:mobile     # Expo dev server (quét QR bằng Expo Go, hoặc a / i cho emulator)
 ```
 
 Scripts khác: `pnpm build`, `pnpm lint`, `pnpm check-types`, `pnpm test`, `pnpm format` / `format:check`, `pnpm start:api|start:socket|start:web`.
@@ -301,12 +304,23 @@ Tận dụng code Prisma sinh ra ở mọi tầng:
 - `app/page.tsx` + `app/chat.tsx`: trang demo (health API + chat realtime).
 - `app/hellos`: CRUD mẫu dùng Server Actions (`actions.ts`) gọi API; lỗi validation lấy từ response của API.
 
+### Mobile (`apps/mobile`)
+
+Expo SDK 58 + Expo Router (`src/app`), cùng bộ thư viện dữ liệu với web: TanStack Query/Form, `createApiFetch` + `ApiError` (`@repo/utils`), model và contract từ `@repo/types`.
+
+- `src/lib/env.ts`: `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_APP_ENV` (đọc lúc build; `eas.json`: `development`/`preview`/`production` → `dev`/`stg`/`prod`). Emulator Android gọi máy host qua `10.0.2.2`, thiết bị thật qua IP LAN.
+- Style: NativeWind 5 (Tailwind v4, cùng bản với web qua `catalog:tailwind`). `src/global.css` import `@repo/tailwind-config/theme.css` – file token dùng chung với web – nên đổi màu một chỗ cho cả hai; `oklch` được đổi sang hex lúc build. Native không có class `.dark`: `postcss.config.mjs` chuyển `.dark { … }` thành `@media (prefers-color-scheme: dark)` (theo cài đặt hệ thống). NativeWind 5 đang là RC; `overrides` trong `pnpm-workspace.yaml` ghim `lightningcss` 1.30.1 cho Expo (bản mới hơn lỗi với `var()`), gỡ khi upstream sửa.
+- Chạy thử không cần emulator: `pnpm dev:mobile` rồi nhấn `w` (bản web qua `react-native-web`, cổng 8081 – đã có trong `CORS_ORIGINS` của `.env.example` api/socket). App native không gửi `Origin` nên không bị CORS chặn.
+- Ghi dữ liệu: `useMutation` gọi thẳng API → `toast` (`sonner-native`) → `invalidateQueries`.
+- Test: Vitest cho code không phụ thuộc React Native (`src/**/*.spec.ts`); màn hình kiểm tra bằng `pnpm --filter mobile exec expo export` (bundle) hoặc chạy app.
+- Build native: EAS (`eas build --profile <tên>`), không nằm trong `turbo build`; `android/` `ios/` sinh bằng `expo prebuild`, không commit.
+
 ### UI: Tailwind, shadcn/ui, TanStack
 
 | Phần              | Ở đâu                                                                                                                                                                                                                                                | Ghi chú                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tailwind CSS v4   | `packages/tailwind-config` (`shared-styles.css`, `postcss.config.mjs`)                                                                                                                                                                               | App: `@import '@repo/tailwind-config'` + `@source` tới `packages/ui/src` (xem `apps/web/app/globals.css`)                                                                                                                                                                                                                                                                                                                         |
-| Theme             | `shared-styles.css` (`:root` sáng, `.dark` tối, màu `oklch`)                                                                                                                                                                                         | Dark mode: `next-themes` (`apps/web/components/theme-provider.tsx`); nút `ModeToggle` (`@repo/ui/components/mode-toggle`, 1 click đổi sáng ↔ tối, lưu localStorage) ở header trong `app/layout.tsx`; phím tắt `d`                                                                                                                                                                                                                 |
+| Theme             | `theme.css` (`:root` sáng, `.dark` tối, màu `oklch`; web import qua `shared-styles.css`, mobile import trực tiếp)                                                                                                                                    | Dark mode: `next-themes` (`apps/web/components/theme-provider.tsx`); nút `ModeToggle` (`@repo/ui/components/mode-toggle`, 1 click đổi sáng ↔ tối, lưu localStorage) ở header trong `app/layout.tsx`; phím tắt `d`                                                                                                                                                                                                                 |
 | shadcn/ui         | `packages/ui/src/components/` – primitive shadcn để phẳng (CLI thêm vào đây: `button`, `select`…); component tự viết dùng nhiều nơi cũng phẳng (`date-picker`, `icon-button`); cụm nhiều file gom thư mục (`data-table/`: `index.tsx` là public API) | Import: `@repo/ui/components/button`, `@repo/ui/components/data-table`, `cn` từ `@repo/ui/lib/utils`                                                                                                                                                                                                                                                                                                                              |
 | TanStack Table v9 | `@repo/ui/components/data-table` (+ `/server` cho prefetch)                                                                                                                                                                                          | Bảng danh sách phía server: `useListTable` + `<DataTable list>` (xem mục dưới); ví dụ `apps/web/app/hellos/hellos-table.tsx`                                                                                                                                                                                                                                                                                                      |
 | TanStack Form     | `apps/web/app/hellos/hello-form.tsx`                                                                                                                                                                                                                 | Validate client (`onChange`) + lỗi API qua `validators.onSubmitAsync` (Server Action)                                                                                                                                                                                                                                                                                                                                             |
@@ -399,10 +413,12 @@ ESLint dùng `typescript-eslint` **có kiểm tra kiểu** (`recommendedTypeChec
 
 Version dùng chung được khai báo **một lần** trong `catalogs` của `pnpm-workspace.yaml`, `package.json` tham chiếu bằng `"catalog:<tên>"`:
 
-| Catalog   | Gồm                                                                                     | Dùng ở                              |
-| --------- | --------------------------------------------------------------------------------------- | ----------------------------------- |
-| `tooling` | `typescript`, `eslint`, `@types/node`, `tsx`                                            | mọi package (dev tooling)           |
-| `nestjs`  | toàn bộ `@nestjs/*`, `class-validator`, `class-transformer`, `reflect-metadata`, `rxjs` | `api`, `socket`, `@repo/decorators` |
+| Catalog    | Gồm                                                                                      | Dùng ở                                   |
+| ---------- | ---------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `tooling`  | `typescript`, `eslint`, `@types/node`, `tsx`                                             | mọi package (dev tooling)                |
+| `nestjs`   | toàn bộ `@nestjs/*`, `class-validator`, `class-transformer`, `reflect-metadata`, `rxjs`  | `api`, `socket`, `@repo/decorators`      |
+| `react`    | `react`, `react-dom`, `@types/react`, `@types/react-dom` (theo version Expo SDK yêu cầu) | `web`, `mobile`, `@repo/ui`              |
+| `tailwind` | `tailwindcss`, `@tailwindcss/postcss`                                                    | `web`, `mobile`, `@repo/tailwind-config` |
 
 - Nâng version (vd. Nest 13): sửa trong catalog → `pnpm install`.
 - App Nest mới / thêm package `@nestjs/*`: thêm vào catalog `nestjs` → `pnpm add <pkg>@catalog:nestjs --filter <app>`.

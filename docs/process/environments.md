@@ -1,12 +1,13 @@
 ---
 title: Môi trường (dev, stg, prod)
 status: reviewed
-applies-to: api, socket, web, CI/CD
+applies-to: api, socket, web, mobile, CI/CD
 enforced-by:
   - packages/utils/src/app-env.ts (AppEnv)
   - packages/decorators/src/env.ts (BaseEnv: NODE_ENV, APP_ENV, HOST, CORS_ORIGINS, REDIS_URL)
   - apps/{api,socket}/src/config/env.ts (Env extends BaseEnv)
   - apps/web/lib/env.ts (NEXT_PUBLIC_APP_ENV)
+  - apps/mobile/src/lib/env.ts, apps/mobile/eas.json (EXPO_PUBLIC_APP_ENV)
   - .gitlab-ci.yml, .github/workflows/ci.yml
 ---
 
@@ -31,10 +32,11 @@ Luồng: `feature/*` → `develop` (**dev**) → `release/X.Y.Z` (**stg**) → `
 
 `APP_ENV` (dev | stg | prod) cho biết app **chạy ở đâu**; `NODE_ENV` chỉ cho biết **chạy thế nào** (stg và prod đều là build `production`). Không dùng `NODE_ENV` để rẽ nhánh theo môi trường.
 
-| App             | Biến                  | Đọc lúc          | Định nghĩa                                                                                   |
-| --------------- | --------------------- | ---------------- | -------------------------------------------------------------------------------------------- |
-| `api`, `socket` | `APP_ENV`             | runtime          | `BaseEnv` (`@EnumField(AppEnv)`, mặc định `dev`, sai giá trị → app không khởi động)          |
-| `web`           | `NEXT_PUBLIC_APP_ENV` | **build** (bake) | `lib/env.ts` (`parseAppEnv`, sai giá trị → `next build` fail) → mỗi môi trường một image web |
+| App             | Biến                  | Đọc lúc          | Định nghĩa                                                                                                           |
+| --------------- | --------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `api`, `socket` | `APP_ENV`             | runtime          | `BaseEnv` (`@EnumField(AppEnv)`, mặc định `dev`, sai giá trị → app không khởi động)                                  |
+| `web`           | `NEXT_PUBLIC_APP_ENV` | **build** (bake) | `lib/env.ts` (`parseAppEnv`, sai giá trị → `next build` fail) → mỗi môi trường một image web                         |
+| `mobile`        | `EXPO_PUBLIC_APP_ENV` | **build** (bake) | `src/lib/env.ts` (`parseAppEnv`); EAS profile `development`/`preview`/`production` → `dev`/`stg`/`prod` (`eas.json`) |
 
 ```ts
 import { AppEnv } from '@repo/utils'

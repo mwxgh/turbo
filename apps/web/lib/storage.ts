@@ -1,8 +1,8 @@
+import type { PresignedUpload } from '@repo/types'
 import type { UploadFn } from '@repo/ui/components/file-upload'
 import { uploadFile } from '@repo/utils'
 
 import { apiFetch } from './api'
-import type { PresignedUpload } from './types'
 
 /**
  * Upload to S3 through a presigned POST from the API: the file goes straight
