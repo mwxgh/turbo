@@ -2,11 +2,15 @@
 
 import { useForm } from '@tanstack/react-form'
 
+import type { Hello } from '@repo/types'
 import { Button } from '@repo/ui/components/button'
 import { Field, FieldError } from '@repo/ui/components/field'
 import { Input } from '@repo/ui/components/input'
 
-import type { ActionState, HelloInput } from '../../lib/types'
+import type { ActionState } from '../../lib/types'
+
+/** Body of POST /hellos (PATCH accepts any subset). */
+export type HelloInput = Pick<Hello, 'message'>
 
 export const MESSAGE_MAX = 255
 

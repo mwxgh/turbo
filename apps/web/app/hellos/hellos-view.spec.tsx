@@ -2,6 +2,7 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { Hello } from '@repo/types'
 import { DEFAULT_PAGE_SIZE, type Paginated, paginated } from '@repo/utils'
 
 import { hellosListQueryOptions } from '../../lib/queries/hellos'
@@ -10,7 +11,6 @@ import {
   createTestQueryClient,
   renderWithQuery,
 } from '../../lib/test-utils'
-import type { Hello } from '../../lib/types'
 import { HellosView } from './hellos-view'
 
 const { apiFetch } = vi.hoisted(() => ({ apiFetch: vi.fn() }))

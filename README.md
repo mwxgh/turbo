@@ -8,6 +8,7 @@ Monorepo base (pnpm + Turborepo) để copy làm khung cho các dự án mới.
 | `apps/socket`                | `socket`                  | NestJS 12 + Socket.IO gateway (namespace `/events`)                                                | 4001 |
 | `apps/web`                   | `web`                     | Next.js 16 (App Router)                                                                            | 3000 |
 | `packages/db`                | `@repo/db`                | Prisma 7 + PostgreSQL (schema, migrations, seed, client)                                           | –    |
+| `packages/types`             | `@repo/types`             | Interface model + enum sinh từ `schema.prisma` (commit sẵn, web dùng không cần Prisma)             | –    |
 | `packages/redis`             | `@repo/redis`             | Redis dùng chung cho backend (ioredis): `RedisModule`, `@InjectRedis()`, `RedisCache`, `pingRedis` | –    |
 | `packages/utils`             | `@repo/utils`             | Hàm bổ trợ dùng chung server + browser: datetime (múi giờ VN), chuỗi, số                           | –    |
 | `packages/socket-events`     | `@repo/socket-events`     | Contract Socket.IO dùng chung gateway + web (type event, namespace)                                | –    |
@@ -53,7 +54,8 @@ Scripts khác: `pnpm build`, `pnpm lint`, `pnpm check-types`, `pnpm test`, `pnpm
 | `pnpm db:deploy`                                           | Apply migrations có sẵn (CI/prod)                                     |
 | `pnpm db:check`                                            | Lỗi nếu DB (đã migrate) lệch với `schema.prisma` – quên tạo migration |
 | `pnpm db:push`                                             | Đồng bộ schema không tạo migration (prototype)                        |
-| `pnpm db:generate`                                         | Generate Prisma client                                                |
+| `pnpm db:generate`                                         | Generate Prisma client (backend)                                      |
+| `pnpm db:types`                                            | Chỉ sinh lại `packages/types/src/generated` (local, rồi commit)       |
 | `pnpm db:seed` / `db:studio`                               | Seed dữ liệu / mở Prisma Studio                                       |
 
 ## Tài liệu
@@ -163,8 +165,9 @@ apiFetch<Paginated<Product>>(`/products?${listQueryToSearchParams({ keyword, sor
 
 - Schema: `packages/db/prisma/schema.prisma`; migrations trong `prisma/migrations` (commit vào git).
 - Prisma 7 dùng driver adapter `@prisma/adapter-pg`; client được generate vào `src/generated` (gitignored) khi `build`.
-- `@repo/db` export `PrismaClient`, model types, `createAdapter()`, `createPrismaClient()`. `@repo/db/browser` chỉ export types/enums (an toàn cho client component).
-- Thêm bảng: sửa `schema.prisma` → `pnpm db:migrate` (đặt tên migration) → `pnpm --filter @repo/db build`.
+- `@repo/db` export `PrismaClient`, model types, `createAdapter()`, `createPrismaClient()` (chỉ backend).
+- `pnpm db:types` (chỉ chạy ở máy local; `build` trên CI/server chỉ chạy `--generator client`) dùng generator `prisma/generators/types.ts` → ghi `packages/types/src/generated/{models,enums}.ts` (interface dạng JSON như API trả về: `DateTime`/`Decimal`/`BigInt` → `string`; quan hệ là field optional `LimitDepth<Model, 2>`, tự tham chiếu `LimitDepth<Model, 1>`, sâu hơn thành `object` để TanStack `DeepKeys` không lặp vô hạn; enum dạng `const` + type). File này **commit vào git**; `@repo/types` là package source (như `@repo/ui`, không có bước build), web/mobile dùng thẳng, không cần Prisma.
+- Thêm bảng: sửa `schema.prisma` → `pnpm db:migrate` (đặt tên migration) → `pnpm db:types` → commit cả `packages/types/src/generated`.
 
 ### Decorators (`@repo/decorators`)
 
@@ -283,16 +286,16 @@ Thêm event: khai báo type trong `packages/socket-events` → thêm handler tro
 
 - `lib/env.ts`: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SOCKET_URL` (browser), `API_URL` (server-only).
 - `lib/api.ts`: `apiFetch<T>()` cho Server Components.
-- `lib/types.ts`: type response của API. **Model Prisma không khai báo tay**: `type Hello = Jsonify<HelloModel>` (model từ `@repo/db/browser`, `Jsonify` của `type-fest` đổi `Date` → `string` như JSON), input `Pick<Hello, 'message'>`, kèm quan hệ `Jsonify<Prisma.HelloGetPayload<{ include: … }>>`, cột API giấu → `Omit`. Chỉ shape không phải model (health, error) mới viết tay.
+- `lib/types.ts`: type response của API không phải model. **Model Prisma không khai báo tay**: `import type { Hello } from '@repo/types'` dùng thẳng (ngày đã là `string` như JSON), input riêng của feature (vd. `HelloInput = Pick<Hello, 'message'>`) khai báo ngay trong feature (`app/hellos/hello-form.tsx`), không đưa vào `lib/types.ts`; quan hệ đã có sẵn dạng optional (`hello.author?.name`) khi API `include`, cột API giấu → `Omit`. Chỉ shape không phải model (health, error) mới viết tay.
 
 Tận dụng code Prisma sinh ra ở mọi tầng:
 
-| Nơi                                  | Dùng                                                                 |
-| ------------------------------------ | -------------------------------------------------------------------- |
-| list spec (api)                      | `defineListSpecFor<Hello>()` – tên field kiểm tra theo model         |
-| Swagger DTO response (api)           | `class HelloDto implements Jsonify<Hello>`                           |
-| service (api)                        | `Prisma.HelloWhereInput`, `HelloOrderByWithRelationInput`, `Hello`   |
-| type cho table / detail / form (web) | `Jsonify<Hello>`, `Pick<…>`, enum `Object.values(Status)` cho select |
+| Nơi                                  | Dùng                                                                         |
+| ------------------------------------ | ---------------------------------------------------------------------------- |
+| list spec (api)                      | `defineListSpecFor<Hello>()` – tên field kiểm tra theo model                 |
+| Swagger DTO response (api)           | `class HelloDto implements Jsonify<Hello>`                                   |
+| service (api)                        | `Prisma.HelloWhereInput`, `HelloOrderByWithRelationInput`, `Hello`           |
+| type cho table / detail / form (web) | `Hello` từ `@repo/types`, `Pick<…>`, enum `Object.values(Status)` cho select |
 
 - `lib/socket.ts`: singleton socket.io client, type event từ `@repo/socket-events`.
 - `app/page.tsx` + `app/chat.tsx`: trang demo (health API + chat realtime).
@@ -375,7 +378,7 @@ Dữ liệu: **đọc** qua TanStack Query (server prefetch, sau đó trình duy
 
 ### Internal packages
 
-`@repo/utils`, `@repo/decorators`, `@repo/socket-events`, `@repo/db` là compiled package (tsc → `dist/`). Task `dev`/`build`/`test` trong `turbo.json` đều `dependsOn: ["^build"]` nên package luôn được build trước app.
+`@repo/utils`, `@repo/decorators`, `@repo/socket-events`, `@repo/db` là compiled package (tsc → `dist/`); `@repo/ui`, `@repo/types` export source TS (web dùng `transpilePackages`). Task `dev`/`build`/`test` trong `turbo.json` đều `dependsOn: ["^build"]` nên package luôn được build trước app.
 
 ### Lint
 

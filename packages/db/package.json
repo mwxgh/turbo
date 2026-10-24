@@ -7,10 +7,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./browser": {
-      "types": "./dist/browser.d.ts",
-      "default": "./dist/browser.js"
     }
   },
   "files": [
@@ -19,10 +15,11 @@
     "prisma.config.ts"
   ],
   "scripts": {
-    "build": "prisma generate && tsc -p tsconfig.build.json",
+    "build": "pnpm db:generate && tsc -p tsconfig.build.json",
     "check-types": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
-    "db:generate": "prisma generate",
+    "db:generate": "prisma generate --generator client",
+    "db:types": "prisma generate --generator types",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:deploy": "prisma migrate deploy",
@@ -39,6 +36,7 @@
     "@repo/utils": "workspace:*"
   },
   "devDependencies": {
+    "@prisma/generator-helper": "7.10.1",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@repo/vitest-config": "workspace:*",

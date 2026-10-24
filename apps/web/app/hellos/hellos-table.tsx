@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 
 import { Pencil, Trash2 } from 'lucide-react'
 
+import type { Hello } from '@repo/types'
 import {
   DataTable,
   actionsColumn,
@@ -13,7 +14,6 @@ import {
 import { formatDateTime } from '@repo/utils'
 
 import { hellosListQueryOptions } from '../../lib/queries/hellos'
-import type { Hello } from '../../lib/types'
 import { HelloForm } from './hello-form'
 import { useDeleteHello, useHelloActions } from './use-hello-mutations'
 
