@@ -13,9 +13,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger'
 
-import { CreateUploadDto } from './dto/create-upload.dto.js'
-import { PresignedUploadDto } from './dto/presigned-upload.dto.js'
-import { FilesService } from './files.service.js'
+import { CreateUploadDto } from './dto/create-upload.dto'
+import { PresignedUploadDto } from './dto/presigned-upload.dto'
+import { FilesService } from './files.service'
 
 @ApiTags('files')
 @Controller('files')

@@ -3,8 +3,8 @@ import type { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import type { PrismaService } from '../src/prisma/prisma.service.js'
-import { createApp } from './create-app.js'
+import type { PrismaService } from '../src/prisma/prisma.service'
+import { createApp } from './create-app'
 
 /** GET /api/hellos list queries (keyword, filter, sort) against Postgres. */
 describe('Hellos list queries (e2e)', () => {

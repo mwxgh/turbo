@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common'
 
-import { env } from '../config/env.js'
-import { FilesController } from './files.controller.js'
-import { FilesService, STORAGE_CONFIG } from './files.service.js'
-import { storageConfig } from './storage.js'
+import { env } from '../config/env'
+import { FilesController } from './files.controller'
+import { FilesService, STORAGE_CONFIG } from './files.service'
+import { storageConfig } from './storage'
 
 @Module({
   controllers: [FilesController],

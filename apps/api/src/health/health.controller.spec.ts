@@ -4,8 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Redis } from '@repo/redis'
 
-import type { PrismaService } from '../prisma/prisma.service.js'
-import { HealthController } from './health.controller.js'
+import type { PrismaService } from '../prisma/prisma.service'
+import { HealthController } from './health.controller'
 
 const controllerWith = (
   $queryRaw: () => Promise<unknown>,

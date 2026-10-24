@@ -2,7 +2,7 @@ import { Injectable, type OnModuleDestroy } from '@nestjs/common'
 
 import { PrismaClient, createAdapter } from '@repo/db'
 
-import { env } from '../config/env.js'
+import { env } from '../config/env'
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleDestroy {

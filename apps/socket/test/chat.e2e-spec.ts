@@ -13,8 +13,8 @@ import {
   type ServerToClientEvents,
 } from '@repo/socket-events'
 
-import { AppModule } from '../src/app.module.js'
-import { configureApp } from '../src/app.setup.js'
+import { AppModule } from '../src/app.module'
+import { configureApp } from '../src/app.setup'
 
 type Client = Socket<ServerToClientEvents, ClientToServerEvents>
 

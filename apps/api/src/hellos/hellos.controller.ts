@@ -24,11 +24,11 @@ import {
   ListQueryDto,
 } from '@repo/decorators'
 
-import { CreateHelloDto } from './dto/create-hello.dto.js'
-import { HelloDto } from './dto/hello.dto.js'
-import { UpdateHelloDto } from './dto/update-hello.dto.js'
-import { helloListSpec } from './hellos.list-spec.js'
-import { HellosService } from './hellos.service.js'
+import { CreateHelloDto } from './dto/create-hello.dto'
+import { HelloDto } from './dto/hello.dto'
+import { UpdateHelloDto } from './dto/update-hello.dto'
+import { helloListSpec } from './hellos.list-spec'
+import { HellosService } from './hellos.service'
 
 @ApiTags('hellos')
 @Controller('hellos')

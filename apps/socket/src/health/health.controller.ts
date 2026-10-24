@@ -2,7 +2,7 @@ import { Controller, Get, ServiceUnavailableException } from '@nestjs/common'
 
 import { InjectRedis, type Redis, pingRedis } from '@repo/redis'
 
-import { env } from '../config/env.js'
+import { env } from '../config/env'
 
 @Controller('health')
 export class HealthController {

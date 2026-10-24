@@ -2,8 +2,8 @@ import { Test } from '@nestjs/testing'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { HellosController } from './hellos.controller.js'
-import { HellosService } from './hellos.service.js'
+import { HellosController } from './hellos.controller'
+import { HellosService } from './hellos.service'
 
 describe('HellosController', () => {
   let controller: HellosController

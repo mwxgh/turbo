@@ -3,10 +3,10 @@ import { Injectable } from '@nestjs/common'
 import { type Hello, type Prisma, toPrismaListArgs } from '@repo/db'
 import { type ListQuery, type Paginated, paginated } from '@repo/utils'
 
-import { PrismaService } from '../prisma/prisma.service.js'
-import type { CreateHelloDto } from './dto/create-hello.dto.js'
-import type { UpdateHelloDto } from './dto/update-hello.dto.js'
-import { helloListSpec } from './hellos.list-spec.js'
+import { PrismaService } from '../prisma/prisma.service'
+import type { CreateHelloDto } from './dto/create-hello.dto'
+import type { UpdateHelloDto } from './dto/update-hello.dto'
+import { helloListSpec } from './hellos.list-spec'
 
 @Injectable()
 export class HellosService {
