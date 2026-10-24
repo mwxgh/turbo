@@ -12,6 +12,7 @@ Rules:
 - Work on a branch from `develop` (`feature/…`, `fix/…`); never commit or push to `main`/`master`/`develop` directly, never force-push `release/*`/`hotfix/*`, never use `--no-verify` or `ALLOW_PROTECTED_PUSH`.
 - Conventional Commits: `type(scope): subject` (scopes in `commitlint.config.mjs`).
 - Before finishing: `pnpm turbo run build lint check-types test`; touched api/socket/redis → also `pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis` (needs `pnpm infra:up`: Postgres + Redis); schema change → `pnpm db:migrate` + `pnpm db:check`.
+- Nest apps (`api`, `socket`): relative imports without extension (SWC adds `.js` at build, `moduleResolution: Bundler`); `nest build` uses SWC and does not type-check – `check-types` does. Packages built with `tsc` keep `.js` in relative imports.
 - Lint is type-aware (`recommendedTypeChecked`): fix findings instead of disabling; a justified exception is `// eslint-disable-next-line <rule> -- reason`. New config/script files must be in a `tsconfig.json` `include`.
 - Tests: Vitest `*.spec.ts` next to the code (Nest: `Test.createTestingModule` + mocks), e2e in `apps/<app>/test/*.e2e-spec.ts`, browser flows in `apps/e2e` (Playwright). Add/adjust tests with every behaviour change.
 - Dependency versions: shared ones live in `catalogs` of `pnpm-workspace.yaml` (`catalog:tooling`, `catalog:nestjs`). Do not run `pnpm audit --fix` (it rewrites `catalog:` entries).

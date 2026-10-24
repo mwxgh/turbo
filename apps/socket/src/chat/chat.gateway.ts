@@ -21,10 +21,10 @@ import {
   type ServerToClientEvents,
 } from '@repo/socket-events'
 
-import { SubscribeEvent } from '../common/subscribe-event.decorator.js'
-import { env } from '../config/env.js'
-import { JoinRoomDto } from './dto/join-room.dto.js'
-import { SendMessageDto } from './dto/send-message.dto.js'
+import { SubscribeEvent } from '../common/subscribe-event.decorator'
+import { env } from '../config/env'
+import { JoinRoomDto } from './dto/join-room.dto'
+import { SendMessageDto } from './dto/send-message.dto'
 
 type AppServer = Server<ClientToServerEvents, ServerToClientEvents>
 type AppSocket = Socket<ClientToServerEvents, ServerToClientEvents>

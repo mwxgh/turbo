@@ -2,7 +2,7 @@ import { MESSAGE_METADATA } from '@nestjs/websockets/constants.js'
 
 import { describe, expect, it } from 'vitest'
 
-import { SubscribeEvent } from './subscribe-event.decorator.js'
+import { SubscribeEvent } from './subscribe-event.decorator'
 
 describe('SubscribeEvent', () => {
   it('registers the handler like @SubscribeMessage', () => {

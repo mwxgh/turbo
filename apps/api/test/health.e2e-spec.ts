@@ -3,7 +3,7 @@ import type { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { createApp } from './create-app.js'
+import { createApp } from './create-app'
 
 describe('Health & docs (e2e)', () => {
   let app: INestApplication

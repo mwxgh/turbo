@@ -7,8 +7,8 @@ import {
 
 import { InjectRedis, type Redis, pingRedis } from '@repo/redis'
 
-import { env } from '../config/env.js'
-import { PrismaService } from '../prisma/prisma.service.js'
+import { env } from '../config/env'
+import { PrismaService } from '../prisma/prisma.service'
 
 type Status = 'up' | 'down'
 

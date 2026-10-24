@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common'
 
 import { RedisModule } from '@repo/redis'
 
-import { ChatModule } from './chat/chat.module.js'
-import { env } from './config/env.js'
-import { HealthModule } from './health/health.module.js'
+import { ChatModule } from './chat/chat.module'
+import { env } from './config/env'
+import { HealthModule } from './health/health.module'
 
 @Module({
   imports: [

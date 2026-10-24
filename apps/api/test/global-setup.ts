@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-import { testDatabaseUrl } from './database-url.js'
+import { testDatabaseUrl } from './database-url'
 
 /** Create the test database if needed and apply all migrations (once per run). */
 export default function setup() {

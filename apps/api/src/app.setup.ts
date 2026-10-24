@@ -5,8 +5,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ListQueryExceptionFilter, VALIDATOR_OPTIONS } from '@repo/decorators'
 import { AppEnv } from '@repo/utils'
 
-import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter.js'
-import { env } from './config/env.js'
+import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter'
+import { env } from './config/env'
 
 /** Global HTTP setup shared by `main.ts` and the e2e tests. */
 export function configureApp(

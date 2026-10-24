@@ -40,7 +40,7 @@ Luồng: `feature/*` → `develop` (**dev**) → `release/X.Y.Z` (**stg**) → `
 
 ```ts
 import { AppEnv } from '@repo/utils'
-import { env } from './config/env.js'
+import { env } from './config/env'
 
 if (env.APP_ENV !== AppEnv.Prod) {
   // chỉ dev/stg: Swagger, log chi tiết, tính năng thử nghiệm…

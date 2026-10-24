@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Prisma } from '@repo/db'
 
-import { PrismaExceptionFilter } from './prisma-exception.filter.js'
+import { PrismaExceptionFilter } from './prisma-exception.filter'
 
 function hostWithResponse() {
   const res = { status: vi.fn(), json: vi.fn() }

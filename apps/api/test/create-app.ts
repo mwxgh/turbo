@@ -2,9 +2,9 @@ import type { INestApplication } from '@nestjs/common'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { Test } from '@nestjs/testing'
 
-import { AppModule } from '../src/app.module.js'
-import { configureApp } from '../src/app.setup.js'
-import { PrismaService } from '../src/prisma/prisma.service.js'
+import { AppModule } from '../src/app.module'
+import { configureApp } from '../src/app.setup'
+import { PrismaService } from '../src/prisma/prisma.service'
 
 /** The real application (same global setup as main.ts) on the test database. */
 export async function createApp(): Promise<{

@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ChatGateway } from './chat.gateway.js'
+import { ChatGateway } from './chat.gateway'
 
 function setup() {
   const emit = vi.fn()

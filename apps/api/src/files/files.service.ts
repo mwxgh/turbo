@@ -12,9 +12,9 @@ import { createPresignedPost } from '@aws-sdk/s3-presigned-post'
 
 import { formatBytes } from '@repo/utils'
 
-import type { CreateUploadDto } from './dto/create-upload.dto.js'
-import type { PresignedUploadDto } from './dto/presigned-upload.dto.js'
-import { type StorageConfig, s3Client } from './storage.js'
+import type { CreateUploadDto } from './dto/create-upload.dto'
+import type { PresignedUploadDto } from './dto/presigned-upload.dto'
+import { type StorageConfig, s3Client } from './storage'
 
 export const STORAGE_CONFIG = Symbol('STORAGE_CONFIG')
 

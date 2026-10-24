@@ -2,8 +2,8 @@ import { Test } from '@nestjs/testing'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { PrismaService } from '../prisma/prisma.service.js'
-import { HellosService } from './hellos.service.js'
+import { PrismaService } from '../prisma/prisma.service'
+import { HellosService } from './hellos.service'
 
 const hello = {
   id: '11111111-1111-4111-8111-111111111111',

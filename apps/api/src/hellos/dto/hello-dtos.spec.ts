@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import { validateDto } from '@repo/decorators'
 
-import { CreateHelloDto } from './create-hello.dto.js'
-import { UpdateHelloDto } from './update-hello.dto.js'
+import { CreateHelloDto } from './create-hello.dto'
+import { UpdateHelloDto } from './update-hello.dto'
 
 describe('CreateHelloDto', () => {
   it('trims the message', () => {

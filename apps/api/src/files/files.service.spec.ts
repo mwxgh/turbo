@@ -3,8 +3,8 @@ import { BadRequestException } from '@nestjs/common'
 import { DeleteObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { FilesService } from './files.service.js'
-import type { StorageConfig } from './storage.js'
+import { FilesService } from './files.service'
+import type { StorageConfig } from './storage'
 
 const config: StorageConfig = {
   endpoint: 'http://storage:9000',
