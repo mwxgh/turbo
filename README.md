@@ -69,10 +69,10 @@ Tài liệu dự án (quy trình, yêu cầu, kiến trúc, ADR) ở [`docs/`](d
 
 ### NestJS apps (`api`, `socket`)
 
-- **ESM** (`"type": "module"`), import tương đối **không cần đuôi** (`./app.module`): type-check bằng `moduleResolution: Bundler`, khi build SWC tự thêm `.js` (`.swcrc`: `module.resolveFully`). Package `@repo/*` (build bằng `tsc`) vẫn giữ đuôi `.js`.
-- **Build bằng Nest CLI + SWC** (`nest build`, `builder: "swc"` trong `nest-cli.json`, cấu hình `.swcrc`) → `dist/` (giữ cấu trúc thư mục). Build **không** type-check – lỗi type bị chặn bởi `check-types` (turbo/CI).
+- **ESM** (`"type": "module"`), import tương đối **không cần đuôi** (`./app.module`): type-check bằng `moduleResolution: Bundler`, khi build SWC tự thêm `.js`. Cấu hình dùng chung trong `@repo/typescript-config`: `nestjs.json` (tsconfig) + `nest.swcrc` (Nest CLI trỏ tới qua `builder.options.swcrcPath`) – app Nest mới chỉ cần `extends` và chép `nest-cli.json`. Package `@repo/*` (build bằng `tsc`) vẫn giữ đuôi `.js`.
+- **Build bằng Nest CLI + SWC** (`nest build`, builder `swc` trong `nest-cli.json`, mặc định SWC của Nest + `nest.swcrc`) → `dist/` (giữ cấu trúc thư mục). Build **không** type-check – lỗi type bị chặn bởi `check-types` (turbo/CI).
 - **Dev**: `nest start --watch --type-check --env-file .env` (SWC khởi động lại app ngay, `tsc` chạy song song và in lỗi type ra terminal); debug: `pnpm --filter api start:debug`.
-- **Type-check**: `tsc --noEmit` với `@repo/typescript-config/nestjs.json` (+ `module: ESNext`, `moduleResolution: Bundler` trong `tsconfig.json` của app). Mọi package compiled đều có `tsconfig.json` (check-types toàn bộ, kể cả test) + `tsconfig.build.json` (build, bỏ test).
+- **Type-check**: `tsc --noEmit` với `@repo/typescript-config/nestjs.json` (đã gồm `module: ESNext`, `moduleResolution: Bundler`). Mọi package compiled đều có `tsconfig.json` (check-types toàn bộ, kể cả test) + `tsconfig.build.json` (build, bỏ test).
 - **Env**: Node tự load `.env` (`--env-file-if-exists`); class `Env extends BaseEnv` tại `src/config/env.ts` (`BaseEnv` trong `@repo/decorators` có sẵn `NODE_ENV`, `APP_ENV`, `HOST`, `CORS_ORIGINS` + getter `corsOrigins`; app chỉ khai báo thêm biến riêng như `PORT`, `DATABASE_URL`), dùng field decorators + `validateEnv()` (initializer = default). Env sai → app dừng ngay khi khởi động.
 - **Validation**: DTO class dùng decorator từ `@repo/decorators` + `ValidationPipe` global (`whitelist`, `forbidNonWhitelisted`, `transform`, `stopAtFirstError`).
 - **Môi trường**: `APP_ENV` = `dev` | `stg` | `prod` (`AppEnv` trong `@repo/utils`), độc lập với `NODE_ENV`; `/health` trả `env`. Xem [docs/process/environments.md](docs/process/environments.md).
