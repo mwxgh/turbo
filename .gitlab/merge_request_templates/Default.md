@@ -1,37 +1,59 @@
-<!-- feature/* · fix/* · chore/* … → develop. Tiêu đề MR theo commit: feat(api): …, fix(web): … -->
+<!--
+Branches: feature/* · fix/* · refactor/* · chore/* … → develop; release/* · hotfix/* → main (docs/process/gitflow.md).
+MR title follows Conventional Commits: `type(scope): summary` or `type: summary` (e.g. `feat(api): add hellos pagination`).
+-->
 
-## Mô tả
+## Summary
 
-<!-- Thay đổi gì, vì sao. Link issue/task nếu có. -->
+<!-- What changes and why. -->
 
 Closes #
 
-## Loại thay đổi
+## Type of change
 
-- [ ] feat – tính năng mới
-- [ ] fix – sửa lỗi
-- [ ] refactor / chore / docs / test / ci
-- [ ] Breaking change (API, socket event, env, DB) – mô tả cách nâng cấp bên dưới
+- [ ] feat – new feature
+- [ ] fix – bug fix
+- [ ] refactor – restructure without behaviour change
+- [ ] perf – performance improvement
+- [ ] docs / test / build / ci / chore
+- [ ] **Breaking change** (API, socket event, env, DB schema, route) – describe the upgrade path below
 
-## Phạm vi
+## Scope
+
+**Apps**
 
 - [ ] api
 - [ ] socket
 - [ ] web
-- [ ] packages (`db`, `nest-common`, `utils`, `socket-events`, `ui`, `tooling`)
-- [ ] deploy / CI
+- [ ] mobile
+- [ ] e2e
 
-## Kiểm tra
+**Packages**
 
-- [ ] `pnpm turbo run build lint check-types test` pass
-- [ ] Đổi `schema.prisma` → đã tạo migration (`pnpm db:migrate`), `pnpm db:check` pass
-- [ ] Thêm/đổi env → đã cập nhật `.env.example` (và `deploy/.env.example` nếu cần)
-- [ ] Đổi API → Swagger (`/api/docs`) hiển thị đúng
+- [ ] db / types (Prisma schema, generated types)
+- [ ] nest-common / redis / utils
+- [ ] socket-events / ui
+- [ ] tooling (eslint, typescript, vitest, tailwind)
+- [ ] deploy / CI / docs
 
-## Cách test thủ công
+## Checklist
 
-<!-- Các bước để reviewer tự kiểm tra. -->
+- [ ] `pnpm turbo run build lint check-types test` passes
+- [ ] Touched api / socket / redis → `pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis` passes
+- [ ] Changed `schema.prisma` → `pnpm db:migrate` (migration committed), `pnpm db:check` passes, `pnpm db:types` (`packages/types/src/generated` committed)
+- [ ] Added / changed env vars → updated the app's `.env.example` and `deploy/.env.example`
+- [ ] Changed the API → Swagger (`/api/docs`) is correct; changed a socket event → only in `packages/socket-events`
+- [ ] Changed the UI → tried on web / mobile, before / after screenshots below
+- [ ] New or changed behaviour has tests; README / AGENTS.md / `docs/` updated where needed
 
-## Ảnh chụp / ghi chú cho reviewer
+## How to test
 
-<!-- UI trước/sau, chỗ cần xem kỹ… -->
+<!-- Steps for the reviewer to verify it manually. -->
+
+## Breaking changes / deployment notes
+
+<!-- Upgrade path, new env vars, migrations, changed routes or probes… Leave empty if none. -->
+
+## Screenshots / notes for reviewers
+
+<!-- UI before / after, places that need a closer look… -->

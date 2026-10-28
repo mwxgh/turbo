@@ -299,7 +299,7 @@ Thêm event: khai báo type trong `packages/socket-events` → thêm handler tro
 
 - `lib/env.ts`: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SOCKET_URL` (browser), `API_URL` (server-only).
 - `lib/api.ts`: `apiFetch<T>()` cho Server Components.
-- `lib/types.ts`: type response của API không phải model. **Model Prisma không khai báo tay**: `import type { Hello } from '@repo/types'` dùng thẳng (ngày đã là `string` như JSON), input riêng của feature (vd. `HelloInput = Pick<Hello, 'message'>`) khai báo ngay trong feature (`app/hellos/hello-form.tsx`), không đưa vào `lib/types.ts`; quan hệ đã có sẵn dạng optional (`hello.author?.name`) khi API `include`, cột API giấu → `Omit`. Chỉ shape không phải model (health, error) mới viết tay.
+- Kiểu dữ liệu: **model Prisma không khai báo tay** – `import type { Hello } from '@repo/types'` dùng thẳng (ngày đã là `string` như JSON); contract không phải model (health, error, upload) cũng ở `@repo/types`. Input riêng của feature (vd. `HelloInput = Pick<Hello, 'message'>`) khai báo ngay trong feature (`app/hellos/hello-form.tsx`); quan hệ có sẵn dạng optional (`hello.author?.name`) khi API `include`, cột API giấu → `Omit`. `ActionState` (kết quả Server Action) nằm trong `lib/action-toast.ts`.
 
 Tận dụng code Prisma sinh ra ở mọi tầng:
 
@@ -552,7 +552,7 @@ Package nội bộ khai báo `"files": ["dist", …]` để `pnpm deploy` đóng
 
 1. Copy repo (bỏ `node_modules`, `.turbo`, `dist`, `.next`, `.env*` không phải `.env.example`).
 2. Đổi `name` trong `package.json` root; đổi scope `@repo/*` nếu cần.
-3. Xoá phần demo: `apps/api/src/hellos`, `apps/socket/src/chat`, event chat trong `packages/socket-events`, `apps/web/app/{chat.tsx,hellos}`, `apps/web/lib/types.ts` (`Hello`), model `Hello` + migrations trong `packages/db/prisma`.
+3. Xoá phần demo: `apps/api/src/hellos`, `apps/socket/src/chat`, event chat trong `packages/socket-events`, `apps/web/app/{chat.tsx,hellos}`, model `Hello` + migrations trong `packages/db/prisma`.
 4. Đổi `COMPOSE_PROJECT_NAME` trong `deploy/.env.example`.
 5. Cập nhật `.env.example` của từng app.
 

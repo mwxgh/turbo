@@ -9,8 +9,8 @@ import { toast } from '@repo/ui/components/sonner'
 import { type Paginated, totalPages } from '@repo/utils'
 
 import { withToast } from '../../lib/action-toast'
+import type { ActionState } from '../../lib/action-toast'
 import { hellosKeys } from '../../lib/queries/hellos'
-import type { ActionState } from '../../lib/types'
 import { createHello, deleteHello, updateHello } from './actions'
 import type { HelloInput } from './hello-form'
 

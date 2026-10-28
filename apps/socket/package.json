@@ -25,7 +25,6 @@
     "@repo/nest-common": "workspace:*",
     "@repo/redis": "workspace:*",
     "@repo/socket-events": "workspace:*",
-    "@repo/utils": "workspace:*",
     "class-transformer": "catalog:",
     "class-validator": "catalog:",
     "reflect-metadata": "catalog:",
