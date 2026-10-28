@@ -18,7 +18,7 @@ Closes #
 - [ ] api
 - [ ] socket
 - [ ] web
-- [ ] packages (`db`, `decorators`, `utils`, `socket-events`, `ui`, config)
+- [ ] packages (`db`, `nest-common`, `utils`, `socket-events`, `ui`, `tooling`)
 - [ ] deploy / CI
 
 ## Kiểm tra

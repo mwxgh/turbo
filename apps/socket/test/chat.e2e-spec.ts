@@ -55,7 +55,7 @@ describe('Chat gateway (e2e)', () => {
   })
 
   it('serves the health endpoint', async () => {
-    const res = await fetch(new URL('/health', url))
+    const res = await fetch(new URL('/socket/health', url))
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toMatchObject({
       status: 'ok',

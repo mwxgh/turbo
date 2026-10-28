@@ -2,22 +2,23 @@
 
 Monorepo base (pnpm + Turborepo) để copy làm khung cho các dự án mới.
 
-| Path                         | Package                   | Mô tả                                                                                              | Port |
-| ---------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------- | ---- |
-| `apps/api`                   | `api`                     | NestJS 12 REST API (prefix `/api`)                                                                 | 4000 |
-| `apps/socket`                | `socket`                  | NestJS 12 + Socket.IO gateway (namespace `/events`)                                                | 4001 |
-| `apps/web`                   | `web`                     | Next.js 16 (App Router)                                                                            | 3000 |
-| `apps/mobile`                | `mobile`                  | Expo SDK 58 (React Native, Expo Router, NativeWind)                                                | 8081 |
-| `packages/db`                | `@repo/db`                | Prisma 7 + PostgreSQL (schema, migrations, seed, client)                                           | –    |
-| `packages/types`             | `@repo/types`             | Interface model + enum sinh từ `schema.prisma` (commit sẵn, web dùng không cần Prisma)             | –    |
-| `packages/redis`             | `@repo/redis`             | Redis dùng chung cho backend (ioredis): `RedisModule`, `@InjectRedis()`, `RedisCache`, `pingRedis` | –    |
-| `packages/utils`             | `@repo/utils`             | Hàm bổ trợ dùng chung server + browser: datetime (múi giờ VN), chuỗi, số                           | –    |
-| `packages/socket-events`     | `@repo/socket-events`     | Contract Socket.IO dùng chung gateway + web (type event, namespace)                                | –    |
-| `packages/decorators`        | `@repo/decorators`        | Field decorators (class-validator + Swagger), `validateDto`, `validateEnv`, `BaseEnv`              | –    |
-| `packages/ui`                | `@repo/ui`                | Component shadcn/ui (base-nova, Base UI) + `DataTable` (TanStack Table v9)                         | –    |
-| `packages/tailwind-config`   | `@repo/tailwind-config`   | Tailwind CSS v4 + theme shadcn (token sáng/tối) + PostCSS dùng chung                               | –    |
-| `packages/eslint-config`     | `@repo/eslint-config`     | ESLint flat config (mỗi file export `config`): `base`, `nest`, `next`, `react`                     | –    |
-| `packages/typescript-config` | `@repo/typescript-config` | tsconfig: `base`, `nestjs`, `nextjs`, `node-library`, `react-library`                              | –    |
+| Path                                 | Package                   | Mô tả                                                                                                                                   | Port |
+| ------------------------------------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| `apps/api`                           | `api`                     | NestJS 12 REST API (prefix `/api`)                                                                                                      | 4000 |
+| `apps/socket`                        | `socket`                  | NestJS 12 + Socket.IO gateway (namespace `/events`)                                                                                     | 4001 |
+| `apps/web`                           | `web`                     | Next.js 16 (App Router)                                                                                                                 | 3000 |
+| `apps/mobile`                        | `mobile`                  | Expo SDK 58 (React Native, Expo Router, NativeWind)                                                                                     | 8081 |
+| `packages/db`                        | `@repo/db`                | Prisma 7 + PostgreSQL (schema, migrations, seed, client)                                                                                | –    |
+| `packages/types`                     | `@repo/types`             | Interface model + enum sinh từ `schema.prisma` (commit sẵn, web dùng không cần Prisma)                                                  | –    |
+| `packages/redis`                     | `@repo/redis`             | Redis dùng chung cho backend (ioredis): `RedisModule`, `@InjectRedis()`, `RedisCache`, `pingRedis`                                      | –    |
+| `packages/utils`                     | `@repo/utils`             | Hàm bổ trợ dùng chung server + browser: datetime (múi giờ VN), chuỗi, số                                                                | –    |
+| `packages/socket-events`             | `@repo/socket-events`     | Contract Socket.IO dùng chung gateway + web (type event, namespace)                                                                     | –    |
+| `packages/nest-common`               | `@repo/nest-common`       | Dùng chung cho app Nest: field decorators (class-validator + Swagger), `validateDto`/`validateEnv`, `BaseEnv`, DTO danh sách/phân trang | –    |
+| `packages/ui`                        | `@repo/ui`                | Component shadcn/ui (base-nova, Base UI) + `DataTable` (TanStack Table v9)                                                              | –    |
+| `packages/tooling/tailwind-config`   | `@repo/tailwind-config`   | Tailwind CSS v4 + theme shadcn (token sáng/tối) + PostCSS dùng chung                                                                    | –    |
+| `packages/tooling/eslint-config`     | `@repo/eslint-config`     | ESLint flat config (mỗi file export `config`): `base`, `nest`, `next`, `react`                                                          | –    |
+| `packages/tooling/typescript-config` | `@repo/typescript-config` | tsconfig: `base`, `nestjs`, `nextjs`, `node-library`, `react-library`                                                                   | –    |
+| `packages/tooling/vitest-config`     | `@repo/vitest-config`     | Preset Vitest dùng chung: `base`, `nest` (SWC, giữ decorator metadata), `react` (jsdom)                                                 | –    |
 
 ## Yêu cầu
 
@@ -69,22 +70,24 @@ Tài liệu dự án (quy trình, yêu cầu, kiến trúc, ADR) ở [`docs/`](d
 
 ### NestJS apps (`api`, `socket`)
 
+- **Cấu trúc `src/`** (mặc định của Nest): `main.ts`, `app.module.ts`, `app.setup.ts`, `env.ts` ở gốc `src/`; mỗi thư mục là **một module có controller/service** (`files/`, `health/`, `hellos/`, `chat/`). Hạ tầng dùng chung nằm ở package: `PrismaModule`/`PrismaService`/`PrismaExceptionFilter` → `@repo/db/nest`, `jsonReplacer` → `@repo/nest-common`, `RedisIoAdapter` → `@repo/redis/socket-io`.
 - **ESM** (`"type": "module"`), import tương đối **không cần đuôi** (`./app.module`): type-check bằng `moduleResolution: Bundler`, khi build SWC tự thêm `.js`. Cấu hình dùng chung trong `@repo/typescript-config`: `nestjs.json` (tsconfig) + `nest.swcrc` (Nest CLI trỏ tới qua `builder.options.swcrcPath`) – app Nest mới chỉ cần `extends` và chép `nest-cli.json`. Package `@repo/*` (build bằng `tsc`) vẫn giữ đuôi `.js`.
 - **Build bằng Nest CLI + SWC** (`nest build`, builder `swc` trong `nest-cli.json`, mặc định SWC của Nest + `nest.swcrc`) → `dist/` (giữ cấu trúc thư mục). Build **không** type-check – lỗi type bị chặn bởi `check-types` (turbo/CI).
 - **Dev**: `nest start --watch --type-check --env-file .env` (SWC khởi động lại app ngay, `tsc` chạy song song và in lỗi type ra terminal); debug: `pnpm --filter api start:debug`.
 - **Type-check**: `tsc --noEmit` với `@repo/typescript-config/nestjs.json` (đã gồm `module: ESNext`, `moduleResolution: Bundler`). Mọi package compiled đều có `tsconfig.json` (check-types toàn bộ, kể cả test) + `tsconfig.build.json` (build, bỏ test).
-- **Env**: Node tự load `.env` (`--env-file-if-exists`); class `Env extends BaseEnv` tại `src/config/env.ts` (`BaseEnv` trong `@repo/decorators` có sẵn `NODE_ENV`, `APP_ENV`, `HOST`, `CORS_ORIGINS` + getter `corsOrigins`; app chỉ khai báo thêm biến riêng như `PORT`, `DATABASE_URL`), dùng field decorators + `validateEnv()` (initializer = default). Env sai → app dừng ngay khi khởi động.
-- **Validation**: DTO class dùng decorator từ `@repo/decorators` + `ValidationPipe` global (`whitelist`, `forbidNonWhitelisted`, `transform`, `stopAtFirstError`).
+- **Env**: Node tự load `.env` (`--env-file-if-exists`); class `Env extends BaseEnv` tại `src/env.ts` (`BaseEnv` trong `@repo/nest-common` có sẵn `APP_ENV`, `HOST`, `CORS_ORIGINS`, `REDIS_URL` + getter `corsOrigins`; app chỉ khai báo thêm biến riêng như `PORT`, `DATABASE_URL`), dùng field decorators + `validateEnv()` (initializer = default). Env sai → app dừng ngay khi khởi động.
+- **Validation**: DTO class dùng decorator từ `@repo/nest-common` + `ValidationPipe` global (`whitelist`, `forbidNonWhitelisted`, `transform`, `stopAtFirstError`).
 - **Môi trường**: `APP_ENV` = `dev` | `stg` | `prod` (`AppEnv` trong `@repo/utils`), độc lập với `NODE_ENV`; `/health` trả `env`. Xem [docs/process/environments.md](docs/process/environments.md).
 - **Swagger**: `/api/docs` (UI), `/api/docs-json` (OpenAPI) – bật ở `dev`/`stg`, tắt ở `prod`. Field decorators tự sinh `ApiProperty`.
-- **Database**: `PrismaModule` (global) cung cấp `PrismaService`. `PrismaExceptionFilter` map lỗi Prisma → HTTP (`P2025` → 404, `P2002` → 409, `P2003` → 400).
-- Health check: `GET /api/health` (api, ping DB với timeout 2s → `503` khi DB lỗi), `GET /health` (socket). Docker Compose dùng các endpoint này làm `healthcheck`.
+- **Database**: `PrismaModule.forRoot({ url: env.DATABASE_URL })` (global, từ `@repo/db/nest`) cung cấp `PrismaService`. `PrismaExceptionFilter` map lỗi Prisma → HTTP (`P2025` → 404, `P2002` → 409, `P2003` → 400).
+- **Global prefix**: route HTTP của api nằm dưới `/api`, của socket dưới `/socket` (`app.setGlobalPrefix` trong `app.setup.ts`). Socket.IO không bị ảnh hưởng: path `/socket.io`, namespace `/events`.
+- Health check: `GET /api/health` (api, ping DB với timeout 2s → `503` khi DB lỗi), `GET /socket/health` (socket). Docker Compose dùng các endpoint này làm `healthcheck`.
 
 Thêm feature trong api:
 
 ```text
 apps/api/src/<feature>/
-  dto/create-<feature>.dto.ts   # input + validation (decorator từ @repo/decorators)
+  dto/create-<feature>.dto.ts   # input + validation (decorator từ @repo/nest-common)
   dto/update-<feature>.dto.ts   # PartialType(Create...Dto) từ @nestjs/swagger
   dto/<feature>.dto.ts          # response class (chỉ @ApiProperty, cho Swagger)
   <feature>.module.ts
@@ -158,11 +161,11 @@ return paginated(items, total, query)
 apiFetch<Paginated<Product>>(`/products?${listQueryToSearchParams({ keyword, sortBy: 'price', filter: { status: ['PUBLISHED'] } })}`)
 ```
 
-| Package            | Cung cấp                                                                                                                                                                                              |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@repo/utils`      | `ListQuery`, `Paginated<T>`, `defineListSpecFor` (/ `defineListSpec` không gắn model), `parseListFilter`, `parseListSort`, `paginated`, `paginationArgs`, `listQueryToSearchParams`, `ListQueryError` |
-| `@repo/decorators` | `ListQueryDto`, `PaginationQueryDto`, `@ApiListQuery(spec)`, `@ApiPaginatedResponse(Dto)`, `ListQueryExceptionFilter`                                                                                 |
-| `@repo/db`         | `toPrismaListArgs`, `escapeLike`                                                                                                                                                                      |
+| Package             | Cung cấp                                                                                                                                                                                              |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@repo/utils`       | `ListQuery`, `Paginated<T>`, `defineListSpecFor` (/ `defineListSpec` không gắn model), `parseListFilter`, `parseListSort`, `paginated`, `paginationArgs`, `listQueryToSearchParams`, `ListQueryError` |
+| `@repo/nest-common` | `ListQueryDto`, `PaginationQueryDto`, `@ApiListQuery(spec)`, `@ApiPaginatedResponse(Dto)`, `ListQueryExceptionFilter`                                                                                 |
+| `@repo/db`          | `toPrismaListArgs`, `escapeLike`                                                                                                                                                                      |
 
 ### Database (`@repo/db`)
 
@@ -172,7 +175,9 @@ apiFetch<Paginated<Product>>(`/products?${listQueryToSearchParams({ keyword, sor
 - `pnpm db:types` (chỉ chạy ở máy local; `build` trên CI/server chỉ chạy `--generator client`) dùng generator `prisma/generators/types.ts` → ghi `packages/types/src/generated/{models,enums}.ts` (interface dạng JSON như API trả về: `DateTime`/`Decimal`/`BigInt` → `string`; quan hệ là field optional `LimitDepth<Model, 2>`, tự tham chiếu `LimitDepth<Model, 1>`, sâu hơn thành `object` để TanStack `DeepKeys` không lặp vô hạn; enum dạng `const` + type). File này **commit vào git**; `@repo/types` là package source (như `@repo/ui`, không có bước build), web/mobile dùng thẳng, không cần Prisma.
 - Thêm bảng: sửa `schema.prisma` → `pnpm db:migrate` (đặt tên migration) → `pnpm db:types` → commit cả `packages/types/src/generated`.
 
-### Decorators (`@repo/decorators`)
+### Nest common (`@repo/nest-common`)
+
+Phần dùng chung cho mọi app NestJS, chia theo thư mục trong `src/`: `fields/` (field decorators), `validation/` (`validateDto`, `validateEnv`, `VALIDATOR_OPTIONS`), `env/` (`BaseEnv`), `list/` (`ListQueryDto`, `PaginationQueryDto`, `ApiListQuery`, `ApiPaginatedResponse`, `ListQueryExceptionFilter`).
 
 Decorator gộp sẵn presence + transform + validate + Swagger cho một field:
 
@@ -221,8 +226,8 @@ await this.cache.delByPrefix('hellos:') // sau khi ghi
 ```
 
 - **Key prefix theo môi trường** (`dev:`, `stg:`, `prod:` từ `APP_ENV`): nhiều môi trường dùng chung một Redis không đụng key của nhau. `keyPrefix` của ioredis không áp dụng cho pattern `SCAN` và kênh pub/sub – `RedisCache.delByPrefix` và `RedisIoAdapter` đã tự xử lý.
-- `/health` của api (`database` + `redis`) và socket (`redis`) trả 503 khi Redis không trả lời (`pingRedis`, timeout 2s).
-- **Socket chạy nhiều instance**: `RedisIoAdapter` (`@socket.io/redis-adapter`, kênh `<env>:socket.io`) chuyển emit tới room qua Redis – client ở instance nào cũng nhận. Test: `apps/socket/test/scale-out.e2e-spec.ts`.
+- `/api/health` (`database` + `redis`) và `/socket/health` (`redis`) trả 503 khi Redis không trả lời (`pingRedis`, timeout 2s).
+- **Socket chạy nhiều instance**: `RedisIoAdapter` (`@repo/redis/socket-io`, `@socket.io/redis-adapter`, kênh `<env>:socket.io`) chuyển emit tới room qua Redis – client ở instance nào cũng nhận. Test: `apps/socket/test/scale-out.e2e-spec.ts`.
 - Kết nối subscribe / hàng đợi (BullMQ sau này) dùng **kết nối riêng** (`redis.duplicate()`; BullMQ cần `maxRetriesPerRequest: null`). Redis chạy `maxmemory-policy noeviction` (không xoá key ngầm khi đầy bộ nhớ).
 
 ### Upload file (S3)
@@ -266,15 +271,20 @@ STORAGE_BUCKET=btp
 
 Hàm bổ trợ thuần (không phụ thuộc Node/Nest/React) – dùng được ở api, socket và web (cả client component).
 
-| Module                             | Hàm                                                                                                      |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `date` (date-fns + `@date-fns/tz`) | `formatDate`, `formatDateTime`, `toDateKey`, `parseDate`, `dayRange`, `fromNow`, `toDate`, `isValidDate` |
-| `string`                           | `removeDiacritics`, `slugify`, `truncate`                                                                |
-| `number`                           | `formatNumber`, `formatCurrency`                                                                         |
+Chia thư mục theo chức năng trong `src/`:
+
+| Thư mục   | Module                             | Hàm                                                                                                      |
+| --------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `env/`    | `app-env`                          | `AppEnv`, `parseAppEnv`, `isAppEnv`                                                                      |
+| `format/` | `date` (date-fns + `@date-fns/tz`) | `formatDate`, `formatDateTime`, `toDateKey`, `parseDate`, `dayRange`, `fromNow`, `toDate`, `isValidDate` |
+| `format/` | `string`, `number`                 | `removeDiacritics`, `slugify`, `truncate`, `formatNumber`, `formatCurrency`                              |
+| `http/`   | `api-fetch`, `upload`              | `createApiFetch`, `ApiError`, `uploadFile`, `UploadError`, `MAX_UPLOAD_BYTES`                            |
+| `list/`   | `list-query`, `pagination`         | `ListQuery`, `parseListFilter`, `parseListSort`, `Paginated`, `paginated`, `paginationArgs`              |
+| `health/` | `probe`                            | `probe` (health check có timeout)                                                                        |
 
 Mặc định múi giờ `Asia/Ho_Chi_Minh` (`DEFAULT_TIME_ZONE`) và locale `vi`, nên SSR và browser cho cùng kết quả (không lệch hydration). Ví dụ: `dayRange(new Date())` → `{ start, end }` của ngày hôm nay theo giờ VN, dùng cho `where: { createdAt: { gte: start, lte: end } }`.
 
-Thêm helper: tạo `src/<module>.ts`, export trong `src/index.ts`, viết test trong `src/*.test.ts`.
+Thêm helper: tạo `src/<thư mục>/<module>.ts` (+ `<module>.spec.ts` cạnh đó), export trong `src/index.ts`.
 
 ### Socket events (`@repo/socket-events`)
 
@@ -309,17 +319,17 @@ Tận dụng code Prisma sinh ra ở mọi tầng:
 Expo SDK 58 + Expo Router (`src/app`), cùng bộ thư viện dữ liệu với web: TanStack Query/Form, `createApiFetch` + `ApiError` (`@repo/utils`), model và contract từ `@repo/types`.
 
 - `src/lib/env.ts`: `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_APP_ENV` (đọc lúc build; `eas.json`: `development`/`preview`/`production` → `dev`/`stg`/`prod`). Emulator Android gọi máy host qua `10.0.2.2`, thiết bị thật qua IP LAN.
-- Style: NativeWind 5 (Tailwind v4, cùng bản với web qua `catalog:tailwind`). `src/global.css` import `@repo/tailwind-config/theme.css` – file token dùng chung với web – nên đổi màu một chỗ cho cả hai; `oklch` được đổi sang hex lúc build. Native không có class `.dark`: `postcss.config.mjs` chuyển `.dark { … }` thành `@media (prefers-color-scheme: dark)` (theo cài đặt hệ thống). NativeWind 5 đang là RC; `overrides` trong `pnpm-workspace.yaml` ghim `lightningcss` 1.30.1 cho Expo (bản mới hơn lỗi với `var()`), gỡ khi upstream sửa.
+- Style: NativeWind 5 (Tailwind v4, cùng bản với web qua catalog). `src/global.css` import `@repo/tailwind-config/theme.css` – file token dùng chung với web – nên đổi màu một chỗ cho cả hai; `oklch` được đổi sang hex lúc build. Native không có class `.dark`: `postcss.config.mjs` chuyển `.dark { … }` thành `@media (prefers-color-scheme: dark)` (theo cài đặt hệ thống). NativeWind 5 đang là RC; `overrides` trong `pnpm-workspace.yaml` ghim `lightningcss` 1.30.1 cho Expo (bản mới hơn lỗi với `var()`), gỡ khi upstream sửa.
 - Chạy thử không cần emulator: `pnpm dev:mobile` rồi nhấn `w` (bản web qua `react-native-web`, cổng 8081 – đã có trong `CORS_ORIGINS` của `.env.example` api/socket). App native không gửi `Origin` nên không bị CORS chặn.
 - Ghi dữ liệu: `useMutation` gọi thẳng API → `toast` (`sonner-native`) → `invalidateQueries`.
-- Test: Vitest cho code không phụ thuộc React Native (`src/**/*.spec.ts`); màn hình kiểm tra bằng `pnpm --filter mobile exec expo export` (bundle) hoặc chạy app.
+- Test: Vitest cho code không phụ thuộc React Native (`src/**/*.spec.ts`); `build` = `expo export` (bundle iOS/Android/web) chạy trong `turbo run build` nên CI bắt lỗi bundle/Metro.
 - Build native: EAS (`eas build --profile <tên>`), không nằm trong `turbo build`; `android/` `ios/` sinh bằng `expo prebuild`, không commit.
 
 ### UI: Tailwind, shadcn/ui, TanStack
 
 | Phần              | Ở đâu                                                                                                                                                                                                                                                | Ghi chú                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tailwind CSS v4   | `packages/tailwind-config` (`shared-styles.css`, `postcss.config.mjs`)                                                                                                                                                                               | App: `@import '@repo/tailwind-config'` + `@source` tới `packages/ui/src` (xem `apps/web/app/globals.css`)                                                                                                                                                                                                                                                                                                                         |
+| Tailwind CSS v4   | `packages/tooling/tailwind-config` (`shared-styles.css`, `postcss.config.mjs`)                                                                                                                                                                       | App: `@import '@repo/tailwind-config'` + `@source` tới `packages/ui/src` (xem `apps/web/app/globals.css`)                                                                                                                                                                                                                                                                                                                         |
 | Theme             | `theme.css` (`:root` sáng, `.dark` tối, màu `oklch`; web import qua `shared-styles.css`, mobile import trực tiếp)                                                                                                                                    | Dark mode: `next-themes` (`apps/web/components/theme-provider.tsx`); nút `ModeToggle` (`@repo/ui/components/mode-toggle`, 1 click đổi sáng ↔ tối, lưu localStorage) ở header trong `app/layout.tsx`; phím tắt `d`                                                                                                                                                                                                                 |
 | shadcn/ui         | `packages/ui/src/components/` – primitive shadcn để phẳng (CLI thêm vào đây: `button`, `select`…); component tự viết dùng nhiều nơi cũng phẳng (`date-picker`, `icon-button`); cụm nhiều file gom thư mục (`data-table/`: `index.tsx` là public API) | Import: `@repo/ui/components/button`, `@repo/ui/components/data-table`, `cn` từ `@repo/ui/lib/utils`                                                                                                                                                                                                                                                                                                                              |
 | TanStack Table v9 | `@repo/ui/components/data-table` (+ `/server` cho prefetch)                                                                                                                                                                                          | Bảng danh sách phía server: `useListTable` + `<DataTable list>` (xem mục dưới); ví dụ `apps/web/app/hellos/hellos-table.tsx`                                                                                                                                                                                                                                                                                                      |
@@ -392,7 +402,9 @@ Dữ liệu: **đọc** qua TanStack Query (server prefetch, sau đó trình duy
 
 ### Internal packages
 
-`@repo/utils`, `@repo/decorators`, `@repo/socket-events`, `@repo/db` là compiled package (tsc → `dist/`); `@repo/ui`, `@repo/types` export source TS (web dùng `transpilePackages`). Task `dev`/`build`/`test` trong `turbo.json` đều `dependsOn: ["^build"]` nên package luôn được build trước app.
+Hai nhóm workspace: `apps/` (app chạy được) và `packages/`. Trong `packages/`: thư viện app import khi chạy ở `packages/<tên>`, cấu hình và công cụ dùng chung ở `packages/tooling/` (eslint, typescript, vitest, tailwind – sau này thêm generator, script… cũng đặt ở đây). Tên package không phụ thuộc thư mục (`@repo/eslint-config`…).
+
+`@repo/utils`, `@repo/nest-common`, `@repo/socket-events`, `@repo/db` là compiled package (tsc → `dist/`); `@repo/ui`, `@repo/types` export source TS (web dùng `transpilePackages`). Task `dev`/`build`/`test` trong `turbo.json` đều `dependsOn: ["^build"]` nên package luôn được build trước app.
 
 ### Lint
 
@@ -411,18 +423,22 @@ ESLint dùng `typescript-eslint` **có kiểm tra kiểu** (`recommendedTypeChec
 
 ### Versions dùng chung (pnpm catalog)
 
-Version dùng chung được khai báo **một lần** trong `catalogs` của `pnpm-workspace.yaml`, `package.json` tham chiếu bằng `"catalog:<tên>"`:
+Version dùng chung được khai báo **một lần** trong `catalog:` (một danh sách phẳng) của `pnpm-workspace.yaml`, `package.json` tham chiếu bằng `"catalog:"`. Các gói được xếp theo nhóm, mỗi nhóm có một dòng comment `#`:
 
-| Catalog    | Gồm                                                                                      | Dùng ở                                   |
-| ---------- | ---------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `tooling`  | `typescript`, `eslint`, `@types/node`, `tsx`                                             | mọi package (dev tooling)                |
-| `nestjs`   | toàn bộ `@nestjs/*`, `class-validator`, `class-transformer`, `reflect-metadata`, `rxjs`  | `api`, `socket`, `@repo/decorators`      |
-| `react`    | `react`, `react-dom`, `@types/react`, `@types/react-dom` (theo version Expo SDK yêu cầu) | `web`, `mobile`, `@repo/ui`              |
-| `tailwind` | `tailwindcss`, `@tailwindcss/postcss`                                                    | `web`, `mobile`, `@repo/tailwind-config` |
+| Nhóm            | Gồm                                                                                                         | Dùng ở                                   |
+| --------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Dev tooling     | `typescript`, `eslint`, `@types/node`, `tsx`, `vitest`, `@swc/*`, `globals`, `turbo`, `eslint-plugin-turbo` | mọi package                              |
+| NestJS          | toàn bộ `@nestjs/*`, `class-validator`, `class-transformer`, `reflect-metadata`, `rxjs`                     | `api`, `socket`, `@repo/nest-common`     |
+| React           | `react`, `react-dom`, `@types/react`, `@types/react-dom` (theo version Expo SDK yêu cầu)                    | `web`, `mobile`, `@repo/ui`              |
+| Next            | `next`, `@next/eslint-plugin-next`                                                                          | `web`, `@repo/eslint-config`             |
+| Tailwind        | `tailwindcss`, `@tailwindcss/postcss`                                                                       | `web`, `mobile`, `@repo/tailwind-config` |
+| TanStack        | `@tanstack/react-query`, `react-query-devtools`, `react-form`                                               | `web`, `mobile`, `@repo/ui`              |
+| UI / realtime   | `date-fns`, `lucide-react`, `next-themes`, `nuqs`, `socket.io`, `socket.io-client`                          | nhiều app/package                        |
+| Unit test React | `@testing-library/*`, `jsdom`                                                                               | `web`, `@repo/ui`                        |
 
-- Nâng version (vd. Nest 13): sửa trong catalog → `pnpm install`.
-- App Nest mới / thêm package `@nestjs/*`: thêm vào catalog `nestjs` → `pnpm add <pkg>@catalog:nestjs --filter <app>`.
-- Dependency khác ghi version trực tiếp; `peerDependencies` giữ range.
+- Nâng version (vd. Nest 13): sửa trong catalog → `pnpm install`. Renovate gom PR theo nhóm tên package (`renovate.json5`).
+- Thêm gói dùng ở nhiều nơi: thêm vào đúng nhóm trong catalog → `pnpm add <pkg>@catalog: --filter <app>`.
+- Gói chỉ dùng ở một nơi ghi version trực tiếp. Package cần dùng chung instance với app (class-validator, React, Nest) khai `peerDependencies` bằng `catalog:`, không khai lại ở `devDependencies`.
 
 Nâng version thủ công (pnpm sửa **thẳng trong catalog**, giữ nguyên `catalog:` ở các package):
 
@@ -434,7 +450,7 @@ pnpm update -r --latest '@nestjs/*' rxjs        # nâng cả nhóm
 pnpm turbo run build lint check-types test      # kiểm tra lại
 ```
 
-Không dùng `pnpm audit --fix`: (pnpm 11.25.0) nó ghi đè `catalog:` của dep vừa là `peerDependencies` (vd. `@repo/decorators`) thành range `^…`. Lỗ hổng ở thư viện con → để Renovate (lock file maintenance) hoặc `pnpm update -r <gói>`.
+Không dùng `pnpm audit --fix`: (pnpm 11.25.0) nó ghi đè `catalog:` của dep vừa là `peerDependencies` (vd. `@repo/nest-common`) thành range `^…`. Lỗ hổng ở thư viện con → để Renovate (lock file maintenance) hoặc `pnpm update -r <gói>`.
 
 TypeScript ghim **6.0.3** (bản 6.x mới nhất): TS 7.0 chỉ có binary `tsc`, chưa có compiler API mà Nest CLI, `typescript-eslint` và `@nestjs/swagger` cần.
 
@@ -457,7 +473,7 @@ TypeScript ghim **6.0.3** (bản 6.x mới nhất): TS 7.0 chỉ có binary `tsc
 
 ## Git & quy ước commit
 
-- Commit theo [Conventional Commits](https://www.conventionalcommits.org): `feat(api): add hellos pagination`. Scope gợi ý: tên workspace (`api`, `socket`, `web`, `db`, `decorators`, `utils`, …) hoặc `deploy`, `deps`, `ci`.
+- Commit theo [Conventional Commits](https://www.conventionalcommits.org): `feat(api): add hellos pagination`. Scope gợi ý: tên workspace (`api`, `socket`, `web`, `db`, `nest-common`, `utils`, …), `tooling` cho `packages/tooling/*`, hoặc `deploy`, `deps`, `ci`.
 - Husky hooks:
   - `pre-commit`: `lint-staged` → Prettier cho file được commit.
   - `commit-msg`: `commitlint`.
@@ -500,7 +516,9 @@ GitHub Actions (`.github/workflows/ci.yml`) và GitLab CI (`.gitlab-ci.yml`) là
 | tag `vX.Y.Z` (phải nằm trên `main`)  | `check` → images (**duyệt tay**) | `:prod`, `:X.Y.Z`, `:latest`, `:<sha>` | `prod`     |
 
 - `check`: `format:check` → `turbo run build lint check-types test` → `db:deploy` + `db:check` trên Postgres.
-- Images: `api`, `migrate`, `socket`, `web`. GitHub → `ghcr.io/<owner>/<repo>-<app>`; GitLab → `$CI_REGISTRY_IMAGE/<app>` (đổi registry, vd. OpenShift như btp: `REGISTRY_IMAGE`, `REGISTRY_HOST`, `REGISTRY_USER`, `REGISTRY_PASSWORD`).
+- Images: `api`, `migrate`, `socket`, `web` (đều chạy bằng user `node`; `migrate` chỉ chứa `@repo/db` + Prisma CLI, ~750 MB).
+- Cache: GitHub Actions cache `.turbo/cache` và trình duyệt Playwright (cache trên server GitHub, job e2e chỉ đọc). GitLab hiện **không** cache: runner chạy trên nhiều máy mà cache mặc định nằm trên từng máy; cần cache thì cấu hình distributed cache (S3/MinIO) cho runner hoặc turbo remote cache.
+- Registry: GitHub → `ghcr.io/<owner>/<repo>-<app>`; GitLab → `$CI_REGISTRY_IMAGE/<app>` (đổi registry, vd. OpenShift như btp: `REGISTRY_IMAGE`, `REGISTRY_HOST`, `REGISTRY_USER`, `REGISTRY_PASSWORD`).
 - 3 môi trường `dev` / `stg` / `prod` – chi tiết (nguồn code, tag image, biến, Swagger, nhãn UI): **[docs/process/environments.md](docs/process/environments.md)**. Variables theo environment: `PUBLIC_API_URL`, `PUBLIC_SOCKET_URL` (bake vào web image), `NEXT_PUBLIC_APP_ENV` do CI tự đặt.
 - Duyệt tay prod: GitLab – job `images:prod` là `when: manual`; GitHub – thêm _Required reviewers_ cho environment `prod`.
 - GitLab build image cần runner Docker-in-Docker (`docker:29-dind`, privileged). MR template: `.gitlab/merge_request_templates/Default.md`.

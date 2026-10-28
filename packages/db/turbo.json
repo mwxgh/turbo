@@ -5,7 +5,6 @@
     "build": {
       "outputs": ["dist/**", "src/generated/**"]
     },
-    // `build` runs `prisma generate`; these tasks need its output (src/generated).
     "check-types": {
       "dependsOn": ["build"]
     },

@@ -22,6 +22,7 @@ const TEXT_OPS = new Set([
   'startsWith',
   'endsWith',
   'eq',
+  'not',
   'in',
   'notIn',
 ])

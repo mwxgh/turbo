@@ -206,8 +206,13 @@ export function FileUpload<T = unknown>({
 
   const remove = async (item: FileUploadItem<T>) => {
     controllers.current.get(item.id)?.abort()
-    if (item.status === 'done' && onRemove)
-      await onRemove(item.result as T, item.file)
+    if (item.status === 'done' && onRemove) {
+      try {
+        await onRemove(item.result as T, item.file)
+      } catch {
+        return // onRemove reports the failure; keep the file listed to retry
+      }
+    }
     setItems((all) => all.filter((i) => i.id !== item.id))
   }
 

@@ -1,4 +1,4 @@
-import { StringField } from '@repo/decorators'
+import { StringField } from '@repo/nest-common'
 
 export class SendMessageDto {
   @StringField({ maxLength: 64 })

@@ -1,6 +1,8 @@
 /**
  * Conventional Commits, e.g. `feat(api): add hellos pagination`.
- * Scopes are the workspaces plus a few repo-wide areas (only a warning).
+ * Types (feat, fix, docs, …) come from @commitlint/config-conventional.
+ * Scopes are the workspaces plus a few repo-wide areas (only a warning);
+ * packages/tooling/* (eslint, typescript, vitest, tailwind configs) share `tooling`.
  */
 export default {
   extends: ['@commitlint/config-conventional'],
@@ -18,14 +20,11 @@ export default {
         'db',
         'types',
         'redis',
-        'decorators',
+        'nest-common',
         'utils',
         'socket-events',
-        'vitest-config',
-        'tailwind-config',
         'e2e',
-        'eslint-config',
-        'typescript-config',
+        'tooling',
         'deploy',
         'deps',
         'ci',

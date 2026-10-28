@@ -24,16 +24,16 @@
   },
   "dependencies": {
     "@date-fns/tz": "1.5.0",
-    "date-fns": "4.4.0"
+    "date-fns": "catalog:"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@repo/vitest-config": "workspace:*",
-    "@types/node": "catalog:tooling",
-    "@vitest/coverage-v8": "catalog:tooling",
-    "eslint": "catalog:tooling",
-    "typescript": "catalog:tooling",
-    "vitest": "catalog:tooling"
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

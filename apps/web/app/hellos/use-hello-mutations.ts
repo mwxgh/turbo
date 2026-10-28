@@ -53,16 +53,16 @@ export function useDeleteHello() {
     onMutate: async (id) => {
       await queryClient.cancelQueries(lists)
       const previous = queryClient.getQueriesData<Paginated<Hello>>(lists)
-      queryClient.setQueriesData<Paginated<Hello>>(
-        lists,
-        (old) =>
-          old && {
-            ...old,
-            items: old.items.filter((hello) => hello.id !== id),
-            total: old.total - 1,
-            totalPages: totalPages(old.total - 1, old.pageSize),
-          },
-      )
+      // Only pages that show the row change; the refetch fixes the others
+      queryClient.setQueriesData<Paginated<Hello>>(lists, (old) => {
+        if (!old?.items.some((hello) => hello.id === id)) return old
+        return {
+          ...old,
+          items: old.items.filter((hello) => hello.id !== id),
+          total: old.total - 1,
+          totalPages: totalPages(old.total - 1, old.pageSize),
+        }
+      })
       return { previous }
     },
     // Put the row back if the API refused

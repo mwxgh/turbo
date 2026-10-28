@@ -5,14 +5,14 @@ import { NestFactory } from '@nestjs/core'
 
 import { AppModule } from './app.module'
 import { configureApp } from './app.setup'
-import { env } from './config/env'
+import { env } from './env'
 
 async function bootstrap() {
   const app = configureApp(await NestFactory.create(AppModule))
 
   await app.listen(env.PORT, env.HOST)
   Logger.log(
-    `Socket server listening on http://${env.HOST}:${env.PORT}`,
+    `Socket server listening on http://${env.HOST}:${env.PORT} (health: /socket/health)`,
     'Bootstrap',
   )
 }

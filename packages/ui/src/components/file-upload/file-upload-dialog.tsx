@@ -96,7 +96,13 @@ export function FileUploadDialog<T = unknown>({
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <FileUpload {...props} onItemsChange={setItems} />
+        <FileUpload
+          {...props}
+          onItemsChange={(next) => {
+            setItems(next)
+            props.onItemsChange?.(next)
+          }}
+        />
         {onConfirm && (
           <DialogFooter>
             <Button variant="outline" onClick={() => close(false)}>

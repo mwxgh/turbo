@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common'
 import { RedisModule } from '@repo/redis'
 
 import { ChatModule } from './chat/chat.module'
-import { env } from './config/env'
+import { env } from './env'
 import { HealthModule } from './health/health.module'
 
 @Module({

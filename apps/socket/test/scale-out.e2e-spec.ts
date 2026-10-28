@@ -55,7 +55,7 @@ describe('Scale-out through the Redis adapter (e2e)', () => {
   })
 
   it('reports Redis in the health check', async () => {
-    const res = await fetch(new URL('/health', urls[0]))
+    const res = await fetch(new URL('/socket/health', urls[0]))
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toMatchObject({
       checks: { redis: 'up' },

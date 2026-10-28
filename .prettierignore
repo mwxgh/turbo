@@ -4,7 +4,6 @@
 **/.next/
 **/prisma/migrations/
 pnpm-lock.yaml
-.pnpm-store/
 **/test-results/
 **/playwright-report/
 **/blob-report/

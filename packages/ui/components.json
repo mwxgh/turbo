@@ -15,7 +15,7 @@
   "style": "base-nova",
   "tailwind": {
     "config": "",
-    "css": "../tailwind-config/shared-styles.css",
+    "css": "../tooling/tailwind-config/shared-styles.css",
     "baseColor": "neutral",
     "cssVariables": true
   },

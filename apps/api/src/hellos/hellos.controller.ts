@@ -22,7 +22,7 @@ import {
   ApiListQuery,
   ApiPaginatedResponse,
   ListQueryDto,
-} from '@repo/decorators'
+} from '@repo/nest-common'
 
 import { CreateHelloDto } from './dto/create-hello.dto'
 import { HelloDto } from './dto/hello.dto'

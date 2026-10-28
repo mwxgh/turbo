@@ -180,6 +180,17 @@ describe('Chat', () => {
     expect(input).toHaveValue('hi') // kept so the user can resend
   })
 
+  it('shows an error when joining the room times out', async () => {
+    const fake = socket.current!
+    fake.emitWithAck.mockRejectedValueOnce(new Error('operation has timed out'))
+    render(<Chat />)
+    await fake.fire('connect')
+
+    expect(
+      await screen.findByText('Could not join the room. Try again.'),
+    ).toBeInTheDocument()
+  })
+
   it('virtualizes long histories (renders only visible rows)', async () => {
     const fake = socket.current!
     render(<Chat />)

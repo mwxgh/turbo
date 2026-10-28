@@ -137,7 +137,8 @@ chore(deps): update nestjs to 12.3.0
 ```
 
 - `type`: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `chore`, `ci`, `build`, `style`, `revert`.
-- `scope` (gợi ý, sai chỉ cảnh báo): `api`, `socket`, `web`, `ui`, `db`, `decorators`, `utils`, `socket-events`, `eslint-config`, `typescript-config`, `deploy`, `deps`, `ci`.
+- `type`: theo chuẩn Conventional Commits (`@commitlint/config-conventional`): `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert` – sai là lỗi.
+- `scope` (gợi ý, sai chỉ cảnh báo): danh sách trong `commitlint.config.mjs` – tên workspace (`api`, `web`, `db`, `utils`…), `tooling` cho `packages/tooling/*`, và `deploy`, `deps`, `ci`.
 - Hooks local: `post-checkout` (kiểm tra tên nhánh), `pre-commit` (Prettier các file commit), `commit-msg` (commitlint), `pre-push` (tên nhánh, rồi `lint`, `check-types`, `test`).
 
 ## CI/CD theo nhánh

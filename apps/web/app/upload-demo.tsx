@@ -14,11 +14,9 @@ import {
   type UploadedFile,
 } from '@repo/ui/components/file-upload'
 import { toast } from '@repo/ui/components/sonner'
-import { formatBytes } from '@repo/utils'
+import { MAX_UPLOAD_BYTES, formatBytes } from '@repo/utils'
 
 import { deleteFromStorage, uploadToStorage } from '../lib/storage'
-
-const MAX_BYTES = 50 * 1024 * 1024 // = MAX_UPLOAD_BYTES of the API
 
 /**
  * Upload to S3 (presigned POST from the API); removing a file deletes it there.
@@ -46,11 +44,16 @@ export function UploadDemo() {
             'application/pdf': ['.pdf'],
             'video/mp4': ['.mp4'],
           }}
-          maxSize={MAX_BYTES}
+          maxSize={MAX_UPLOAD_BYTES}
           upload={uploadToStorage}
           onUploaded={(_, file) => toast.success(`Uploaded ${file.name}`)}
           onRemove={async ({ key }, file) => {
-            await deleteFromStorage(key)
+            try {
+              await deleteFromStorage(key)
+            } catch (error) {
+              toast.error(`Could not delete ${file.name}`)
+              throw error // FileUpload keeps the file listed
+            }
             toast.success(`Deleted ${file.name}`)
           }}
           onConfirm={(files) => {

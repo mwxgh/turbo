@@ -6,7 +6,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express'
 
 import { AppModule } from './app.module'
 import { configureApp } from './app.setup'
-import { env } from './config/env'
+import { env } from './env'
 
 async function bootstrap() {
   const app = configureApp(

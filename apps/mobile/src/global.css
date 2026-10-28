@@ -2,5 +2,5 @@
 @import 'tailwindcss/preflight.css' layer(base);
 @import 'tailwindcss/utilities.css';
 @import 'nativewind/theme';
-/* Same colors/radius as the web app (packages/tailwind-config/theme.css) */
+/* Same colors/radius as the web app (packages/tooling/tailwind-config/theme.css) */
 @import '@repo/tailwind-config/theme.css';

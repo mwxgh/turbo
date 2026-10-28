@@ -1,5 +1,4 @@
 {
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  // Use the repo's TypeScript (pnpm catalog) instead of VS Code's bundled/nightly one.
   "typescript.tsdk": "node_modules/typescript/lib"
 }

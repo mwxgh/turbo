@@ -3,7 +3,7 @@
 **/dist
 **/.turbo
 **/*.tsbuildinfo
-**/src/generated
+packages/db/src/generated
 **/.env
 **/.env.*
 !**/.env.example

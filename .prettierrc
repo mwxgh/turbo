@@ -26,7 +26,7 @@
         "importOrderSeparation": true,
         "importOrderSortSpecifiers": true,
         "importOrderSideEffects": false,
-        "tailwindStylesheet": "./packages/tailwind-config/shared-styles.css",
+        "tailwindStylesheet": "./packages/tooling/tailwind-config/shared-styles.css",
         "tailwindFunctions": ["cn", "cva"],
         "customFunctions": ["cn", "cva"],
         "endingPosition": "absolute"

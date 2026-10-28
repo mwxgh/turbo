@@ -12,7 +12,6 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**"]
     },
-    // Type-aware lint resolves workspace packages through their built .d.ts
     "lint": {
       "dependsOn": ["^build"],
       "env": ["ESLINT_TYPE_CHECK"]
@@ -25,7 +24,6 @@
       "cache": false,
       "persistent": true
     },
-    // Unit tests (*.spec.ts): no external services, cacheable
     "test": {
       "dependsOn": ["^build"]
     },
@@ -37,12 +35,10 @@
       "cache": false,
       "persistent": true
     },
-    // E2E: real Postgres / running apps / browsers – results depend on external
-    // state, so never cached
     "test:e2e": {
       "dependsOn": ["^build"],
       "cache": false,
-      "passThroughEnv": ["PLAYWRIGHT_*", "E2E_*", "CI"]
+      "passThroughEnv": ["PLAYWRIGHT_*", "E2E_*", "CI", "STORAGE_*"]
     }
   },
   "ui": "tui"

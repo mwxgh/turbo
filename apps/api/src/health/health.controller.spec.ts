@@ -2,9 +2,9 @@ import { Logger, ServiceUnavailableException } from '@nestjs/common'
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { PrismaService } from '@repo/db/nest'
 import type { Redis } from '@repo/redis'
 
-import type { PrismaService } from '../prisma/prisma.service'
 import { HealthController } from './health.controller'
 
 const controllerWith = (

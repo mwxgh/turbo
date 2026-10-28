@@ -5,12 +5,11 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common'
 
+import { PrismaService } from '@repo/db/nest'
 import { InjectRedis, type Redis, pingRedis } from '@repo/redis'
+import { probe } from '@repo/utils'
 
-import { env } from '../config/env'
-import { PrismaService } from '../prisma/prisma.service'
-
-type Status = 'up' | 'down'
+import { env } from '../env'
 
 const TIMEOUT_MS = 2_000
 
@@ -27,8 +26,14 @@ export class HealthController {
   @Get()
   async check() {
     const [database, redis] = await Promise.all([
-      this.pingDatabase(),
-      pingRedis(this.redis, TIMEOUT_MS),
+      probe(
+        () => this.prisma.$queryRaw`SELECT 1`,
+        TIMEOUT_MS,
+        (error) => this.logger.warn(`Database check failed: ${String(error)}`),
+      ),
+      pingRedis(this.redis, TIMEOUT_MS, (error) =>
+        this.logger.warn(`Redis check failed: ${String(error)}`),
+      ),
     ])
     if (database === 'down' || redis === 'down') {
       throw new ServiceUnavailableException({
@@ -44,24 +49,6 @@ export class HealthController {
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
       checks: { database, redis },
-    }
-  }
-
-  private async pingDatabase(): Promise<Status> {
-    let timer: NodeJS.Timeout | undefined
-    try {
-      await Promise.race([
-        this.prisma.$queryRaw`SELECT 1`,
-        new Promise((_, reject) => {
-          timer = setTimeout(() => reject(new Error('timeout')), TIMEOUT_MS)
-        }),
-      ])
-      return 'up'
-    } catch (error) {
-      this.logger.warn(`Database check failed: ${String(error)}`)
-      return 'down'
-    } finally {
-      clearTimeout(timer)
     }
   }
 }

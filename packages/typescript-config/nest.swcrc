@@ -1,6 +1,0 @@
-{
-  // Nest CLI's SWC defaults cover decorators/metadata and `module.resolveFully`
-  // (ESM); swc only appends `.js` to extensionless imports once baseUrl is set.
-  // Relative to the app directory (Nest resolves it against the cwd).
-  "jsc": { "baseUrl": "./" }
-}

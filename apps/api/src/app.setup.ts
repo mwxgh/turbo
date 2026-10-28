@@ -2,11 +2,15 @@ import { ValidationPipe } from '@nestjs/common'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
-import { ListQueryExceptionFilter, VALIDATOR_OPTIONS } from '@repo/decorators'
+import { PrismaExceptionFilter } from '@repo/db/nest'
+import {
+  ListQueryExceptionFilter,
+  VALIDATOR_OPTIONS,
+  jsonReplacer,
+} from '@repo/nest-common'
 import { AppEnv } from '@repo/utils'
 
-import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter'
-import { env } from './config/env'
+import { env } from './env'
 
 /** Global HTTP setup shared by `main.ts` and the e2e tests. */
 export function configureApp(
@@ -15,6 +19,7 @@ export function configureApp(
   app.setGlobalPrefix('api')
   // qs parser: list filters as filter[field]=… / filter[field][op]=… (also accepts filter={json})
   app.set('query parser', 'extended')
+  app.set('json replacer', jsonReplacer)
   app.useGlobalPipes(
     new ValidationPipe({
       ...VALIDATOR_OPTIONS,
@@ -23,7 +28,7 @@ export function configureApp(
     }),
   )
   app.useGlobalFilters(
-    new PrismaExceptionFilter(),
+    new PrismaExceptionFilter(app.getHttpAdapter()),
     new ListQueryExceptionFilter(),
   )
   app.enableCors({ origin: env.corsOrigins, credentials: true })

@@ -5,7 +5,7 @@
     "builder": {
       "type": "swc",
       "options": {
-        "swcrcPath": "../../packages/typescript-config/nest.swcrc"
+        "swcrcPath": "../../packages/tooling/typescript-config/nest.swcrc"
       }
     },
     "deleteOutDir": true

@@ -4,7 +4,7 @@ import type { HealthResponse } from '@repo/types'
 
 import { apiFetch } from '../api'
 
-export const HEALTH_POLL_MS = 10_000
+const HEALTH_POLL_MS = 10_000
 
 export const healthQueryOptions = () =>
   queryOptions({

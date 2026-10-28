@@ -3,7 +3,8 @@ import type { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
-import type { PrismaService } from '../src/prisma/prisma.service'
+import type { PrismaService } from '@repo/db/nest'
+
 import { createApp } from './create-app'
 
 describe('Hellos (e2e)', () => {
