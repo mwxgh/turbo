@@ -49,7 +49,7 @@ export default defineConfig({
   webServer: isLocal
     ? [
         app('api', `${API_URL}/health`),
-        app('socket', `${SOCKET_URL}/health`),
+        app('socket', `${SOCKET_URL}/socket/health`),
         app('web', WEB_URL),
       ]
     : undefined,

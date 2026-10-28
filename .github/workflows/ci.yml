@@ -85,11 +85,20 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Turbo task cache: unchanged packages are restored instead of rebuilt
+      - uses: actions/cache@v6
+        with:
+          path: .turbo/cache
+          key: turbo-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ github.ref_name }}-
+            turbo-develop-
+
       - name: Format
         run: pnpm format:check
 
       - name: Build, lint, type-check, unit tests
-        run: pnpm turbo run build lint check-types test
+        run: pnpm turbo run build lint check-types test --cache-dir=.turbo/cache
 
       - name: Migrations apply cleanly and match schema.prisma
         run: |
@@ -97,7 +106,7 @@ jobs:
           pnpm db:check
 
       - name: Backend e2e (api on <db>_test, socket)
-        run: pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis
+        run: pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis --cache-dir=.turbo/cache
 
   # Browser e2e: Playwright starts api, socket and web against Postgres + Redis
   e2e:
@@ -140,11 +149,23 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+      # Builds of api/socket/web from earlier `check` runs (read-only here)
+      - uses: actions/cache/restore@v6
+        with:
+          path: .turbo/cache
+          key: turbo-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ github.ref_name }}-
+            turbo-develop-
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('apps/e2e/package.json') }}
       - run: pnpm db:deploy
       - run: pnpm --filter e2e install-browsers
 
       - name: Playwright
-        run: pnpm turbo run test:e2e --filter=e2e
+        run: pnpm turbo run test:e2e --filter=e2e --cache-dir=.turbo/cache
 
       - uses: actions/upload-artifact@v7
         if: failure()

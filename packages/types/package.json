@@ -21,10 +21,10 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@repo/vitest-config": "workspace:*",
-    "@vitest/coverage-v8": "catalog:tooling",
-    "eslint": "catalog:tooling",
-    "typescript": "catalog:tooling",
-    "vitest": "catalog:tooling"
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
     "@repo/utils": "workspace:*"

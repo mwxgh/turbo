@@ -10,7 +10,7 @@ import {
 
 import { publicEnv } from './env'
 
-export type { Ack, ChatMessage } from '@repo/socket-events'
+export type { ChatMessage } from '@repo/socket-events'
 
 export type AppSocket = Socket<ServerToClientEvents, ClientToServerEvents>
 

@@ -141,6 +141,20 @@ describe('FileUpload', () => {
     expect(onRemove).toHaveBeenCalledWith({ id: 'f1' }, expect.any(File))
     expect(screen.queryByRole('listitem')).toBeNull()
   })
+
+  it('keeps the file listed when onRemove fails', async () => {
+    const { upload, calls } = fakeUpload()
+    const onRemove = vi.fn(() => Promise.reject(new Error('storage down')))
+    render(<FileUpload upload={upload} onRemove={onRemove} />)
+    await pick(pdf())
+    await settle(() => calls[0]!.resolve({ id: 'f1' }))
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Remove my-cv.pdf' }),
+    )
+    expect(onRemove).toHaveBeenCalled()
+    expect(screen.getByRole('listitem')).toBeInTheDocument()
+  })
 })
 
 describe('FileUploadDialog', () => {
@@ -210,6 +224,16 @@ describe('FileUploadDialog', () => {
     )
     expect(onRemove).toHaveBeenCalledWith({ id: 'f1' }, expect.any(File))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('still reports items to the consumer', async () => {
+    const onItemsChange = vi.fn()
+    const { calls } = await open({ onItemsChange })
+    await pick(pdf('a.pdf'))
+    await settle(() => calls[0]!.resolve({ id: 'f1' }))
+    expect(onItemsChange).toHaveBeenLastCalledWith([
+      expect.objectContaining({ status: 'done', result: { id: 'f1' } }),
+    ])
   })
 
   it('stays open when onConfirm fails', async () => {

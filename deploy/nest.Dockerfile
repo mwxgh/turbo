@@ -31,10 +31,17 @@ RUN pnpm turbo run build --filter=${APP}
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm --filter=${APP} deploy --prod --legacy /prod/app
 
+# --- @repo/db alone (schema, migrations, Prisma CLI) for the migrate image
+FROM builder AS migrate-build
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm --filter=@repo/db deploy --prod --legacy /prod/migrate
+
 # --- One-shot job: apply Prisma migrations (needs DATABASE_URL)
-FROM builder AS migrate
-WORKDIR /app/packages/db
+FROM node:${NODE_VERSION} AS migrate
+WORKDIR /app
 ENV PRISMA_HIDE_UPDATE_MESSAGE=1
+COPY --from=migrate-build --chown=node:node /prod/migrate ./
+USER node
 CMD ["node_modules/.bin/prisma", "migrate", "deploy"]
 
 # --- Runtime

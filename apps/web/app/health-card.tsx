@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@repo/ui/components/card'
+import { formatDate } from '@repo/utils'
 
 import { HEALTH_POLL_MS, healthQueryOptions } from '../lib/queries/health'
 
@@ -32,8 +33,7 @@ export function HealthCard() {
           </Badge>
           <span className="ml-auto text-xs font-normal text-muted-foreground">
             refreshes every {HEALTH_POLL_MS / 1000}s
-            {dataUpdatedAt > 0 &&
-              ` · ${new Date(dataUpdatedAt).toLocaleTimeString('vi-VN')}`}
+            {dataUpdatedAt > 0 && ` · ${formatDate(dataUpdatedAt, 'HH:mm:ss')}`}
           </span>
         </CardTitle>
       </CardHeader>

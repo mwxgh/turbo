@@ -11,7 +11,7 @@ export const hellosKeys = {
   lists: () => [...hellosKeys.all, 'list'] as const,
 }
 
-export const HELLOS_PAGE_SIZE = 20
+const HELLOS_PAGE_SIZE = 20
 
 /** GET /hellos page by page, newest first – the list loads more on scroll. */
 export const hellosInfiniteQueryOptions = () =>

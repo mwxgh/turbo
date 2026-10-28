@@ -57,6 +57,16 @@ describe('@repo/redis against a real Redis', () => {
     expect(none).toHaveBeenCalledTimes(1)
   })
 
+  it('set(undefined) deletes the key instead of storing an unreadable value', async () => {
+    await cache.set('gone', 1)
+    await cache.set('gone', undefined)
+    expect(await cache.get('gone')).toBeUndefined()
+
+    const load = vi.fn(() => Promise.resolve(undefined))
+    expect(await cache.getOrSet('void', 60, load)).toBeUndefined()
+    expect(await cache.get('void')).toBeUndefined()
+  })
+
   it('delByPrefix removes only matching keys of this prefix', async () => {
     for (let i = 0; i < 250; i++) await cache.set(`hellos:${i}`, i) // > one SCAN page
     await cache.set('hellos*literal', 'glob chars are escaped')

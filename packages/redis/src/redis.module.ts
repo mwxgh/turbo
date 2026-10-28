@@ -19,7 +19,7 @@ export interface RedisModuleOptions extends RedisOptions {
  * A client with logged connection events. Without an `error` listener ioredis
  * prints "Unhandled error event" on every failed reconnect.
  */
-export function createRedis(
+function createRedis(
   { url, ...options }: RedisModuleOptions,
   logger = new Logger('Redis'),
 ): Redis {
@@ -33,7 +33,7 @@ export function createRedis(
 /**
  * One Redis connection per app, injectable everywhere (global):
  *
- *   RedisModule.forRoot({ url: env.REDIS_URL, keyPrefix: `${env.APP_ENV}:` })
+ *   RedisModule.forRoot({ url: env.REDIS_URL, keyPrefix: env.redisKeyPrefix })
  *
  * Provides `REDIS` (the ioredis client) and `RedisCache` (JSON cache helpers).
  * The connection is closed when the app shuts down.

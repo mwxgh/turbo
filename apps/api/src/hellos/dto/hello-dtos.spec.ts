@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { validateDto } from '@repo/decorators'
+import { validateDto } from '@repo/nest-common'
 
 import { CreateHelloDto } from './create-hello.dto'
 import { UpdateHelloDto } from './update-hello.dto'

@@ -3,9 +3,9 @@ title: Môi trường (dev, stg, prod)
 status: reviewed
 applies-to: api, socket, web, mobile, CI/CD
 enforced-by:
-  - packages/utils/src/app-env.ts (AppEnv)
-  - packages/decorators/src/env.ts (BaseEnv: NODE_ENV, APP_ENV, HOST, CORS_ORIGINS, REDIS_URL)
-  - apps/{api,socket}/src/config/env.ts (Env extends BaseEnv)
+  - packages/utils/src/env/app-env.ts (AppEnv)
+  - packages/nest-common/src/env/base-env.ts (BaseEnv: APP_ENV, HOST, CORS_ORIGINS, REDIS_URL)
+  - apps/{api,socket}/src/env.ts (Env extends BaseEnv)
   - apps/web/lib/env.ts (NEXT_PUBLIC_APP_ENV)
   - apps/mobile/src/lib/env.ts, apps/mobile/eas.json (EXPO_PUBLIC_APP_ENV)
   - .gitlab-ci.yml, .github/workflows/ci.yml
@@ -47,7 +47,7 @@ if (env.APP_ENV !== AppEnv.Prod) {
 }
 ```
 
-- `GET /api/health` và `GET /health` (socket) trả `env` → kiểm tra nhanh đang gọi đúng môi trường.
+- `GET /api/health` và `GET /socket/health` trả `env` → kiểm tra nhanh đang gọi đúng môi trường.
 - Thêm hành vi khác nhau theo môi trường: so sánh `env.APP_ENV` / `publicEnv.appEnv` với `AppEnv.*`, viết test cho cả hai nhánh.
 
 ## Cấu hình theo môi trường

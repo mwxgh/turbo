@@ -12,7 +12,7 @@ import {
 
 import type { Server, Socket } from 'socket.io'
 
-import { validateDto } from '@repo/decorators'
+import { validateDto } from '@repo/nest-common'
 import {
   type Ack,
   type ChatMessage,
@@ -21,10 +21,10 @@ import {
   type ServerToClientEvents,
 } from '@repo/socket-events'
 
-import { SubscribeEvent } from '../common/subscribe-event.decorator'
-import { env } from '../config/env'
+import { env } from '../env'
 import { JoinRoomDto } from './dto/join-room.dto'
 import { SendMessageDto } from './dto/send-message.dto'
+import { SubscribeEvent } from './subscribe-event.decorator'
 
 type AppServer = Server<ClientToServerEvents, ServerToClientEvents>
 type AppSocket = Socket<ClientToServerEvents, ServerToClientEvents>

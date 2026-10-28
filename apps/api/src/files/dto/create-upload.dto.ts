@@ -1,4 +1,4 @@
-import { IntField, StringField } from '@repo/decorators'
+import { IntField, StringField } from '@repo/nest-common'
 
 export class CreateUploadDto {
   @StringField({ maxLength: 255, example: 'my-cv.pdf' })

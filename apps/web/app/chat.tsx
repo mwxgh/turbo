@@ -42,10 +42,13 @@ export function Chat() {
   useEffect(() => {
     const socket = getSocket()
 
-    const onConnect = async () => {
+    const onConnect = () => {
       setConnected(true)
-      const res = await socket.emitWithAck('room:join', { room: ROOM })
-      if (!res.ok) setError(res.errors.join(', '))
+      socket.emitWithAck('room:join', { room: ROOM }).then(
+        (res) => setError(res.ok ? null : res.errors.join(', ')),
+        // ackTimeout (lib/socket.ts) elapsed
+        () => setError('Could not join the room. Try again.'),
+      )
     }
     const onDisconnect = () => setConnected(false)
     const onMessage = (message: ChatMessage) =>

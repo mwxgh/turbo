@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 
-import { env } from '../config/env'
+import { env } from '../env'
 import { FilesController } from './files.controller'
 import { FilesService, STORAGE_CONFIG } from './files.service'
 import { storageConfig } from './storage'

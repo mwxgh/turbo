@@ -55,6 +55,19 @@ describe('toPrismaListArgs', () => {
     })
   })
 
+  it('applies case-insensitive matching to `not` as well', () => {
+    const { where } = toPrismaListArgs(spec, {
+      ...page,
+      filter: { title: { not: 'Hi' }, code: { not: 'X1' } },
+    })
+    expect(where).toEqual({
+      AND: [
+        { title: { not: 'Hi', mode: 'insensitive' } },
+        { code: { not: 'X1' } },
+      ],
+    })
+  })
+
   it('searches the keyword across fields (OR) and IS NOT NULL', () => {
     const { where } = toPrismaListArgs(spec, {
       ...page,

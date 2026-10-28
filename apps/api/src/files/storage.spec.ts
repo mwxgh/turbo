@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { MAX_UPLOAD_BYTES, storageConfig } from './storage'
+import { MAX_UPLOAD_BYTES } from '@repo/utils'
+
+import { storageConfig } from './storage'
 
 const servers = (...list: unknown[]) => JSON.stringify(list)
 const server = (name: string, config: Record<string, string>) => ({

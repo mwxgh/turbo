@@ -23,8 +23,13 @@ export class RedisCache {
     return raw === null ? undefined : (JSON.parse(raw) as T)
   }
 
-  /** Without `ttlSeconds` the value never expires. */
+  /** Without `ttlSeconds` the value never expires; `undefined` deletes the key. */
   async set(key: string, value: unknown, ttlSeconds?: number): Promise<void> {
+    // JSON.stringify(undefined) is undefined, which ioredis would store as ''
+    if (value === undefined) {
+      await this.redis.del(key)
+      return
+    }
     const raw = JSON.stringify(value)
     if (ttlSeconds) await this.redis.set(key, raw, 'EX', ttlSeconds)
     else await this.redis.set(key, raw)

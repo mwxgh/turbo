@@ -36,13 +36,27 @@
   packageRules: [
     // ---------- groups (one PR per group) ----------
     {
-      description: 'pnpm catalog "tooling" (typescript, eslint, @types/node, tsx)',
-      matchDepTypes: ['pnpm.catalog.tooling'],
+      description: 'Dev tooling from the catalog (pnpm-workspace.yaml)',
+      matchPackageNames: [
+        'typescript',
+        'eslint',
+        '@types/node',
+        'tsx',
+        'vitest',
+        '@vitest/*',
+        '@swc/*',
+      ],
       groupName: 'tooling',
     },
     {
-      description: 'pnpm catalog "nestjs": all @nestjs/* must share a version',
-      matchDepTypes: ['pnpm.catalog.nestjs'],
+      description: 'NestJS: all @nestjs/* must share a version',
+      matchPackageNames: [
+        '@nestjs/*',
+        'class-transformer',
+        'class-validator',
+        'reflect-metadata',
+        'rxjs',
+      ],
       groupName: 'nestjs',
     },
     {
@@ -100,9 +114,29 @@
       groupName: 'git hooks & formatting',
     },
     {
-      description: 'pnpm/turbo: package.json, Dockerfiles and CI move together',
-      matchPackageNames: ['pnpm', 'turbo'],
+      description: 'pnpm/turbo: package.json, Dockerfiles and CI move together (after "eslint plugins": keeps eslint-plugin-turbo here)',
+      matchPackageNames: ['pnpm', 'turbo', 'eslint-plugin-turbo'],
       groupName: 'pnpm / turbo',
+    },
+    {
+      description: 'next and @next/eslint-plugin-next share a version (after "eslint plugins")',
+      matchPackageNames: ['next', '@next/eslint-plugin-next'],
+      groupName: 'react / next',
+    },
+    {
+      description: 'Expo SDK packages: upgrade with `pnpm --filter mobile exec expo install --fix`',
+      matchPackageNames: [
+        'expo',
+        'expo-*',
+        '@expo/*',
+        'react-native',
+        'react-native-*',
+        '@react-native/*',
+        'nativewind',
+        'react-native-css',
+        'sonner-native',
+      ],
+      groupName: 'expo',
     },
     {
       matchManagers: ['github-actions', 'gitlabci'],
@@ -114,6 +148,17 @@
     },
 
     // ---------- guards ----------
+    {
+      description: 'React is pinned by the Expo SDK: only patches, new minors come with an Expo upgrade',
+      matchPackageNames: [
+        'react',
+        'react-dom',
+        '@types/react',
+        '@types/react-dom',
+      ],
+      matchUpdateTypes: ['major', 'minor'],
+      enabled: false,
+    },
     {
       description: 'TS 7 has no compiler API yet (Nest CLI, typescript-eslint, @nestjs/swagger need it)',
       matchPackageNames: ['typescript'],

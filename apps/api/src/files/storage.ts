@@ -1,5 +1,7 @@
 import { S3Client } from '@aws-sdk/client-s3'
 
+import { MAX_UPLOAD_BYTES } from '@repo/utils'
+
 export interface StorageConfig {
   endpoint: string
   /** Browser-facing endpoint for presigned URLs. */
@@ -11,9 +13,6 @@ export interface StorageConfig {
   /** Largest file a presigned upload accepts (bytes). */
   maxUploadBytes: number
 }
-
-/** Largest file a presigned upload accepts. */
-export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 
 interface S3Server {
   NAME?: string
