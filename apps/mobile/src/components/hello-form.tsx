@@ -24,6 +24,8 @@ export interface HelloFormProps {
   onSubmit: (input: HelloInput) => Promise<unknown>
   defaultMessage?: string
   submitLabel: string
+  /** Accessible name of the text input (screen readers). */
+  inputLabel: string
   placeholder?: string
   autoFocus?: boolean
   /** Called after a successful submit (e.g. close the inline editor). */
@@ -35,6 +37,7 @@ export function HelloForm({
   onSubmit,
   defaultMessage = '',
   submitLabel,
+  inputLabel,
   placeholder,
   autoFocus,
   onSuccess,
@@ -65,7 +68,7 @@ export function HelloForm({
           return (
             <View className="gap-1">
               <TextInput
-                accessibilityLabel={submitLabel}
+                accessibilityLabel={inputLabel}
                 className={`rounded-md border px-3 py-2.5 text-foreground
                 placeholder:text-muted-foreground
                 ${invalid ? 'border-destructive' : 'border-input'}`}

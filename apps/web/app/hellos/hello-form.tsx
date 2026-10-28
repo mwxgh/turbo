@@ -7,7 +7,7 @@ import { Button } from '@repo/ui/components/button'
 import { Field, FieldError } from '@repo/ui/components/field'
 import { Input } from '@repo/ui/components/input'
 
-import type { ActionState } from '../../lib/types'
+import type { ActionState } from '../../lib/action-toast'
 
 /** Body of POST /hellos (PATCH accepts any subset). */
 export type HelloInput = Pick<Hello, 'message'>

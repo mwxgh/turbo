@@ -31,6 +31,7 @@ export default function HellosScreen() {
         <HelloForm
           defaultMessage={item.message}
           submitLabel="Save"
+          inputLabel="Hello message"
           autoFocus
           onSubmit={(input) => update.mutateAsync({ id: item.id, ...input })}
           onSuccess={() => setEditingId(undefined)}
@@ -64,6 +65,7 @@ export default function HellosScreen() {
       <View className="border-b border-border p-4">
         <HelloForm
           submitLabel="Add hello"
+          inputLabel="New hello message"
           placeholder="Say hello…"
           onSubmit={(input) => create.mutateAsync(input)}
         />

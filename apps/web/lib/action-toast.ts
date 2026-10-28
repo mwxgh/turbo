@@ -1,6 +1,7 @@
 import { toast } from '@repo/ui/components/sonner'
 
-import type { ActionState } from './types'
+/** Result of a Server Action: API validation messages, or nothing on success. */
+export type ActionState = { errors?: string[] }
 
 /**
  * Await a Server Action and toast its outcome. API errors are still returned,
