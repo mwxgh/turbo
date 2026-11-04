@@ -1,0 +1,28 @@
+# Turborepo Remote Cache shared by every CI runner (docs/process/ci-cache.md).
+# Run on one always-on machine that all runners reach (LAN / VPN):
+#   TURBO_TOKEN=$(openssl rand -hex 32) docker compose -f deploy/turbo-cache/docker-compose.yml up -d
+
+name: turbo-cache
+
+services:
+  turbo-cache:
+    image: ducktors/turborepo-remote-cache:2.14.3
+    restart: unless-stopped
+    environment:
+      TURBO_TOKEN: ${TURBO_TOKEN:?TURBO_TOKEN is required}
+      STORAGE_PROVIDER: local
+      # Stored under /tmp/turbo-cache: the image runs as non-root `app` and /tmp is
+      # the writable (1777) dir a fresh volume inherits its permissions from
+      STORAGE_PATH: turbo-cache
+    ports:
+      - '${TURBO_CACHE_PORT:-3000}:3000'
+    volumes:
+      - turbo-cache:/tmp
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/v8/artifacts/status']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  turbo-cache:

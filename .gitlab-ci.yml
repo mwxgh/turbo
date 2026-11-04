@@ -20,6 +20,9 @@
 #   PUBLIC_API_URL / PUBLIC_SOCKET_URL
 #     Browser URLs baked into the web image. Scope them per environment
 #     (dev / stg / prod) – image jobs declare `environment` for that.
+#   TURBO_API / TURBO_TOKEN (masked)
+#     Optional: Turborepo Remote Cache shared by all runners
+#     (deploy/turbo-cache, docs/process/ci-cache.md). Unset → no shared cache.
 #   Environments: docs/process/environments.md
 #
 # Recommended: protect main, develop, release/*, hotfix/* and tags v*.
@@ -36,6 +39,8 @@ variables:
   REGISTRY_HOST: ${CI_REGISTRY}
   REGISTRY_USER: ${CI_REGISTRY_USER}
   REGISTRY_PASSWORD: ${CI_REGISTRY_PASSWORD}
+  # Remote Cache namespace; TURBO_API / TURBO_TOKEN come from CI/CD variables
+  TURBO_TEAM: ci
 
 workflow:
   rules:
