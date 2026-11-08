@@ -74,8 +74,15 @@ export function DataTable<TData extends RowData>({
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     const sorted = header.column.getIsSorted()
+                    const ariaSort = !header.column.getCanSort()
+                      ? undefined
+                      : sorted === 'asc'
+                        ? 'ascending'
+                        : sorted === 'desc'
+                          ? 'descending'
+                          : 'none'
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead key={header.id} aria-sort={ariaSort}>
                         {header.isPlaceholder ? null : header.column.getCanSort() ? (
                           <Button
                             variant="ghost"

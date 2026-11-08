@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from 'react'
+
 import {
   type QueryKey,
   type UseQueryOptions,
@@ -69,13 +71,22 @@ export function useListTable<
   getRowId,
 }: UseListTableOptions<TData, TQueryKey>): ListTable<TData> {
   const [state, setState] = useQueryStates(listTableParsers)
+  const query = toListQuery(state)
   const result = useQuery({
-    ...listQuery(toListQuery(state)),
+    ...listQuery(query),
     // Keep the current rows while the next page / filter loads
     placeholderData: keepPreviousData,
   })
 
-  const pagination = { pageIndex: state.page - 1, pageSize: state.pageSize }
+  // Past the last page (e.g. its only row was deleted): go to the last page
+  const lastPage = result.isPlaceholderData
+    ? undefined
+    : result.data?.totalPages
+  useEffect(() => {
+    if (lastPage && query.page > lastPage) void setState({ page: lastPage })
+  }, [lastPage, query.page, setState])
+
+  const pagination = { pageIndex: query.page - 1, pageSize: query.pageSize }
   const sorting: SortingState = state.sortBy
     ? [{ id: state.sortBy, desc: state.sortDir === 'desc' }]
     : []

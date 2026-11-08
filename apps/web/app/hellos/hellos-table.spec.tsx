@@ -78,8 +78,11 @@ describe('HellosTable', () => {
     await waitFor(() => expect(lastUrl()).toContain('keyword=xin'))
 
     await userEvent.click(screen.getByLabelText('Created from'))
-    const firstOfMonth = within(await screen.findByRole('grid')).getByText('1')
-    await userEvent.click(firstOfMonth)
+    // The grid can also show the next month's 1st as a trailing outside day
+    const [firstOfMonth] = within(await screen.findByRole('grid')).getAllByText(
+      '1',
+    )
+    await userEvent.click(firstOfMonth!)
     await waitFor(() =>
       expect(decodeURIComponent(lastUrl() ?? '')).toMatch(
         /filter=\{"createdAt":\{"from":"\d{4}-\d{2}-01"\}\}/,

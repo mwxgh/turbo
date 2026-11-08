@@ -137,13 +137,18 @@ export function Chat() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={`Message #${ROOM}`}
+            aria-label={`Message #${ROOM}`}
             disabled={!connected}
           />
           <Button type="submit" disabled={!connected || !text.trim()}>
             Send
           </Button>
         </form>
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
       </CardContent>
     </Card>
   )

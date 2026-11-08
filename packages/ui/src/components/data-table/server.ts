@@ -6,7 +6,7 @@ import {
   parseAsStringLiteral,
 } from 'nuqs/server'
 
-import { DEFAULT_PAGE_SIZE, type ListQuery } from '@repo/utils'
+import { DEFAULT_PAGE_SIZE, type ListQuery, MAX_PAGE_SIZE } from '@repo/utils'
 
 /**
  * URL state of a list table, in the API's own shape (`?page=2&sortBy=…&filter={…}`):
@@ -31,11 +31,17 @@ export const loadListTableState = createLoader(listTableParsers)
 
 export type ListTableState = Awaited<ReturnType<typeof loadListTableState>>
 
-/** The API query for a table state – the same object on server and client (query key). */
+const clamp = (n: number, min: number, max: number) =>
+  Math.min(Math.max(n, min), max)
+
+/**
+ * The API query for a table state – the same object on server and client (query key).
+ * A hand-edited `?page=0` / `?pageSize=1000` is clamped instead of becoming a 400.
+ */
 export function toListQuery(state: ListTableState): ListQuery {
   return {
-    page: state.page,
-    pageSize: state.pageSize,
+    page: Math.max(state.page, 1),
+    pageSize: clamp(state.pageSize, 1, MAX_PAGE_SIZE),
     ...(state.sortBy && {
       sortBy: state.sortBy,
       sortDir: state.sortDir ?? 'asc',

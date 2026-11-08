@@ -126,10 +126,25 @@ describe('DataTable + useListTable', () => {
     expect(screen.getByLabelText('Search')).toHaveValue('al')
   })
 
+  it('clamps an out-of-range page size and page from the URL', async () => {
+    const { lastQuery } = setup('?page=0&pageSize=1000')
+    await screen.findByText('Alice')
+    expect(lastQuery()).toMatchObject({ page: 1, pageSize: 100 })
+  })
+
+  it('goes to the last page when the page is past the end', async () => {
+    const { lastQuery } = setup('?page=9')
+    await waitFor(() => expect(lastQuery()).toMatchObject({ page: 3 }))
+    expect(await screen.findByText('Showing 41–45 of 45')).toBeVisible()
+  })
+
   it('sorts on the server: asc → desc → API default', async () => {
     const { lastQuery } = setup('?page=3')
     await screen.findByText('Alice')
     const sortName = () => screen.getByRole('button', { name: /Name/ })
+
+    const nameHeader = () => screen.getByRole('columnheader', { name: /Name/ })
+    expect(nameHeader()).toHaveAttribute('aria-sort', 'none')
 
     await userEvent.click(sortName())
     await waitFor(() =>
@@ -139,6 +154,7 @@ describe('DataTable + useListTable', () => {
         page: 1,
       }),
     )
+    expect(nameHeader()).toHaveAttribute('aria-sort', 'ascending')
     await userEvent.click(sortName())
     await waitFor(() => expect(lastQuery()).toMatchObject({ sortDir: 'desc' }))
     await userEvent.click(sortName())
