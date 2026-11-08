@@ -19,7 +19,9 @@
   },
   "dependencies": {
     "@swc/core": "catalog:",
-    "unplugin-swc": "2.0.0",
+    "unplugin-swc": "2.0.0"
+  },
+  "peerDependencies": {
     "vitest": "catalog:"
   }
 }

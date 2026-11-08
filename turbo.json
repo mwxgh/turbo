@@ -9,7 +9,17 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "!**/*.spec.ts",
+        "!**/*.spec.tsx",
+        "!test/**",
+        "!**/*.md",
+        "!vitest*.config.*",
+        "!vitest.setup.ts",
+        "!eslint.config.*"
+      ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**"]
     },
     "lint": {
