@@ -34,7 +34,7 @@ export async function updateHello(
   input: HelloInput,
 ): Promise<ActionState> {
   try {
-    await apiFetch<Hello>(`/hellos/${id}`, {
+    await apiFetch<Hello>(`/hellos/${encodeURIComponent(id)}`, {
       method: 'PATCH',
       body: JSON.stringify(input),
     })
@@ -45,5 +45,5 @@ export async function updateHello(
 }
 
 export async function deleteHello(id: string): Promise<void> {
-  await apiFetch(`/hellos/${id}`, { method: 'DELETE' })
+  await apiFetch(`/hellos/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }

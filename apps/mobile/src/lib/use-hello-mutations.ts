@@ -28,7 +28,7 @@ export function useHelloMutations() {
     }),
     update: useMutation({
       mutationFn: ({ id, ...input }: HelloInput & { id: string }) =>
-        apiFetch<Hello>(`/hellos/${id}`, {
+        apiFetch<Hello>(`/hellos/${encodeURIComponent(id)}`, {
           method: 'PATCH',
           body: JSON.stringify(input),
         }),
@@ -36,7 +36,9 @@ export function useHelloMutations() {
     }),
     remove: useMutation({
       mutationFn: (id: string) =>
-        apiFetch<null>(`/hellos/${id}`, { method: 'DELETE' }),
+        apiFetch<null>(`/hellos/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        }),
       ...options('Hello deleted'),
     }),
   }
