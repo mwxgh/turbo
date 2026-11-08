@@ -15,6 +15,7 @@ import {
 
 import { CreateUploadDto } from './dto/create-upload.dto'
 import { PresignedUploadDto } from './dto/presigned-upload.dto'
+import { RemoveFileDto } from './dto/remove-file.dto'
 import { FilesService } from './files.service'
 
 @ApiTags('files')
@@ -32,7 +33,7 @@ export class FilesController {
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiNoContentResponse()
-  remove(@Query('key') key: string) {
+  remove(@Query() { key }: RemoveFileDto) {
     return this.files.remove(key)
   }
 }

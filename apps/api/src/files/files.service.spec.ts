@@ -69,12 +69,15 @@ describe('FilesService', () => {
       Key: 'uploads/2026/10/id/cv.pdf',
     })
 
+    // Dots inside a name are fine, only ".." path segments are not
+    await files.remove('uploads/2026/10/id/report..v2.pdf')
+
     await expect(files.remove('secrets/db.dump')).rejects.toBeInstanceOf(
       BadRequestException,
     )
     await expect(files.remove('uploads/../secrets')).rejects.toBeInstanceOf(
       BadRequestException,
     )
-    expect(send).toHaveBeenCalledTimes(1)
+    expect(send).toHaveBeenCalledTimes(2)
   })
 })

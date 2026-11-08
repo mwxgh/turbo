@@ -70,7 +70,7 @@ export class FilesService implements OnModuleDestroy {
   /** Only keys this API handed out (no auth yet: never delete arbitrary objects). */
   async remove(key: string): Promise<void> {
     const { config, client } = this
-    if (!key?.startsWith(UPLOAD_PREFIX) || key.includes('..'))
+    if (!key.startsWith(UPLOAD_PREFIX) || key.split('/').includes('..'))
       throw new BadRequestException('Not an uploaded file')
     await client.send(
       new DeleteObjectCommand({ Bucket: config.bucket, Key: key }),
