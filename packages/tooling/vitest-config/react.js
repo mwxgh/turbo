@@ -15,12 +15,14 @@ export const reactConfig = mergeConfig(
       environment: 'jsdom',
       include: [
         'app/**/*.{spec,test}.{ts,tsx}',
+        'components/**/*.{spec,test}.{ts,tsx}',
         'lib/**/*.{spec,test}.{ts,tsx}',
         'src/**/*.{spec,test}.{ts,tsx}',
       ],
       coverage: {
         include: [
           'app/**/*.{ts,tsx}',
+          'components/**/*.{ts,tsx}',
           'lib/**/*.{ts,tsx}',
           'src/**/*.{ts,tsx}',
         ],

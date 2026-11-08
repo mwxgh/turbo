@@ -48,7 +48,8 @@ function ThemeHotkey() {
         return
       }
 
-      if (event.key.toLowerCase() !== 'd') {
+      // No `.toLowerCase()`: autofill and extensions fire keydown without `key`
+      if (event.key !== 'd' && event.key !== 'D') {
         return
       }
 
