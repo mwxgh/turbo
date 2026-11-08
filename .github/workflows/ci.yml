@@ -32,6 +32,10 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # .turbo/cache is restored and saved again on every run: evict old entries
+  TURBO_CACHE_MAX_AGE: 7d
+
 jobs:
   gitflow:
     if: github.event_name == 'pull_request'
@@ -98,7 +102,7 @@ jobs:
         run: pnpm format:check
 
       - name: Build, lint, type-check, unit tests
-        run: pnpm turbo run build lint check-types test --cache-dir=.turbo/cache
+        run: pnpm turbo run build lint check-types test
 
       - name: Migrations apply cleanly and match schema.prisma
         run: |
@@ -106,7 +110,7 @@ jobs:
           pnpm db:check
 
       - name: Backend e2e (api on <db>_test, socket)
-        run: pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis --cache-dir=.turbo/cache
+        run: pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis
 
   # Browser e2e: Playwright starts api, socket and web against Postgres + Redis
   e2e:
@@ -149,14 +153,14 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
-      # Builds of api/socket/web from earlier `check` runs (read-only here)
-      - uses: actions/cache/restore@v6
+      # Own cache: `check` runs in parallel, so its entry for this SHA does not exist yet
+      - uses: actions/cache@v6
         with:
           path: .turbo/cache
-          key: turbo-${{ github.ref_name }}-${{ github.sha }}
+          key: turbo-e2e-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
-            turbo-${{ github.ref_name }}-
-            turbo-develop-
+            turbo-e2e-${{ github.ref_name }}-
+            turbo-e2e-develop-
       - uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
@@ -165,7 +169,7 @@ jobs:
       - run: pnpm --filter e2e install-browsers
 
       - name: Playwright
-        run: pnpm turbo run test:e2e --filter=e2e --cache-dir=.turbo/cache
+        run: pnpm turbo run test:e2e --filter=e2e
 
       - uses: actions/upload-artifact@v7
         if: failure()
