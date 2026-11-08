@@ -68,7 +68,7 @@ export interface PrismaListArgs<TWhere, TOrderBy> {
  *
  *   const { where, ...args } = toPrismaListArgs<Prisma.HelloWhereInput,
  *     Prisma.HelloOrderByWithRelationInput>(helloListSpec, query)
- *   const [items, total] = await prisma.$transaction([
+ *   const [items, total] = await Promise.all([
  *     prisma.hello.findMany({ where, ...args }), prisma.hello.count({ where })])
  *
  * Throws `ListQueryError` (→ 400) for filters/sorts the spec does not allow.

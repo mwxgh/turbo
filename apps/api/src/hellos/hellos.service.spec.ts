@@ -24,8 +24,6 @@ describe('HellosService', () => {
       update: vi.fn(),
       delete: vi.fn(),
     },
-    // Prisma batches the queries; resolve them like the real client
-    $transaction: vi.fn((queries: Promise<unknown>[]) => Promise.all(queries)),
   }
 
   beforeEach(async () => {

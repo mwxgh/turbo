@@ -18,7 +18,9 @@ export class HellosService {
       Prisma.HelloWhereInput,
       Prisma.HelloOrderByWithRelationInput
     >(helloListSpec, query)
-    const [items, total] = await this.prisma.$transaction([
+    // Parallel, not $transaction: under READ COMMITTED a transaction adds
+    // BEGIN/COMMIT round trips without giving both queries one snapshot
+    const [items, total] = await Promise.all([
       this.prisma.hello.findMany({ where, ...args }),
       this.prisma.hello.count({ where }),
     ])
