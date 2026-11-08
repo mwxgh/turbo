@@ -29,6 +29,9 @@ import { SubscribeEvent } from './subscribe-event.decorator'
 type AppServer = Server<ClientToServerEvents, ServerToClientEvents>
 type AppSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 
+/** Namespaced so a client can never join Socket.IO's own per-socket `socket.id` rooms. */
+const roomKey = (room: string) => `chat:${room}`
+
 /**
  * Payloads are validated with `validateDto` instead of `ValidationPipe`: a pipe
  * error would never reach the client's ack callback, leaving `emitWithAck` hanging.
@@ -61,8 +64,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!input.ok) return input
 
     const { room } = input.data
-    await client.join(room)
-    this.server.to(room).emit('room:joined', { room, socketId: client.id })
+    await client.join(roomKey(room))
+    this.server
+      .to(roomKey(room))
+      .emit('room:joined', { room, socketId: client.id })
     return { ok: true, data: undefined }
   }
 
@@ -73,7 +78,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ): Ack<ChatMessage> {
     const input = validateDto(SendMessageDto, payload)
     if (!input.ok) return input
-    if (!client.rooms.has(input.data.room)) {
+    if (!client.rooms.has(roomKey(input.data.room))) {
       return { ok: false, errors: [`Join room "${input.data.room}" first`] }
     }
 
@@ -83,7 +88,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       senderId: client.id,
       sentAt: new Date().toISOString(),
     }
-    this.server.to(message.room).emit('chat:message', message)
+    this.server.to(roomKey(message.room)).emit('chat:message', message)
     return { ok: true, data: message }
   }
 }

@@ -38,7 +38,7 @@ describe('ChatGateway', () => {
         ok: true,
         data: undefined,
       })
-      expect(server.to).toHaveBeenCalledWith('lobby')
+      expect(server.to).toHaveBeenCalledWith('chat:lobby')
       expect(emit).toHaveBeenCalledWith('room:joined', {
         room: 'lobby',
         socketId: 'socket-1',
@@ -54,6 +54,16 @@ describe('ChatGateway', () => {
         expect(server.to).not.toHaveBeenCalled()
       },
     )
+
+    it("cannot reach another socket's own room", async () => {
+      const { gateway, client, server, emit } = setup()
+      await gateway.joinRoom(client, { room: 'socket-2' })
+      expect(server.to).toHaveBeenCalledWith('chat:socket-2')
+      emit.mockClear()
+
+      gateway.sendMessage(client, { room: 'socket-2', text: 'hi' })
+      expect(server.to).not.toHaveBeenCalledWith('socket-2')
+    })
   })
 
   describe('chat:send', () => {
