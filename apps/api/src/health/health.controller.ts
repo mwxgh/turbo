@@ -4,7 +4,6 @@ import {
   Logger,
   ServiceUnavailableException,
 } from '@nestjs/common'
-import { SkipThrottle } from '@nestjs/throttler'
 
 import { PrismaService } from '@repo/db/nest'
 import { InjectRedis, type Redis, pingRedis } from '@repo/redis'
@@ -14,8 +13,6 @@ import { env } from '../env'
 
 const TIMEOUT_MS = 2_000
 
-// Probes poll often from a few IPs: never rate limited
-@SkipThrottle()
 @Controller('health')
 export class HealthController {
   private readonly logger = new Logger(HealthController.name)

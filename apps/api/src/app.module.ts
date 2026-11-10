@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common'
-import { APP_GUARD } from '@nestjs/core'
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
+import { ThrottlerModule } from '@nestjs/throttler'
 
 import { PrismaModule } from '@repo/db/nest'
 import {
@@ -19,7 +18,7 @@ import { HellosModule } from './hellos/hellos.module'
   imports: [
     PrismaModule.forRoot({ url: env.DATABASE_URL }),
     RedisModule.forRoot({ url: env.REDIS_URL, keyPrefix: env.redisKeyPrefix }),
-    // Limits every route (global guard below); shared by all instances through Redis
+    // Opt-in per controller: @UseGuards(ThrottlerGuard). Counters shared by all instances through Redis
     ThrottlerModule.forRootAsync({
       inject: [REDIS],
       useFactory: (redis: Redis) => ({
@@ -33,6 +32,5 @@ import { HellosModule } from './hellos/hellos.module'
     HellosModule,
     FilesModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing'
+import { ThrottlerGuard } from '@nestjs/throttler'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -20,7 +21,11 @@ describe('HellosController', () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [HellosController],
       providers: [{ provide: HellosService, useValue: service }],
-    }).compile()
+    })
+      // Rate limiting is covered by test/security.e2e-spec.ts
+      .overrideGuard(ThrottlerGuard)
+      .useValue({ canActivate: () => true })
+      .compile()
     controller = moduleRef.get(HellosController)
   })
 

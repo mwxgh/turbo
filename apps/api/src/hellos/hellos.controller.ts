@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common'
 import {
   ApiCreatedResponse,
@@ -17,6 +18,7 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger'
+import { ThrottlerGuard } from '@nestjs/throttler'
 
 import {
   ApiListQuery,
@@ -30,6 +32,7 @@ import { UpdateHelloDto } from './dto/update-hello.dto'
 import { helloListSpec } from './hellos.list-spec'
 import { HellosService } from './hellos.service'
 
+@UseGuards(ThrottlerGuard)
 @ApiTags('hellos')
 @Controller('hellos')
 export class HellosController {

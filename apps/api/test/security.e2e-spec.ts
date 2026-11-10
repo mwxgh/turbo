@@ -22,7 +22,7 @@ describe('HTTP hardening (e2e)', () => {
     expect(res.headers['x-powered-by']).toBeUndefined()
   })
 
-  it('rate limits routes through the global guard', async () => {
+  it('rate limits controllers that opt in with ThrottlerGuard', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/hellos')
       .expect(200)
@@ -30,7 +30,7 @@ describe('HTTP hardening (e2e)', () => {
     expect(Number(res.headers['x-ratelimit-remaining'])).toBeLessThan(100000)
   })
 
-  it('never rate limits health probes', async () => {
+  it('leaves controllers without the guard unlimited (health probes)', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/health/ready')
       .expect(200)

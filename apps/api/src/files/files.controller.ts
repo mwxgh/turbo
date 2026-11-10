@@ -6,18 +6,21 @@ import {
   HttpStatus,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common'
 import {
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiTags,
 } from '@nestjs/swagger'
+import { ThrottlerGuard } from '@nestjs/throttler'
 
 import { CreateUploadDto } from './dto/create-upload.dto'
 import { PresignedUploadDto } from './dto/presigned-upload.dto'
 import { RemoveFileDto } from './dto/remove-file.dto'
 import { FilesService } from './files.service'
 
+@UseGuards(ThrottlerGuard)
 @ApiTags('files')
 @Controller('files')
 export class FilesController {
