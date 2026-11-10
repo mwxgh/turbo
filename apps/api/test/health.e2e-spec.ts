@@ -28,6 +28,17 @@ describe('Health & docs (e2e)', () => {
     })
   })
 
+  it('serves readiness on /api/health/ready and liveness on /api/health/live', async () => {
+    const server = app.getHttpServer()
+    const ready = await request(server).get('/api/health/ready').expect(200)
+    expect(ready.body).toMatchObject({
+      checks: { database: 'up', redis: 'up' },
+    })
+    const live = await request(server).get('/api/health/live').expect(200)
+    expect(live.body).toMatchObject({ status: 'ok', service: 'api' })
+    expect(live.body).not.toHaveProperty('checks')
+  })
+
   it('serves the OpenAPI document outside prod (APP_ENV dev/stg)', async () => {
     const { body } = await request(app.getHttpServer())
       .get('/api/docs-json')
@@ -35,6 +46,8 @@ describe('Health & docs (e2e)', () => {
     expect(Object.keys(body.paths)).toEqual(
       expect.arrayContaining([
         '/api/health',
+        '/api/health/live',
+        '/api/health/ready',
         '/api/hellos',
         '/api/hellos/{id}',
       ]),

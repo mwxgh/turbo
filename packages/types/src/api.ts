@@ -2,7 +2,10 @@ import type { AppEnv } from '@repo/utils'
 
 // Hand-written API contracts that are not Prisma models (models come from ./generated).
 
-/** GET /health of api (database + redis) and socket (redis). */
+/**
+ * GET /health (= /health/ready) of api (database + redis) and socket (redis);
+ * GET /health/live answers the same shape without `checks`.
+ */
 export interface HealthResponse {
   status: 'ok'
   service: string

@@ -15,8 +15,23 @@ export class HealthController {
 
   constructor(@InjectRedis() private readonly redis: Redis) {}
 
-  /** 200 when the socket server and Redis (cross-instance rooms) respond; 503 otherwise. */
-  @Get()
+  /** Liveness: 200 while the process can serve HTTP (never touches Redis). */
+  @Get('live')
+  live() {
+    return {
+      status: 'ok',
+      service: 'socket',
+      env: env.APP_ENV,
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    }
+  }
+
+  /**
+   * Readiness: 200 when the socket server and Redis (cross-instance rooms) respond; 503 otherwise.
+   * `/socket/health` is kept as an alias of `/socket/health/ready`.
+   */
+  @Get(['', 'ready'])
   async check() {
     const redis = await pingRedis(this.redis, undefined, (error) =>
       this.logger.warn(`Redis check failed: ${String(error)}`),

@@ -36,6 +36,16 @@ describe('HealthController', () => {
     })
   })
 
+  it('is live without touching the database or Redis', () => {
+    const $queryRaw = vi.fn()
+    const ping = vi.fn()
+    const res = controllerWith($queryRaw, ping).live()
+    expect(res).toMatchObject({ status: 'ok', service: 'api', env: 'dev' })
+    expect(res).not.toHaveProperty('checks')
+    expect($queryRaw).not.toHaveBeenCalled()
+    expect(ping).not.toHaveBeenCalled()
+  })
+
   it('returns 503 naming the failed dependency when Redis is down', async () => {
     const check = controllerWith(
       () => Promise.resolve([1]),

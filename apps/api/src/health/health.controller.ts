@@ -22,8 +22,26 @@ export class HealthController {
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
-  /** 200 when the API, its database and Redis respond; 503 otherwise (load balancers / Docker). */
-  @Get()
+  /**
+   * Liveness: 200 while the process can serve HTTP. Never touches the database or Redis, so an
+   * outage of a dependency does not make the orchestrator restart every instance.
+   */
+  @Get('live')
+  live() {
+    return {
+      status: 'ok',
+      service: 'api',
+      env: env.APP_ENV,
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    }
+  }
+
+  /**
+   * Readiness: 200 when the API, its database and Redis respond; 503 otherwise (load balancers,
+   * Docker `service_healthy`). `/health` is kept as an alias of `/health/ready`.
+   */
+  @Get(['', 'ready'])
   async check() {
     const [database, redis] = await Promise.all([
       probe(

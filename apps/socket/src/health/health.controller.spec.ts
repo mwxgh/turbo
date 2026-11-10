@@ -20,6 +20,14 @@ describe('HealthController', () => {
     })
   })
 
+  it('is live without touching Redis', () => {
+    const ping = vi.fn()
+    const res = controllerWith(ping).live()
+    expect(res).toMatchObject({ status: 'ok', service: 'socket', env: 'dev' })
+    expect(res).not.toHaveProperty('checks')
+    expect(ping).not.toHaveBeenCalled()
+  })
+
   it('returns 503 and logs why when Redis is down', async () => {
     const warn = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {})
     const check = controllerWith(() =>

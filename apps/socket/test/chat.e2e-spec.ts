@@ -64,6 +64,14 @@ describe('Chat gateway (e2e)', () => {
     })
   })
 
+  it('serves liveness without dependency checks', async () => {
+    const res = await fetch(new URL('/socket/health/live', url))
+    expect(res.status).toBe(200)
+    const body: unknown = await res.json()
+    expect(body).toMatchObject({ status: 'ok', service: 'socket' })
+    expect(body).not.toHaveProperty('checks')
+  })
+
   it('delivers messages to everyone in the room', async () => {
     const alice = await connect()
     const bob = await connect()
