@@ -7,6 +7,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./logger": {
+      "types": "./dist/logger/index.d.ts",
+      "default": "./dist/logger/index.js"
     }
   },
   "files": [
@@ -39,9 +43,14 @@
     "@nestjs/common": "catalog:",
     "@nestjs/swagger": "catalog:",
     "class-transformer": "catalog:",
-    "class-validator": "catalog:"
+    "class-validator": "catalog:",
+    "@nestjs/core": "catalog:"
   },
   "dependencies": {
-    "@repo/utils": "workspace:*"
+    "@repo/utils": "workspace:*",
+    "nestjs-pino": "catalog:",
+    "pino": "catalog:",
+    "pino-http": "catalog:",
+    "pino-pretty": "catalog:"
   }
 }

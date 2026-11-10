@@ -4,5 +4,5 @@ import { nestE2eConfig } from '@repo/vitest-config/nest'
 
 export default mergeConfig(
   nestE2eConfig,
-  defineConfig({ test: { env: { NODE_ENV: 'test' } } }),
+  defineConfig({ test: { env: { NODE_ENV: 'test', LOG_LEVEL: 'silent' } } }),
 )

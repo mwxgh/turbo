@@ -22,6 +22,18 @@ describe('HTTP hardening (e2e)', () => {
     expect(res.headers['x-powered-by']).toBeUndefined()
   })
 
+  it('echoes a valid x-request-id, or generates one', async () => {
+    const server = app.getHttpServer()
+    const echoed = await request(server)
+      .get('/api/health/live')
+      .set('x-request-id', 'web-123')
+    expect(echoed.headers['x-request-id']).toBe('web-123')
+    const generated = await request(server)
+      .get('/api/health/live')
+      .set('x-request-id', 'not valid')
+    expect(generated.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/)
+  })
+
   it('rate limits controllers that opt in with ThrottlerGuard', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/hellos')

@@ -10,6 +10,10 @@ import {
   VALIDATOR_OPTIONS,
   jsonReplacer,
 } from '@repo/nest-common'
+import {
+  LoggerErrorInterceptor,
+  REQUEST_ID_HEADER,
+} from '@repo/nest-common/logger'
 import { AppEnv } from '@repo/utils'
 
 import { env } from './env'
@@ -43,7 +47,14 @@ export function configureApp(
     new PrismaExceptionFilter(app.getHttpAdapter()),
     new ListQueryExceptionFilter(),
   )
-  app.enableCors({ origin: env.corsOrigins, credentials: true })
+  app.enableCors({
+    origin: env.corsOrigins,
+    credentials: true,
+    // Browsers may read the id to quote it in bug reports
+    exposedHeaders: [REQUEST_ID_HEADER],
+  })
+  // 5xx request logs carry the error and its stack
+  app.useGlobalInterceptors(new LoggerErrorInterceptor())
   app.enableShutdownHooks()
 
   // API docs on dev and stg (QA), never on prod

@@ -12,6 +12,7 @@ export default mergeConfig(
       env: {
         DATABASE_URL: testDatabaseUrl(),
         NODE_ENV: 'test',
+        LOG_LEVEL: 'silent',
         // All requests share one IP; security.e2e-spec.ts checks the headers, not 429s
         RATE_LIMIT: '100000',
         ...testStorageEnv,

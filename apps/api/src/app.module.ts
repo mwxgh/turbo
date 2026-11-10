@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { ThrottlerModule } from '@nestjs/throttler'
 
 import { PrismaModule } from '@repo/db/nest'
+import { createLoggerModule } from '@repo/nest-common/logger'
 import {
   REDIS,
   type Redis,
@@ -16,6 +17,13 @@ import { HellosModule } from './hellos/hellos.module'
 
 @Module({
   imports: [
+    createLoggerModule({
+      service: 'api',
+      env: env.APP_ENV,
+      level: env.LOG_LEVEL,
+      format: env.LOG_FORMAT,
+      quietPaths: ['/api/health'],
+    }),
     PrismaModule.forRoot({ url: env.DATABASE_URL }),
     RedisModule.forRoot({ url: env.REDIS_URL, keyPrefix: env.redisKeyPrefix }),
     // Opt-in per controller: @UseGuards(ThrottlerGuard). Counters shared by all instances through Redis

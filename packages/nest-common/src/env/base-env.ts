@@ -2,6 +2,7 @@ import { AppEnv } from '@repo/utils'
 
 import { EnumField } from '../fields/other.js'
 import { StringField, UrlField } from '../fields/string.js'
+import { LogFormat, LogLevel } from '../logger/log-level.js'
 
 /**
  * Variables every backend app reads (branch on APP_ENV, never NODE_ENV). Apps extend it with their own fields and
@@ -18,6 +19,13 @@ export class BaseEnv {
   /** Shared Redis (`@repo/redis`), `redis://` or `rediss://` (TLS). */
   @UrlField({ optional: true, protocols: ['redis', 'rediss'] })
   REDIS_URL = 'redis://127.0.0.1:6379'
+
+  @EnumField(LogLevel, { optional: true })
+  LOG_LEVEL: LogLevel = LogLevel.Info
+
+  /** `json` on servers (default), `pretty` for local development. */
+  @EnumField(LogFormat, { optional: true })
+  LOG_FORMAT: LogFormat = LogFormat.Json
 
   /** Comma-separated list of allowed browser origins. */
   @StringField({ optional: true })

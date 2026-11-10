@@ -16,6 +16,8 @@ describe('BaseEnv', () => {
       APP_ENV: AppEnv.Dev,
       HOST: '0.0.0.0',
       PORT: 4000,
+      LOG_LEVEL: 'info',
+      LOG_FORMAT: 'json',
     })
     expect(env.corsOrigins).toEqual(['http://localhost:3000'])
     expect(env.REDIS_URL).toBe('redis://127.0.0.1:6379')
