@@ -33,6 +33,14 @@ catalog:
   'reflect-metadata': 0.2.2
   'rxjs': 7.8.2
 
+  # Prisma: client, CLI, adapter and generator helper move together
+  # (dotenv: loads .env for prisma.config.ts and seed.ts)
+  'prisma': 7.10.1
+  '@prisma/client': 7.10.1
+  '@prisma/adapter-pg': 7.10.1
+  '@prisma/generator-helper': 7.10.1
+  'dotenv': 18.0.8
+
   # React: one version for web, ui and mobile (Expo SDK 58 pins 19.3.0)
   'react': 19.3.0
   'react-dom': 19.3.0

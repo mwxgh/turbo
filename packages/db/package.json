@@ -35,16 +35,16 @@
     "test:cov": "vitest run --coverage"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "7.10.1",
-    "@prisma/client": "7.10.1",
+    "@prisma/adapter-pg": "catalog:",
+    "@prisma/client": "catalog:",
     "@repo/utils": "workspace:*",
-    "dotenv": "18.0.8",
-    "prisma": "7.10.1"
+    "dotenv": "catalog:",
+    "prisma": "catalog:"
   },
   "devDependencies": {
     "@nestjs/common": "catalog:",
     "@nestjs/core": "catalog:",
-    "@prisma/generator-helper": "7.10.1",
+    "@prisma/generator-helper": "catalog:",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@repo/vitest-config": "workspace:*",
