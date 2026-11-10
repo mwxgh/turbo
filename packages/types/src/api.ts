@@ -1,5 +1,7 @@
 import type { AppEnv } from '@repo/utils'
 
+import type { User } from './generated/models.js'
+
 // Hand-written API contracts that are not Prisma models (models come from ./generated).
 
 /**
@@ -27,4 +29,16 @@ export interface PresignedUpload {
   url: string
   fields: Record<string, string>
   key: string
+}
+
+/**
+ * POST /auth/login, /auth/register, /auth/refresh. Browsers get the tokens as httpOnly cookies;
+ * native clients sending `x-auth-transport: token` get them here.
+ */
+export interface AuthResponse {
+  user: User
+  /** Access token lifetime in seconds. */
+  expiresIn: number
+  accessToken?: string
+  refreshToken?: string
 }

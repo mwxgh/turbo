@@ -15,6 +15,7 @@ import {
 
 import { AppModule } from '../src/app.module'
 import { configureApp } from '../src/app.setup'
+import { testToken } from './auth'
 
 type Client = Socket<ServerToClientEvents, ClientToServerEvents>
 
@@ -30,7 +31,11 @@ async function startInstance() {
 }
 
 async function connect(url: string): Promise<Client> {
-  const client: Client = io(url, { transports: ['websocket'], forceNew: true })
+  const client: Client = io(url, {
+    transports: ['websocket'],
+    forceNew: true,
+    auth: { token: await testToken() },
+  })
   await new Promise<void>((resolve, reject) => {
     client.once('connect', resolve)
     client.once('connect_error', reject)

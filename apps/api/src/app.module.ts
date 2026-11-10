@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { ThrottlerModule } from '@nestjs/throttler'
 
+import { AuthModule as JwtAuthModule } from '@repo/auth/nest'
 import { PrismaModule } from '@repo/db/nest'
 import { createLoggerModule } from '@repo/nest-common/logger'
 import {
@@ -10,6 +11,7 @@ import {
   RedisThrottlerStorage,
 } from '@repo/redis'
 
+import { AuthModule } from './auth/auth.module'
 import { env } from './env'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
@@ -36,6 +38,12 @@ import { HellosModule } from './hellos/hellos.module'
         storage: new RedisThrottlerStorage(redis),
       }),
     }),
+    // Global guard: every route needs a signed-in user unless it is @Public()
+    JwtAuthModule.forRoot({
+      secret: env.JWT_SECRET,
+      accessTtlSeconds: env.ACCESS_TOKEN_TTL_SECONDS,
+    }),
+    AuthModule,
     HealthModule,
     HellosModule,
     FilesModule,

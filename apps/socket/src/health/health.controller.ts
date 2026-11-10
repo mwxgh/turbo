@@ -5,10 +5,13 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common'
 
+import { Public } from '@repo/auth/nest'
 import { InjectRedis, type Redis, pingRedis } from '@repo/redis'
 
 import { env } from '../env'
 
+// Load balancers and orchestrators probe without credentials
+@Public()
 @Controller('health')
 export class HealthController {
   private readonly logger = new Logger(HealthController.name)

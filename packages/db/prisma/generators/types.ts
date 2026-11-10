@@ -21,8 +21,17 @@ const SCALARS: Record<string, string> = {
   Bytes: 'string',
 }
 
-const doc = (text: string | undefined, indent = '') =>
-  text ? `${indent}/** ${text.replaceAll('\n', `\n${indent} * `)} */\n` : ''
+/** `/// @private` on a model or field keeps it out of @repo/types (secrets, server-only tables). */
+const PRIVATE = /(^|\s)@private(\s|$)/
+const isPrivate = (item: { documentation?: string }) =>
+  PRIVATE.test(item.documentation ?? '')
+
+const doc = (text: string | undefined, indent = '') => {
+  const clean = text?.replace(PRIVATE, ' ').trim()
+  return clean
+    ? `${indent}/** ${clean.replaceAll('\n', `\n${indent} * `)} */\n`
+    : ''
+}
 
 function renderEnum(e: DMMF.DatamodelEnum) {
   const values = e.values.map((v) => `  ${v.name}: '${v.name}',`).join('\n')
@@ -51,8 +60,17 @@ function renderField(model: DMMF.Model, f: DMMF.Field) {
   return `  ${f.name}: ${type}${f.isRequired ? '' : ' | null'}`
 }
 
-function renderModels(models: readonly DMMF.Model[]) {
-  const fields = models.flatMap((m) => m.fields)
+function renderModels(allModels: readonly DMMF.Model[]) {
+  const models = allModels.filter((m) => !isPrivate(m))
+  const shared = new Set(models.map((m) => m.name))
+  const visible = (m: DMMF.Model) =>
+    m.fields.filter(
+      (f) =>
+        f.kind !== 'unsupported' &&
+        !isPrivate(f) &&
+        (f.kind !== 'object' || shared.has(f.type)),
+    )
+  const fields = models.flatMap(visible)
   const enums = [
     ...new Set(fields.filter((f) => f.kind === 'enum').map((f) => f.type)),
   ]
@@ -69,8 +87,7 @@ function renderModels(models: readonly DMMF.Model[]) {
       : '')
   const blocks = models.map(
     (m) =>
-      `${doc(m.documentation)}export interface ${m.name} {\n${m.fields
-        .filter((f) => f.kind !== 'unsupported')
+      `${doc(m.documentation)}export interface ${m.name} {\n${visible(m)
         .map((f) => doc(f.documentation, '  ') + renderField(m, f))
         .join('\n')}\n}\n`,
   )

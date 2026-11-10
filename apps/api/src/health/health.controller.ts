@@ -5,6 +5,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common'
 
+import { Public } from '@repo/auth/nest'
 import { PrismaService } from '@repo/db/nest'
 import { InjectRedis, type Redis, pingRedis } from '@repo/redis'
 import { probe } from '@repo/utils'
@@ -13,6 +14,8 @@ import { env } from '../env'
 
 const TIMEOUT_MS = 2_000
 
+// Load balancers and orchestrators probe without credentials
+@Public()
 @Controller('health')
 export class HealthController {
   private readonly logger = new Logger(HealthController.name)

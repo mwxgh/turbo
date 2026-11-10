@@ -1,17 +1,20 @@
 import { randomUUID } from 'node:crypto'
 
-import { Logger } from '@nestjs/common'
+import { Inject, Logger } from '@nestjs/common'
 import {
   ConnectedSocket,
   MessageBody,
   type OnGatewayConnection,
   type OnGatewayDisconnect,
+  type OnGatewayInit,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets'
 
 import type { Server, Socket } from 'socket.io'
 
+import { AccessTokens } from '@repo/auth'
+import { socketAuth } from '@repo/auth/nest'
 import { validateDto } from '@repo/nest-common'
 import {
   type Ack,
@@ -40,11 +43,20 @@ const roomKey = (room: string) => `chat:${room}`
   namespace: SOCKET_NAMESPACE,
   cors: { origin: env.corsOrigins, credentials: true },
 })
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class ChatGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   private readonly logger = new Logger(ChatGateway.name)
 
   @WebSocketServer()
   private readonly server!: AppServer
+
+  constructor(@Inject(AccessTokens) private readonly tokens: AccessTokens) {}
+
+  /** Only signed-in users connect: the handshake carries the access token (cookie or `auth.token`). */
+  afterInit(server: AppServer) {
+    server.use(socketAuth(this.tokens))
+  }
 
   handleConnection(client: AppSocket) {
     this.logger.log(`Client connected: ${client.id}`)

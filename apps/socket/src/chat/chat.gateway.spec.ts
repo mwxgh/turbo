@@ -2,12 +2,14 @@ import { Logger } from '@nestjs/common'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { AccessTokens } from '@repo/auth'
+
 import { ChatGateway } from './chat.gateway'
 
 function setup() {
   const emit = vi.fn()
   const server = { to: vi.fn(() => ({ emit })) }
-  const gateway = new ChatGateway()
+  const gateway = new ChatGateway(new AccessTokens('x'.repeat(32), 60))
   Object.assign(gateway, { server })
 
   const rooms = new Set<string>(['socket-1'])

@@ -1,7 +1,10 @@
+import { randomUUID } from 'node:crypto'
+
 import type { INestApplication } from '@nestjs/common'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { Test } from '@nestjs/testing'
 
+import { AccessTokens } from '@repo/auth'
 import { PrismaService } from '@repo/db/nest'
 
 import { AppModule } from '../src/app.module'
@@ -20,4 +23,18 @@ export async function createApp(): Promise<{
   )
   await app.init()
   return { app, prisma: app.get(PrismaService) }
+}
+
+/**
+ * `Authorization` header of a signed-in user, for routes behind the global auth guard. The guard
+ * only verifies the JWT, so no user row is needed (auth.e2e-spec.ts covers real sign-in).
+ */
+export async function bearer(
+  app: INestApplication,
+  role: 'USER' | 'ADMIN' = 'USER',
+): Promise<string> {
+  const token = await app
+    .get(AccessTokens)
+    .sign({ id: randomUUID(), sessionId: randomUUID(), role })
+  return `Bearer ${token}`
 }

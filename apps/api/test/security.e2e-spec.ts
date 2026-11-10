@@ -3,7 +3,7 @@ import type { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { createApp } from './create-app'
+import { bearer, createApp } from './create-app'
 
 describe('HTTP hardening (e2e)', () => {
   let app: INestApplication
@@ -37,6 +37,7 @@ describe('HTTP hardening (e2e)', () => {
   it('rate limits controllers that opt in with ThrottlerGuard', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/hellos')
+      .set('authorization', await bearer(app))
       .expect(200)
     expect(res.headers['x-ratelimit-limit']).toBe('100000')
     expect(Number(res.headers['x-ratelimit-remaining'])).toBeLessThan(100000)

@@ -5,15 +5,18 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import type { PrismaService } from '@repo/db/nest'
 
-import { createApp } from './create-app'
+import { bearer, createApp } from './create-app'
 
 describe('Hellos (e2e)', () => {
   let app: INestApplication
   let prisma: PrismaService
-  const http = () => request(app.getHttpServer())
+  let auth: string
+  const http = () =>
+    request.agent(app.getHttpServer()).set('authorization', auth)
 
   beforeAll(async () => {
     ;({ app, prisma } = await createApp())
+    auth = await bearer(app)
   })
 
   afterAll(async () => {

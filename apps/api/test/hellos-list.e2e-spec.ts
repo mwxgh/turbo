@@ -5,19 +5,24 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import type { PrismaService } from '@repo/db/nest'
 
-import { createApp } from './create-app'
+import { bearer, createApp } from './create-app'
 
 /** GET /api/hellos list queries (keyword, filter, sort) against Postgres. */
 describe('Hellos list queries (e2e)', () => {
   let app: INestApplication
   let prisma: PrismaService
+  let auth: string
   const list = (query: Record<string, string> | string) =>
-    request(app.getHttpServer()).get('/api/hellos').query(query)
+    request(app.getHttpServer())
+      .get('/api/hellos')
+      .set('authorization', auth)
+      .query(query)
   const messages = (body: { items: { message: string }[] }) =>
     body.items.map((h) => h.message)
 
   beforeAll(async () => {
     ;({ app, prisma } = await createApp())
+    auth = await bearer(app)
     await prisma.hello.deleteMany()
     // Times in UTC; Vietnam is UTC+7
     await prisma.hello.createMany({

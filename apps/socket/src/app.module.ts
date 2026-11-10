@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 
+import { AuthModule } from '@repo/auth/nest'
 import { createLoggerModule } from '@repo/nest-common/logger'
 import { RedisModule } from '@repo/redis'
 
@@ -17,6 +18,8 @@ import { HealthModule } from './health/health.module'
       quietPaths: ['/socket/health'],
     }),
     RedisModule.forRoot({ url: env.REDIS_URL, keyPrefix: env.redisKeyPrefix }),
+    // HTTP routes need a token unless @Public(); socket connections: see ChatGateway.afterInit
+    AuthModule.forRoot({ secret: env.JWT_SECRET }),
     HealthModule,
     ChatModule,
   ],

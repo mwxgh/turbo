@@ -22,6 +22,7 @@
     "@nestjs/platform-socket.io": "catalog:",
     "@nestjs/swagger": "catalog:",
     "@nestjs/websockets": "catalog:",
+    "@repo/auth": "workspace:*",
     "@repo/nest-common": "workspace:*",
     "@repo/redis": "workspace:*",
     "@repo/socket-events": "workspace:*",

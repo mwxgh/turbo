@@ -45,6 +45,7 @@
     "@nestjs/common": "catalog:",
     "@nestjs/core": "catalog:",
     "@prisma/generator-helper": "catalog:",
+    "@repo/auth": "workspace:*",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@repo/vitest-config": "workspace:*",

@@ -20,6 +20,7 @@ export default {
         'db',
         'types',
         'redis',
+        'auth',
         'nest-common',
         'utils',
         'socket-events',

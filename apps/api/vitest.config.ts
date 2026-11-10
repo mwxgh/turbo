@@ -2,6 +2,7 @@ import { defineConfig, mergeConfig } from 'vitest/config'
 
 import { nestConfig } from '@repo/vitest-config/nest'
 
+import { testAuthEnv } from './test/auth-env.js'
 import { testStorageEnv } from './test/storage-env.js'
 
 export default mergeConfig(
@@ -12,6 +13,7 @@ export default mergeConfig(
       env: {
         DATABASE_URL: 'postgresql://unit:unit@localhost:5432/unit',
         ...testStorageEnv,
+        ...testAuthEnv,
       },
     },
   }),

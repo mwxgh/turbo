@@ -15,6 +15,7 @@ import {
 
 import { AppModule } from '../src/app.module'
 import { configureApp } from '../src/app.setup'
+import { testToken } from './auth'
 
 type Client = Socket<ServerToClientEvents, ClientToServerEvents>
 
@@ -27,6 +28,7 @@ describe('Chat gateway (e2e)', () => {
     const client: Client = io(url, {
       transports: ['websocket'],
       forceNew: true,
+      auth: { token: await testToken() },
     })
     clients.push(client)
     await new Promise<void>((resolve, reject) => {
@@ -52,6 +54,21 @@ describe('Chat gateway (e2e)', () => {
 
   afterAll(async () => {
     await app.close()
+  })
+
+  it('refuses connections without a valid access token', async () => {
+    for (const auth of [{}, { token: 'forged' }]) {
+      const client: Client = io(url, {
+        transports: ['websocket'],
+        forceNew: true,
+        auth,
+      })
+      clients.push(client)
+      const error = await new Promise<Error>((resolve) =>
+        client.once('connect_error', resolve),
+      )
+      expect(error.message).toBe('unauthorized')
+    }
   })
 
   it('serves the health endpoint', async () => {
