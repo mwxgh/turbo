@@ -11,6 +11,20 @@ describe('@repo/db', () => {
     expect(createAdapter(URL)).toBeInstanceOf(PrismaPg)
   })
 
+  it('takes the Postgres schema from ?schema= (not left in the connection string)', () => {
+    const adapter = createAdapter(
+      'postgresql://user:pass@db.example.com:5432/app?schema=turbo&sslmode=require',
+    ) as unknown as {
+      config: { connectionString: string; options: string }
+      options: { schema?: string }
+    }
+    expect(adapter.options.schema).toBe('turbo')
+    expect(adapter.config.connectionString).toBe(
+      'postgresql://user:pass@db.example.com:5432/app?sslmode=require',
+    )
+    expect(adapter.config.options).toBe('-c timezone=UTC')
+  })
+
   it('creates a Prisma client exposing the hello model', async () => {
     // Prisma 7 returns an extended client object, so check its API instead of
     // `instanceof PrismaClient`.
