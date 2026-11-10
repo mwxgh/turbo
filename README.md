@@ -81,6 +81,12 @@ Tài liệu dự án (quy trình, yêu cầu, kiến trúc, ADR) ở [`docs/`](d
 - **Swagger**: `/api/docs` (UI), `/api/docs-json` (OpenAPI) – bật ở `dev`/`stg`, tắt ở `prod`. Field decorators tự sinh `ApiProperty`.
 - **Database**: `PrismaModule.forRoot({ url: env.DATABASE_URL })` (global, từ `@repo/db/nest`) cung cấp `PrismaService`. `PrismaExceptionFilter` map lỗi Prisma → HTTP (`P2025` → 404, `P2002` → 409, `P2003` → 400).
 - **Global prefix**: route HTTP của api nằm dưới `/api`, của socket dưới `/socket` (`app.setGlobalPrefix` trong `app.setup.ts`). Socket.IO không bị ảnh hưởng: path `/socket.io`, namespace `/events`.
+- **Bảo mật HTTP (api, `app.setup.ts` + `app.module.ts`)**:
+  - `helmet`: security header; CSP chỉ bật ở `prod` (Swagger UI ở dev/stg cần inline asset).
+  - Rate limit: `ThrottlerGuard` là `APP_GUARD` → áp cho **mọi route của mọi module**; bộ đếm dùng chung qua Redis (`RedisThrottlerStorage` từ `@repo/redis`). Mặc định `RATE_LIMIT=100` request / `RATE_LIMIT_TTL_SECONDS=60` / IP. Từng route: `@Throttle({ default: { limit, ttl } })` để đổi, `@SkipThrottle()` để bỏ (đã bỏ cho `/health`).
+  - Body limit: `BODY_LIMIT=100kb` cho JSON và form, áp cho cả app (middleware Express, không theo module). File upload đi thẳng lên S3 nên không cần limit lớn.
+  - Sau load balancer / ingress: đặt `TRUST_PROXY=<số proxy>` để rate limit theo IP thật (`X-Forwarded-For`), nếu không mọi client chung một bộ đếm.
+  - Lưu ý: Server Component / Server Action của web gọi api từ IP của server Next → chung một bộ đếm; tăng `RATE_LIMIT` hoặc `@SkipThrottle()` cho route đó nếu trang SSR nhiều.
 - Health check (api dưới `/api`, socket dưới `/socket`):
   - `GET …/health/live` – **liveness**: chỉ báo process còn phục vụ HTTP, không gọi DB/Redis. Dùng cho probe có quyền restart (Kubernetes `livenessProbe`): DB/Redis sự cố không làm restart hàng loạt instance.
   - `GET …/health/ready` (alias `GET …/health`) – **readiness**: ping DB (api) + Redis với timeout 2s → `503` khi một dependency lỗi. Dùng cho load balancer, `readinessProbe`, Docker Compose `healthcheck` / `service_healthy`.

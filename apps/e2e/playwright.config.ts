@@ -23,6 +23,8 @@ const app = (name: string, url: string) => ({
   timeout: 120_000,
   stdout: 'ignore' as const,
   stderr: 'pipe' as const,
+  // Every browser and SSR request comes from localhost: lift the api rate limit
+  env: { ...process.env, RATE_LIMIT: '100000' },
 })
 
 export default defineConfig({

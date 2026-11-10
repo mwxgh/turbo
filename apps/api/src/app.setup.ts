@@ -2,6 +2,8 @@ import { ValidationPipe } from '@nestjs/common'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
+import helmet from 'helmet'
+
 import { PrismaExceptionFilter } from '@repo/db/nest'
 import {
   ListQueryExceptionFilter,
@@ -17,6 +19,16 @@ export function configureApp(
   app: NestExpressApplication,
 ): NestExpressApplication {
   app.setGlobalPrefix('api')
+  // Security headers; CSP off where Swagger UI is served (its inline assets), JSON-only otherwise
+  app.use(
+    helmet({
+      contentSecurityPolicy: env.APP_ENV === AppEnv.Prod ? undefined : false,
+    }),
+  )
+  app.set('trust proxy', env.TRUST_PROXY)
+  // Registered before init, so they replace Nest's default parsers (same names)
+  app.useBodyParser('json', { limit: env.BODY_LIMIT })
+  app.useBodyParser('urlencoded', { limit: env.BODY_LIMIT, extended: true })
   // qs parser: list filters as filter[field]=… / filter[field][op]=… (also accepts filter={json})
   app.set('query parser', 'extended')
   app.set('json replacer', jsonReplacer)

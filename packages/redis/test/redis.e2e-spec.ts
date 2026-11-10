@@ -5,7 +5,13 @@ import { Test } from '@nestjs/testing'
 import type { Redis } from 'ioredis'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { REDIS, RedisCache, RedisModule, pingRedis } from '../src/index.js'
+import {
+  REDIS,
+  RedisCache,
+  RedisModule,
+  RedisThrottlerStorage,
+  pingRedis,
+} from '../src/index.js'
 
 describe('@repo/redis against a real Redis', () => {
   // A unique prefix per run: tests never see or delete other keys
@@ -81,5 +87,32 @@ describe('@repo/redis against a real Redis', () => {
     expect(await neighbour.get('hellos:1')).toBe('not ours')
     await neighbour.del('hellos:1')
     await neighbour.quit()
+  })
+
+  it('RedisThrottlerStorage counts per window and blocks over the limit', async () => {
+    const storage = new RedisThrottlerStorage(redis)
+    const hit = () => storage.increment('ip-1', 60_000, 2, 30_000, 'default')
+
+    expect(await hit()).toEqual({
+      totalHits: 1,
+      timeToExpire: 60,
+      isBlocked: false,
+      timeToBlockExpire: 0,
+    })
+    expect(await hit()).toMatchObject({ totalHits: 2, isBlocked: false })
+    expect(await hit()).toMatchObject({
+      totalHits: 3,
+      isBlocked: true,
+      timeToBlockExpire: 30,
+    })
+    // Stays blocked without counting further
+    expect(await hit()).toMatchObject({ totalHits: 3, isBlocked: true })
+    // Other throttler names and keys have their own counters
+    expect(
+      await storage.increment('ip-1', 60_000, 2, 30_000, 'burst'),
+    ).toMatchObject({ totalHits: 1, isBlocked: false })
+    expect(
+      await storage.increment('ip-2', 60_000, 2, 30_000, 'default'),
+    ).toMatchObject({ totalHits: 1, isBlocked: false })
   })
 })
