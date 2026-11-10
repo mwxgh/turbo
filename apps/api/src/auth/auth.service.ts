@@ -100,6 +100,7 @@ export class AuthService {
     user: IssuedSession['user'],
     meta: ClientMeta,
   ): Promise<IssuedSession> {
+    // v4, not the table's uuid(7) default: the id is half of the refresh token, so it carries no time
     const id = randomUUID()
     const { token, hash } = createRefreshToken(id)
     await this.prisma.session.create({
