@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
+import { API_URL, AUTH_FILE, SOCKET_URL, WEB_URL } from './tests/support.js'
+
 /**
  * Browser end-to-end tests for web + api + socket.
  *
@@ -10,9 +12,6 @@ import { defineConfig, devices } from '@playwright/test'
  * PLAYWRIGHT_CHANNEL=chrome uses the installed Google Chrome instead of the
  * downloaded Chromium (`pnpm --filter e2e install-browsers`).
  */
-const WEB_URL = process.env.E2E_WEB_URL ?? 'http://localhost:3000'
-const API_URL = process.env.E2E_API_URL ?? 'http://localhost:4000/api'
-const SOCKET_URL = process.env.E2E_SOCKET_URL ?? 'http://localhost:4001'
 const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(WEB_URL)
 const CI = !!process.env.CI
 
@@ -40,11 +39,15 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
+    // Signs in once and saves the cookies for the other tests
+    { name: 'setup', testMatch: /auth\.setup\.ts/ },
     {
       name: 'chromium',
+      dependencies: ['setup'],
       use: {
         ...devices['Desktop Chrome'],
         channel: process.env.PLAYWRIGHT_CHANNEL,
+        storageState: AUTH_FILE,
       },
     },
   ],

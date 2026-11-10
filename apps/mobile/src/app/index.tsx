@@ -5,6 +5,7 @@ import { ScrollView, Text, View } from 'react-native'
 import { Button } from '../components/button'
 import { env } from '../lib/env'
 import { healthQueryOptions } from '../lib/queries/health'
+import { signOut } from '../lib/session'
 
 export default function Home() {
   const { data, error, isPending } = useQuery(healthQueryOptions())
@@ -37,6 +38,7 @@ export default function Home() {
       <Link href="/hellos" asChild>
         <Button label="Open hellos" />
       </Link>
+      <Button label="Sign out" variant="ghost" onPress={() => void signOut()} />
     </ScrollView>
   )
 }

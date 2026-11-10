@@ -1,3 +1,8 @@
+import { defineConfig, mergeConfig } from 'vitest/config'
+
 import { baseConfig } from '@repo/vitest-config/base'
 
-export default baseConfig
+export default mergeConfig(
+  baseConfig,
+  defineConfig({ test: { setupFiles: ['./vitest.setup.ts'] } }),
+)

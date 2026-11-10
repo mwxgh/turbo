@@ -22,6 +22,8 @@ describe('apiFetch', () => {
       .mockResolvedValue(new Response('{}', { status: 200 }))
     await apiFetch('/health')
     expect(fetchMock).toHaveBeenCalledWith(`${publicEnv.apiUrl}/health`, {
+      // the browser sends the auth cookies to the api
+      credentials: 'include',
       headers: {},
     })
   })

@@ -66,4 +66,46 @@ describe('createApiFetch', () => {
       'API request failed with status 502',
     )
   })
+
+  it('adds headers and credentials from the options', async () => {
+    const fetchMock = respond(200, {})
+    const authed = createApiFetch(() => BASE, {
+      credentials: 'include',
+      headers: () => Promise.resolve({ Authorization: 'Bearer t' }),
+    })
+    await authed('/me')
+    expect(fetchMock).toHaveBeenCalledWith(`${BASE}/me`, {
+      credentials: 'include',
+      headers: { authorization: 'Bearer t' },
+    })
+  })
+
+  it('refreshes once on 401 and retries, sharing one refresh between calls', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() =>
+        Promise.resolve(new Response(null, { status: 401 })),
+      )
+    const onUnauthorized = vi.fn(() => {
+      fetchMock.mockImplementation(() =>
+        Promise.resolve(new Response(JSON.stringify({ ok: 1 }))),
+      )
+      return Promise.resolve(true)
+    })
+    const authed = createApiFetch(() => BASE, { onUnauthorized })
+
+    await expect(Promise.all([authed('/a'), authed('/b')])).resolves.toEqual([
+      { ok: 1 },
+      { ok: 1 },
+    ])
+    expect(onUnauthorized).toHaveBeenCalledTimes(1)
+  })
+
+  it('gives up with the 401 when the refresh fails', async () => {
+    respond(401, { message: 'Unauthorized' })
+    const authed = createApiFetch(() => BASE, {
+      onUnauthorized: () => Promise.resolve(false),
+    })
+    await expect(authed('/me')).rejects.toMatchObject({ status: 401 })
+  })
 })

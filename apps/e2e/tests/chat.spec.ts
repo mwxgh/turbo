@@ -1,10 +1,17 @@
 import { expect, test } from '@playwright/test'
 
+import { AUTH_FILE } from './support.js'
+
 test('delivers chat messages between two browsers in real time', async ({
   browser,
 }) => {
-  const alice = await (await browser.newContext()).newPage()
-  const bob = await (await browser.newContext()).newPage()
+  // Two signed-in browsers (the socket handshake needs the access cookie)
+  const alice = await (
+    await browser.newContext({ storageState: AUTH_FILE })
+  ).newPage()
+  const bob = await (
+    await browser.newContext({ storageState: AUTH_FILE })
+  ).newPage()
 
   for (const page of [alice, bob]) {
     await page.goto('/')
