@@ -15,6 +15,10 @@
     "./react": {
       "types": "./react.d.ts",
       "default": "./react.js"
+    },
+    "./test-env": {
+      "types": "./test-env.d.ts",
+      "default": "./test-env.js"
     }
   },
   "dependencies": {

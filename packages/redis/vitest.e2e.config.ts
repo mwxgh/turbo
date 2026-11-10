@@ -1,13 +1,10 @@
 import { defineConfig, mergeConfig } from 'vitest/config'
 
 import { nestE2eConfig } from '@repo/vitest-config/nest'
+import { testRedisUrl } from '@repo/vitest-config/test-env'
 
 export default mergeConfig(
   nestE2eConfig,
-  defineConfig({
-    // Real Redis (pnpm infra:up)
-    test: {
-      env: { REDIS_URL: process.env.REDIS_URL ?? 'redis://127.0.0.1:6379' },
-    },
-  }),
+  // Real local Redis (pnpm infra:up), logical database 15
+  defineConfig({ test: { env: { REDIS_URL: testRedisUrl() } } }),
 )

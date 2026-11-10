@@ -4,6 +4,7 @@
     "APP_ENV",
     "DATABASE_URL",
     "TEST_DATABASE_URL",
+    "TEST_REDIS_URL",
     "REDIS_URL"
   ],
   "tasks": {

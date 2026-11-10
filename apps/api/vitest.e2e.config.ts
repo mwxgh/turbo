@@ -1,6 +1,7 @@
 import { defineConfig, mergeConfig } from 'vitest/config'
 
 import { nestE2eConfig } from '@repo/vitest-config/nest'
+import { testRedisUrl } from '@repo/vitest-config/test-env'
 
 import { testDatabaseUrl } from './test/database-url.js'
 import { testStorageEnv } from './test/storage-env.js'
@@ -11,6 +12,7 @@ export default mergeConfig(
     test: {
       env: {
         DATABASE_URL: testDatabaseUrl(),
+        REDIS_URL: testRedisUrl(),
         NODE_ENV: 'test',
         LOG_LEVEL: 'silent',
         // All requests share one IP; security.e2e-spec.ts checks the headers, not 429s

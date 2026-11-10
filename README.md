@@ -476,6 +476,7 @@ TypeScript ghim **6.0.3** (bản 6.x mới nhất): TS 7.0 chỉ có binary `tsc
 - Runner: **Vitest** cho mọi package, preset dùng chung trong `@repo/vitest-config` (`base`, `nest` – SWC để giữ decorator metadata cho DI, `react` – jsdom). Playwright cho trình duyệt.
 - Nest unit test dùng `Test.createTestingModule` + mock provider; e2e khởi động app thật bằng `configureApp()` (`src/app.setup.ts`) – cùng cấu hình với `main.ts`.
 - API e2e chạy trên **database riêng** `<tên-db>_test` (hoặc `TEST_DATABASE_URL`), tự tạo + migrate trước khi chạy; DB dev không bị đụng.
+- e2e **chỉ chạy với service local** (localhost / tên service Docker như `postgres`, `redis`): nếu `.env` trỏ `DATABASE_URL` lên server dùng chung thì e2e báo lỗi, trừ khi đặt `TEST_DATABASE_URL` rõ ràng (vd. Postgres của `pnpm infra:up`). Redis của e2e: `TEST_REDIS_URL`, mặc định Redis local, **logical DB 15** (không đụng key dev). Helper: `@repo/vitest-config/test-env`.
 - Playwright tự start `api`, `socket`, `web` (bản build) nếu chưa chạy. Browser: `pnpm --filter e2e install-browsers`, hoặc dùng Chrome có sẵn: `PLAYWRIGHT_CHANNEL=chrome pnpm turbo run test:e2e --filter=e2e`. Môi trường đã deploy: `E2E_WEB_URL=https://…`.
 - CI: unit + backend e2e trong job `check`, Playwright trong job `e2e`; build image chỉ chạy khi cả hai pass.
 - `test` được turbo cache; `test:e2e` không cache (phụ thuộc DB/app đang chạy).
