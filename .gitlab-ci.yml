@@ -176,8 +176,8 @@ e2e:
       -f "${FILE}"
       --target "${TARGET}"
       --build-arg APP="${WORKSPACE}"
-      --build-arg NEXT_PUBLIC_API_URL="${PUBLIC_API_URL:-http://localhost:4000/api}"
-      --build-arg NEXT_PUBLIC_SOCKET_URL="${PUBLIC_SOCKET_URL:-http://localhost:4001}"
+      --build-arg NEXT_PUBLIC_API_URL="${PUBLIC_API_URL:-}"
+      --build-arg NEXT_PUBLIC_SOCKET_URL="${PUBLIC_SOCKET_URL:-}"
       --build-arg NEXT_PUBLIC_APP_ENV="${BUILD_STAGE}"
       --build-arg BUILDKIT_INLINE_CACHE=1
       --cache-from "${IMAGE}:${BUILD_STAGE}"

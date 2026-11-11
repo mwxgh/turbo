@@ -22,8 +22,13 @@ const app = (name: string, url: string) => ({
   timeout: 120_000,
   stdout: 'ignore' as const,
   stderr: 'pipe' as const,
-  // Every browser and SSR request comes from localhost: lift the api rate limit
-  env: { ...process.env, RATE_LIMIT: '100000' },
+  env: {
+    ...process.env,
+    // Every browser and SSR request comes from localhost: lift the api rate limit
+    RATE_LIMIT: '100000',
+    // auth.setup.ts registers the test user; the api default is closed and CI has no .env
+    AUTH_REGISTRATION: 'open',
+  },
 })
 
 export default defineConfig({

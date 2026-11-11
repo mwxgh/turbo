@@ -324,7 +324,7 @@ lib/                    api, auth, env, socket, query client, lib/queries/* (Tan
 ```
 
 - Import khác thư mục dùng alias `@/` (`@/lib/api`, `@/components/user-menu`); `./` chỉ cho file cùng thư mục hoặc thư mục con. ESLint báo lỗi `../`; Prettier xếp nhóm `@/` sau `@repo/`.
-- `lib/env.ts`: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SOCKET_URL` (browser), `API_URL` (server-only).
+- `lib/env.ts`: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SOCKET_URL` (browser), `API_URL` (server-only). Kiểm tra bằng `parseUrlEnv` (`@repo/utils`): `stg`/`prod` thiếu URL hoặc trỏ `localhost` → `next build` lỗi (xem [environments](docs/process/environments.md#cấu-hình-theo-môi-trường)).
 - `lib/api.ts`: `apiFetch<T>()` cho Server Components.
 - Kiểu dữ liệu: **model Prisma không khai báo tay** – `import type { Hello } from '@repo/types'` dùng thẳng (ngày đã là `string` như JSON); contract không phải model (health, error, upload) cũng ở `@repo/types`. Input riêng của feature (vd. `HelloInput = Pick<Hello, 'message'>`) khai báo ngay trong feature (`app/(app)/hellos/hello-form.tsx`); quan hệ có sẵn dạng optional (`hello.author?.name`) khi API `include`, cột API giấu → `Omit`. `ActionState` (kết quả Server Action) nằm trong `lib/action-toast.ts`.
 
@@ -345,7 +345,7 @@ Tận dụng code Prisma sinh ra ở mọi tầng:
 
 Expo SDK 58 + Expo Router (`src/app`), cùng bộ thư viện dữ liệu với web: TanStack Query/Form, `createApiFetch` + `ApiError` (`@repo/utils`), model và contract từ `@repo/types`.
 
-- `src/lib/env.ts`: `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_APP_ENV` (đọc lúc build; `eas.json`: `development`/`preview`/`production` → `dev`/`stg`/`prod`). Emulator Android gọi máy host qua `10.0.2.2`, thiết bị thật qua IP LAN.
+- `src/lib/env.ts`: `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_APP_ENV` (đọc lúc build; `eas.json`: `development`/`preview`/`production` → `dev`/`stg`/`prod`). Emulator Android gọi máy host qua `10.0.2.2`, thiết bị thật qua IP LAN. Build `preview`/`production` **phải** đặt `EXPO_PUBLIC_API_URL` (EAS env hoặc `eas.json`): thiếu hoặc `localhost` → app báo lỗi ngay khi khởi động (`parseUrlEnv`).
 - Style: NativeWind 5 (Tailwind v4, cùng bản với web qua catalog). `src/global.css` import `@repo/tailwind-config/theme.css` – file token dùng chung với web – nên đổi màu một chỗ cho cả hai; `oklch` được đổi sang hex lúc build. Native không có class `.dark`: `postcss.config.mjs` chuyển `.dark { … }` thành `@media (prefers-color-scheme: dark)` (theo cài đặt hệ thống). NativeWind 5 đang là RC; `overrides` trong `pnpm-workspace.yaml` ghim `lightningcss` 1.30.1 cho Expo (bản mới hơn lỗi với `var()`), gỡ khi upstream sửa.
 - Chạy thử không cần emulator: `pnpm dev:mobile` rồi nhấn `w` (bản web qua `react-native-web`, cổng 8081 – đã có trong `CORS_ORIGINS` của `.env.example` api/socket). App native không gửi `Origin` nên không bị CORS chặn.
 - Ghi dữ liệu: `useMutation` gọi thẳng API → `toast` (`sonner-native`) → `invalidateQueries`.
