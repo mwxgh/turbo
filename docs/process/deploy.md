@@ -5,7 +5,7 @@ Repo chỉ build image. File compose chạy trên server nằm **trên server**,
 Sau khi đẩy image, CI gọi server để cập nhật. Lý do: [ADR 0008](../decisions/0008-tu-deploy-stg-qua-ssh-forced-command.md).
 
 ```
-push release/X.Y.Z ─▶ check + e2e ─▶ images (:stg, :sha-<7>) ─▶ deploy ─ssh─▶ /srv/turbo/deploy.sh sha-<7>
+push release/X.Y.Z ─▶ check + e2e ─▶ images (:stg, :sha-<7>) ─▶ deploy ─ssh─▶ /srv/turbo-stg/deploy.sh sha-<7>
 ```
 
 ## GitHub Environment `stg`
@@ -27,17 +27,17 @@ khác; đầu vào duy nhất là tag image (`stg` hoặc `sha-<hex>`).
 
 ```
 # /root/.ssh/authorized_keys
-command="/srv/turbo/deploy.sh",restrict ssh-ed25519 AAAA… ci-deploy turbo stg
+command="/srv/turbo-stg/deploy.sh",restrict ssh-ed25519 AAAA… ci-deploy turbo stg
 ```
 
-`/srv/turbo/deploy.sh`: lock → ghi `TAG` vào `.env` → `docker compose pull` → `up -d`
-(migrate chạy trước) → chờ `turbo-api-1` healthy → xoá image turbo cũ. Pull / up lỗi → trả
+`/srv/turbo-<env>/deploy.sh` (stg: `/srv/turbo-stg`, prod: `/srv/turbo-prod`): lock → ghi `TAG` vào `.env` → `docker compose pull` → `up -d`
+(migrate chạy trước) → chờ `turbo-<env>-api-1` healthy → xoá image turbo cũ. Pull / up lỗi → trả
 `TAG` cũ về `.env`.
 
 ## Deploy tay / rollback
 
 ```bash
-ssh root@<server> 'SSH_ORIGINAL_COMMAND=sha-<7 hex> /srv/turbo/deploy.sh'
+ssh root@<server> '/srv/turbo-stg/deploy.sh sha-<7 hex>'
 ```
 
 Tag `sha-…` nào còn trên ghcr đều deploy lại được bằng lệnh này.
