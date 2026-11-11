@@ -22,7 +22,7 @@ Monorepo base (pnpm + Turborepo) để copy làm khung cho các dự án mới.
 
 ## Yêu cầu
 
-- Node.js >= 24
+- Node.js >= 24 (`.node-version`; nvm/fnm/mise đọc được, CI GitHub cũng dùng file này)
 - pnpm 11 (`corepack enable`)
 - Docker (PostgreSQL chạy bằng `deploy/docker-compose.yml`)
 
@@ -449,6 +449,7 @@ Version dùng chung được khai báo **một lần** trong `catalog:` (một d
 - Nâng version (vd. Nest 13): sửa trong catalog → `pnpm install`. Renovate gom PR theo nhóm tên package (`renovate.json5`).
 - Thêm gói dùng ở nhiều nơi: thêm vào đúng nhóm trong catalog → `pnpm add <pkg>@catalog: --filter <app>`.
 - Gói chỉ dùng ở một nơi ghi version trực tiếp. Package cần dùng chung instance với app (class-validator, React, Nest) khai `peerDependencies` bằng `catalog:`, không khai lại ở `devDependencies`.
+- `pnpm lint:workspace` (`scripts/check-workspace.ts`, chạy trong CI và pre-commit khi đổi `package.json` / `pnpm-workspace.yaml`) kiểm tra: mọi package `private`, package trong `packages/` tên `<scope>/<thư mục>`, dep nội bộ là `workspace:*`, dep dùng ở ≥ 2 workspace phải lấy từ catalog, entry catalog nào cũng được dùng, không khai một dep hai lần.
 
 Nâng version thủ công (pnpm sửa **thẳng trong catalog**, giữ nguyên `catalog:` ở các package):
 
@@ -526,7 +527,7 @@ GitHub Actions (`.github/workflows/ci.yml`) và GitLab CI (`.gitlab-ci.yml`) là
 | push `main`                          | `check`                          | –                                      | –          |
 | tag `vX.Y.Z` (phải nằm trên `main`)  | `check` → images (**duyệt tay**) | `:prod`, `:X.Y.Z`, `:latest`, `:<sha>` | `prod`     |
 
-- `check`: `format:check` → `turbo run build lint check-types test` → `db:deploy` + `db:check` trên Postgres.
+- `check`: `format:check` → `check-types:scripts` + `lint:workspace` → `turbo run build lint check-types test` → `db:deploy` + `db:check` trên Postgres.
 - Images: `api`, `migrate`, `socket`, `web` (đều chạy bằng user `node`; `migrate` chỉ chứa `@repo/db` + Prisma CLI, ~750 MB).
 - Cache: GitHub Actions cache `.turbo/cache` và trình duyệt Playwright (cache trên server GitHub, job e2e chỉ đọc). GitLab hiện **không** cache: runner chạy trên nhiều máy mà cache mặc định nằm trên từng máy; cần cache thì cấu hình distributed cache (S3/MinIO) cho runner hoặc turbo remote cache.
 - Registry: GitHub → `ghcr.io/<owner>/<repo>-<app>`; GitLab → `$CI_REGISTRY_IMAGE/<app>` (đổi registry, vd. OpenShift như btp: `REGISTRY_IMAGE`, `REGISTRY_HOST`, `REGISTRY_USER`, `REGISTRY_PASSWORD`).
@@ -599,6 +600,4 @@ Model sinh ra có `id`, `name`, `createdAt`, `updatedAt` – sửa field trong `
 
 ## Chưa có (gợi ý mở rộng)
 
-- Auth (JWT) dùng chung giữa api và socket (`handshake.auth.token`).
-- `@socket.io/redis-adapter` khi chạy socket nhiều instance.
 - Image `api` ~800MB vì `@prisma/client` kéo theo Prisma CLI/TypeScript (optional peer) vào production deps – có thể tối ưu sau.

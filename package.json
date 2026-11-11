@@ -10,6 +10,7 @@
     "gen": "turbo gen",
     "template:init": "tsx scripts/template-init.ts",
     "check-types:scripts": "tsc -p turbo/generators && tsc -p scripts",
+    "lint:workspace": "tsx scripts/check-workspace.ts",
     "dev:api": "turbo run dev --filter=api",
     "dev:socket": "turbo run dev --filter=socket",
     "dev:web": "turbo run dev --filter=web",
