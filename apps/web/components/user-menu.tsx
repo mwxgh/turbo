@@ -5,7 +5,7 @@ import { useState } from 'react'
 import type { User } from '@repo/types'
 import { Button } from '@repo/ui/components/button'
 
-import { apiFetch } from '../lib/api'
+import { apiFetch } from '@/lib/api'
 
 /** Who is signed in, and sign-out (session revoked, cookies cleared, full reload). */
 export function UserMenu({ user }: { user: User }) {

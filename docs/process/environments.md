@@ -68,6 +68,15 @@ Khai báo ở CI/CD variables (GitLab: _environment scope_; GitHub: _Environment
 
 Local: `.env` / `.env.local` của từng app (copy từ `.env.example`, mặc định `dev`). Docker Compose: `APP_ENV` trong `deploy/.env` (dùng cho api, socket và build web).
 
+Kiểm tra URL (`parseUrlEnv` trong `@repo/utils`, dùng ở `apps/web/lib/env.ts` và `apps/mobile/src/lib/env.ts`):
+
+| Môi trường   | Thiếu biến                | `localhost` / `127.0.0.1` | URL không hợp lệ (tương đối, không phải http/https) |
+| ------------ | ------------------------- | ------------------------- | --------------------------------------------------- |
+| `dev`        | dùng `localhost` mặc định | ✔                         | ✖ lỗi                                               |
+| `stg`/`prod` | ✖ **build web lỗi**       | ✖ **build web lỗi**       | ✖ lỗi                                               |
+
+`API_URL` (server-only, địa chỉ nội bộ trong cụm) được phép là `localhost`. CI không còn tự điền `localhost` cho `PUBLIC_API_URL` / `PUBLIC_SOCKET_URL`: thiếu biến khi build image `stg`/`prod` → job fail ngay với tên biến cần đặt.
+
 ## Quy tắc
 
 - Không deploy image `:dev` hay `:stg` lên prod: web image chứa URL và nhãn môi trường đã bake lúc build.

@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_DB: app
           POSTGRES_USER: app
@@ -120,7 +120,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_DB: app
           POSTGRES_USER: app
@@ -197,7 +197,8 @@ jobs:
       - id: stage
         env:
           REF: ${{ github.ref }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          # Production branch (GitFlow): not the repo default branch, which is develop
+          RELEASE_BRANCH: main
         run: |
           case "$REF" in
             refs/heads/develop) name=dev ;;
@@ -205,8 +206,8 @@ jobs:
               echo "$REF" | grep -Eq '^refs/heads/(release|hotfix)/[0-9]+\.[0-9]+\.[0-9]+$' && name=stg || name="" ;;
             refs/tags/v*)
               echo "$REF" | grep -Eq '^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' || { echo "Not a release tag"; exit 1; }
-              git merge-base --is-ancestor "$GITHUB_SHA" "origin/$DEFAULT_BRANCH" || {
-                echo "::error::${REF#refs/tags/} is not on $DEFAULT_BRANCH; tag releases after merging release/* or hotfix/*."
+              git merge-base --is-ancestor "$GITHUB_SHA" "origin/$RELEASE_BRANCH" || {
+                echo "::error::${REF#refs/tags/} is not on $RELEASE_BRANCH; tag releases after merging release/* or hotfix/*."
                 exit 1
               }
               name=prod ;;
@@ -259,12 +260,13 @@ jobs:
           file: ${{ matrix.file }}
           target: ${{ matrix.target }}
           platforms: linux/amd64
-          # migrate is built from the api workspace. NEXT_PUBLIC_* only matter for
-          # web (inlined into the browser bundle); set them per environment.
+          # migrate is built from the api workspace. NEXT_PUBLIC_* only matter for web;
+          # required on stg/prod (the web build fails if missing or localhost), dev
+          # falls back to localhost. Set PUBLIC_* per GitHub Environment.
           build-args: |
             APP=${{ matrix.app == 'migrate' && 'api' || matrix.app }}
-            NEXT_PUBLIC_API_URL=${{ vars.PUBLIC_API_URL || 'http://localhost:4000/api' }}
-            NEXT_PUBLIC_SOCKET_URL=${{ vars.PUBLIC_SOCKET_URL || 'http://localhost:4001' }}
+            NEXT_PUBLIC_API_URL=${{ vars.PUBLIC_API_URL }}
+            NEXT_PUBLIC_SOCKET_URL=${{ vars.PUBLIC_SOCKET_URL }}
             NEXT_PUBLIC_APP_ENV=${{ env.STAGE }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}

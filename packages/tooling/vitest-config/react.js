@@ -11,6 +11,8 @@ export const reactConfig = mergeConfig(
   defineConfig({
     // Next's tsconfig keeps JSX as-is (`jsx: preserve`); compile it for tests
     oxc: { jsx: { runtime: 'automatic' } },
+    // `paths` from the app's tsconfig.json (e.g. web's `@/*`), like Next does
+    resolve: { tsconfigPaths: true },
     test: {
       environment: 'jsdom',
       include: [

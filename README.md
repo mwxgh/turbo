@@ -275,7 +275,7 @@ STORAGE_BUCKET=btp
 - Server `NAME` = `default` (không có thì server đầu); `PUBLIC_ENDPOINT` (URL trình duyệt upload tới) mặc định = `ENDPOINT`; `REGION` mặc định `us-east-1`. Thiếu / JSON sai → api không khởi động.
 - Bucket phải cho phép CORS `POST` từ origin của web (MinIO mặc định cho phép mọi origin).
 - Giới hạn 50 MB: `MAX_UPLOAD_BYTES` (`apps/api/src/files/storage.ts`). Test không cần storage: `apps/api/test/storage-env.ts` (ký offline), Playwright giả lập S3.
-- Chưa có xác thực: ai gọi được api đều xin được URL upload – thêm guard khi có auth.
+- Cần đăng nhập: `files` không có `@Public()` nên `AuthGuard` global chặn người chưa đăng nhập (ADR [0005](docs/decisions/0005-auth-cookie-web-bearer-mobile-mac-dinh-chan.md), [0007](docs/decisions/0007-upload-file-bang-presigned-post.md)).
 
 ### Utils (`@repo/utils`)
 
@@ -307,9 +307,26 @@ Thêm event: khai báo type trong `packages/socket-events` → thêm handler tro
 
 ### Web (`apps/web`)
 
-- `lib/env.ts`: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SOCKET_URL` (browser), `API_URL` (server-only).
+Cấu trúc (App Router, [route groups](https://nextjs.org/docs/app/api-reference/file-conventions/route-groups) không đổi URL):
+
+```text
+app/
+  layout.tsx            vỏ HTML: font, Providers, EnvBadge
+  (app)/                trang cần đăng nhập (proxy.ts chuyển về /login), header có UserMenu
+    layout.tsx
+    page.tsx            /
+    _components/        component chỉ trang chủ dùng (_ = không thành route)
+    hellos/             /hellos – CRUD mẫu
+  (auth)/               trang public (khai trong PUBLIC_PATHS của proxy.ts)
+    login/              /login
+components/             component dùng ở nhiều route (user-menu, env-badge, theme-provider)
+lib/                    api, auth, env, socket, query client, lib/queries/* (TanStack Query)
+```
+
+- Import khác thư mục dùng alias `@/` (`@/lib/api`, `@/components/user-menu`); `./` chỉ cho file cùng thư mục hoặc thư mục con. ESLint báo lỗi `../`; Prettier xếp nhóm `@/` sau `@repo/`.
+- `lib/env.ts`: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SOCKET_URL` (browser), `API_URL` (server-only). Kiểm tra bằng `parseUrlEnv` (`@repo/utils`): `stg`/`prod` thiếu URL hoặc trỏ `localhost` → `next build` lỗi (xem [environments](docs/process/environments.md#cấu-hình-theo-môi-trường)).
 - `lib/api.ts`: `apiFetch<T>()` cho Server Components.
-- Kiểu dữ liệu: **model Prisma không khai báo tay** – `import type { Hello } from '@repo/types'` dùng thẳng (ngày đã là `string` như JSON); contract không phải model (health, error, upload) cũng ở `@repo/types`. Input riêng của feature (vd. `HelloInput = Pick<Hello, 'message'>`) khai báo ngay trong feature (`app/hellos/hello-form.tsx`); quan hệ có sẵn dạng optional (`hello.author?.name`) khi API `include`, cột API giấu → `Omit`. `ActionState` (kết quả Server Action) nằm trong `lib/action-toast.ts`.
+- Kiểu dữ liệu: **model Prisma không khai báo tay** – `import type { Hello } from '@repo/types'` dùng thẳng (ngày đã là `string` như JSON); contract không phải model (health, error, upload) cũng ở `@repo/types`. Input riêng của feature (vd. `HelloInput = Pick<Hello, 'message'>`) khai báo ngay trong feature (`app/(app)/hellos/hello-form.tsx`); quan hệ có sẵn dạng optional (`hello.author?.name`) khi API `include`, cột API giấu → `Omit`. `ActionState` (kết quả Server Action) nằm trong `lib/action-toast.ts`.
 
 Tận dụng code Prisma sinh ra ở mọi tầng:
 
@@ -321,14 +338,14 @@ Tận dụng code Prisma sinh ra ở mọi tầng:
 | type cho table / detail / form (web) | `Hello` từ `@repo/types`, `Pick<…>`, enum `Object.values(Status)` cho select |
 
 - `lib/socket.ts`: singleton socket.io client, type event từ `@repo/socket-events`.
-- `app/page.tsx` + `app/chat.tsx`: trang demo (health API + chat realtime).
-- `app/hellos`: CRUD mẫu dùng Server Actions (`actions.ts`) gọi API; lỗi validation lấy từ response của API.
+- `app/(app)/page.tsx` + `_components/chat.tsx`: trang demo (health API + chat realtime).
+- `app/(app)/hellos`: CRUD mẫu dùng Server Actions (`actions.ts`) gọi API; lỗi validation lấy từ response của API.
 
 ### Mobile (`apps/mobile`)
 
 Expo SDK 58 + Expo Router (`src/app`), cùng bộ thư viện dữ liệu với web: TanStack Query/Form, `createApiFetch` + `ApiError` (`@repo/utils`), model và contract từ `@repo/types`.
 
-- `src/lib/env.ts`: `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_APP_ENV` (đọc lúc build; `eas.json`: `development`/`preview`/`production` → `dev`/`stg`/`prod`). Emulator Android gọi máy host qua `10.0.2.2`, thiết bị thật qua IP LAN.
+- `src/lib/env.ts`: `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_APP_ENV` (đọc lúc build; `eas.json`: `development`/`preview`/`production` → `dev`/`stg`/`prod`). Emulator Android gọi máy host qua `10.0.2.2`, thiết bị thật qua IP LAN. Build `preview`/`production` **phải** đặt `EXPO_PUBLIC_API_URL` (EAS env hoặc `eas.json`): thiếu hoặc `localhost` → app báo lỗi ngay khi khởi động (`parseUrlEnv`).
 - Style: NativeWind 5 (Tailwind v4, cùng bản với web qua catalog). `src/global.css` import `@repo/tailwind-config/theme.css` – file token dùng chung với web – nên đổi màu một chỗ cho cả hai; `oklch` được đổi sang hex lúc build. Native không có class `.dark`: `postcss.config.mjs` chuyển `.dark { … }` thành `@media (prefers-color-scheme: dark)` (theo cài đặt hệ thống). NativeWind 5 đang là RC; `overrides` trong `pnpm-workspace.yaml` ghim `lightningcss` 1.30.1 cho Expo (bản mới hơn lỗi với `var()`), gỡ khi upstream sửa.
 - Chạy thử không cần emulator: `pnpm dev:mobile` rồi nhấn `w` (bản web qua `react-native-web`, cổng 8081 – đã có trong `CORS_ORIGINS` của `.env.example` api/socket). App native không gửi `Origin` nên không bị CORS chặn.
 - Ghi dữ liệu: `useMutation` gọi thẳng API → `toast` (`sonner-native`) → `invalidateQueries`.
@@ -342,10 +359,10 @@ Expo SDK 58 + Expo Router (`src/app`), cùng bộ thư viện dữ liệu với 
 | Tailwind CSS v4   | `packages/tooling/tailwind-config` (`shared-styles.css`, `postcss.config.mjs`)                                                                                                                                                                       | App: `@import '@repo/tailwind-config'` + `@source` tới `packages/ui/src` (xem `apps/web/app/globals.css`)                                                                                                                                                                                                                                                                                                                         |
 | Theme             | `theme.css` (`:root` sáng, `.dark` tối, màu `oklch`; web import qua `shared-styles.css`, mobile import trực tiếp)                                                                                                                                    | Dark mode: `next-themes` (`apps/web/components/theme-provider.tsx`); nút `ModeToggle` (`@repo/ui/components/mode-toggle`, 1 click đổi sáng ↔ tối, lưu localStorage) ở header trong `app/layout.tsx`; phím tắt `d`                                                                                                                                                                                                                 |
 | shadcn/ui         | `packages/ui/src/components/` – primitive shadcn để phẳng (CLI thêm vào đây: `button`, `select`…); component tự viết dùng nhiều nơi cũng phẳng (`date-picker`, `icon-button`); cụm nhiều file gom thư mục (`data-table/`: `index.tsx` là public API) | Import: `@repo/ui/components/button`, `@repo/ui/components/data-table`, `cn` từ `@repo/ui/lib/utils`                                                                                                                                                                                                                                                                                                                              |
-| TanStack Table v9 | `@repo/ui/components/data-table` (+ `/server` cho prefetch)                                                                                                                                                                                          | Bảng danh sách phía server: `useListTable` + `<DataTable list>` (xem mục dưới); ví dụ `apps/web/app/hellos/hellos-table.tsx`                                                                                                                                                                                                                                                                                                      |
-| TanStack Form     | `apps/web/app/hellos/hello-form.tsx`                                                                                                                                                                                                                 | Validate client (`onChange`) + lỗi API qua `validators.onSubmitAsync` (Server Action)                                                                                                                                                                                                                                                                                                                                             |
-| TanStack Virtual  | `apps/web/app/chat.tsx`                                                                                                                                                                                                                              | Chỉ render dòng đang thấy, tự cuộn tới tin mới                                                                                                                                                                                                                                                                                                                                                                                    |
-| TanStack Query v5 | `apps/web/lib/query-client.ts`, `lib/queries/*`, `app/providers.tsx`                                                                                                                                                                                 | Server Component `prefetchQuery` → `HydrationBoundary` → `useQuery` ở client. Ví dụ: `app/health-card.tsx` (poll 10s), `app/hellos/hellos-view.tsx` + `use-hello-mutations.ts` (invalidate sau khi ghi, xoá optimistic + rollback). Devtools chỉ có ở development                                                                                                                                                                 |
+| TanStack Table v9 | `@repo/ui/components/data-table` (+ `/server` cho prefetch)                                                                                                                                                                                          | Bảng danh sách phía server: `useListTable` + `<DataTable list>` (xem mục dưới); ví dụ `apps/web/app/(app)/hellos/hellos-table.tsx`                                                                                                                                                                                                                                                                                                |
+| TanStack Form     | `apps/web/app/(app)/hellos/hello-form.tsx`                                                                                                                                                                                                           | Validate client (`onChange`) + lỗi API qua `validators.onSubmitAsync` (Server Action)                                                                                                                                                                                                                                                                                                                                             |
+| TanStack Virtual  | `apps/web/app/(app)/_components/chat.tsx`                                                                                                                                                                                                            | Chỉ render dòng đang thấy, tự cuộn tới tin mới                                                                                                                                                                                                                                                                                                                                                                                    |
+| TanStack Query v5 | `apps/web/lib/query-client.ts`, `lib/queries/*`, `app/providers.tsx`                                                                                                                                                                                 | Server Component `prefetchQuery` → `HydrationBoundary` → `useQuery` ở client. Ví dụ: `app/(app)/_components/health-card.tsx` (poll 10s), `app/(app)/hellos/hellos-view.tsx` + `use-hello-mutations.ts` (invalidate sau khi ghi, xoá optimistic + rollback). Devtools chỉ có ở development                                                                                                                                         |
 | Toast (sonner)    | `@repo/ui/components/sonner` (shadcn), `<Toaster />` trong `app/providers.tsx`                                                                                                                                                                       | Mặc định góc trên bên phải, theo theme; màu theo loại (viền + nền nhạt Tailwind): success `green`, error `red`, warning `amber`, info `blue` – sửa ở `toastOptions.classNames`. Server Action: `withToast(createX(input), { success, error })` (`lib/action-toast.ts`) – thành công / lỗi API (mô tả = message) / mất kết nối; mutation khác: `toast.success/error` từ `@repo/ui/components/sonner` (không import thẳng `sonner`) |
 
 ### Bảng danh sách (cấu hình theo cột, như btp)

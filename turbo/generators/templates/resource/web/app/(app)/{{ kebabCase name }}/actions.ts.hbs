@@ -1,0 +1,48 @@
+'use server'
+
+// Mutations for /{{ kebabCase name }}. Callers invalidate `{{ camelCase name }}Keys.all` on success.
+import type { ApiErrorBody, {{ pascalCase model }} } from '@repo/types'
+
+import type { ActionState } from '@/lib/action-toast'
+import { ApiError, apiFetch } from '@/lib/api'
+import type { {{ pascalCase model }}Input } from './{{ kebabCase model }}-form'
+
+/** Validation lives in the API's DTOs; surface its error messages to the form. */
+function toState(error: unknown): ActionState {
+  if (error instanceof ApiError) {
+    const message = (error.body as ApiErrorBody | null)?.message
+    return { errors: [message ?? error.message].flat() }
+  }
+  throw error
+}
+
+export async function create{{ pascalCase model }}(input: {{ pascalCase model }}Input): Promise<ActionState> {
+  try {
+    await apiFetch<{{ pascalCase model }}>('/{{ kebabCase name }}', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    })
+  } catch (error) {
+    return toState(error)
+  }
+  return {}
+}
+
+export async function update{{ pascalCase model }}(
+  id: string,
+  input: {{ pascalCase model }}Input,
+): Promise<ActionState> {
+  try {
+    await apiFetch<{{ pascalCase model }}>(`/{{ kebabCase name }}/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    })
+  } catch (error) {
+    return toState(error)
+  }
+  return {}
+}
+
+export async function delete{{ pascalCase model }}(id: string): Promise<void> {
+  await apiFetch(`/{{ kebabCase name }}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}

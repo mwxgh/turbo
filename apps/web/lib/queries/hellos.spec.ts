@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { hellosKeys, hellosListQueryOptions } from './hellos'
 
 const { apiFetch } = vi.hoisted(() => ({ apiFetch: vi.fn() }))
-vi.mock('../api', () => ({ apiFetch }))
+vi.mock('@/lib/api', () => ({ apiFetch }))
 
 describe('hellosListQueryOptions', () => {
   it('keys each list query under hellosKeys.all (one cache entry per page/filter)', () => {

@@ -11,7 +11,7 @@ import type { PlopTypes } from '@turbo/gen'
  *   resource  CRUD resource: Prisma model + Nest module (api) + list/form page (web)
  *
  * Templates live next to this file and follow the reference code in the repo
- * (`apps/api/src/hellos`, `apps/web/app/hellos`, `packages/socket-events`, `packages/ui`).
+ * (`apps/api/src/hellos`, `apps/web/app/(app)/hellos`, `packages/socket-events`, `packages/ui`).
  * Generated files are formatted with Prettier (import order included).
  */
 
@@ -210,7 +210,7 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
             checked: true,
           },
           {
-            name: 'web  – apps/web/app/<resource> (table, form, server actions) + lib/queries',
+            name: 'web  – apps/web/app/(app)/<resource> (table, form, server actions) + lib/queries',
             value: 'web',
             checked: true,
           },
@@ -287,7 +287,7 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
             abortOnFail: true,
           },
           format(
-            'apps/web/app/{{ kebabCase name }}',
+            'apps/web/app/(app)/{{ kebabCase name }}',
             'apps/web/lib/queries/{{ kebabCase name }}*.ts',
           ),
         )
