@@ -52,7 +52,13 @@
     "test:e2e": {
       "dependsOn": ["^build"],
       "cache": false,
-      "passThroughEnv": ["PLAYWRIGHT_*", "E2E_*", "CI", "STORAGE_*"]
+      "passThroughEnv": [
+        "PLAYWRIGHT_*",
+        "E2E_*",
+        "CI",
+        "STORAGE_*",
+        "JWT_SECRET"
+      ]
     }
   },
   "ui": "tui"
