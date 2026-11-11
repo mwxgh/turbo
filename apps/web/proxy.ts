@@ -1,8 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-import { AUTH_COOKIE } from '@repo/utils'
-
-import { serverApiUrl } from '@/lib/env'
+import { authCookies, serverApiUrl } from '@/lib/env'
 
 /** Pages anyone may open. */
 const PUBLIC_PATHS = ['/login']
@@ -15,8 +13,8 @@ const PUBLIC_PATHS = ['/login']
  */
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
-  const hasAccess = request.cookies.has(AUTH_COOKIE.Access)
-  const hasRefresh = request.cookies.has(AUTH_COOKIE.Refresh)
+  const hasAccess = request.cookies.has(authCookies.access)
+  const hasRefresh = request.cookies.has(authCookies.refresh)
 
   if (PUBLIC_PATHS.includes(pathname) || hasAccess) return NextResponse.next()
 

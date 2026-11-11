@@ -497,7 +497,7 @@ TypeScript ghim **6.0.3** (bản 6.x mới nhất): TS 7.0 chỉ có binary `tsc
 - API e2e chạy trên **database riêng** `<tên-db>_test` (hoặc `TEST_DATABASE_URL`), tự tạo + migrate trước khi chạy; DB dev không bị đụng.
 - e2e **chỉ chạy với service local** (localhost / tên service Docker như `postgres`, `redis`): nếu `.env` trỏ `DATABASE_URL` lên server dùng chung thì e2e báo lỗi, trừ khi đặt `TEST_DATABASE_URL` rõ ràng (vd. Postgres của `pnpm infra:up`). Redis của e2e: `TEST_REDIS_URL`, mặc định Redis local, **logical DB 15** (không đụng key dev). Helper: `@repo/vitest-config/test-env`.
 - Playwright tự start `api`, `socket`, `web` (bản build) nếu chưa chạy. Browser: `pnpm --filter e2e install-browsers`, hoặc dùng Chrome có sẵn: `PLAYWRIGHT_CHANNEL=chrome pnpm turbo run test:e2e --filter=e2e`. Môi trường đã deploy: `E2E_WEB_URL=https://…`.
-- CI: unit + backend e2e trong job `check`, Playwright trong job `e2e`; build image chỉ chạy khi cả hai pass.
+- CI: unit + backend e2e trong job `check`; build image chỉ chạy khi `check` pass. **Playwright không chạy trên CI** ([ADR 0009](docs/decisions/0009-playwright-chi-chay-local.md)): chạy local trước khi mở PR đụng tới web / luồng đăng nhập, với service local (`pnpm infra:up`, api/web không trỏ DB server dùng chung).
 - `test` được turbo cache; `test:e2e` không cache (phụ thuộc DB/app đang chạy).
 
 ## Git & quy ước commit
@@ -535,18 +535,18 @@ Tóm tắt: `feature/*` → `develop` → `release/X.Y.Z` → `main` (tag `vX.Y.
 
 GitHub Actions (`.github/workflows/ci.yml`) và GitLab CI (`.gitlab-ci.yml`) làm cùng một việc:
 
-| Trigger                              | Chạy                             | Image                                  | Môi trường |
-| ------------------------------------ | -------------------------------- | -------------------------------------- | ---------- |
-| MR / PR                              | `gitflow` + `check`              | –                                      | –          |
-| push `feature/*`…                    | `check` (GitLab; GitHub qua PR)  | –                                      | –          |
-| push `develop`                       | `check` → images                 | `:dev`, `:<sha>`                       | `dev`      |
-| push `release/X.Y.Z`, `hotfix/X.Y.Z` | `check` → images                 | `:stg`, `:<sha>`                       | `stg`      |
-| push `main`                          | `check`                          | –                                      | –          |
-| tag `vX.Y.Z` (phải nằm trên `main`)  | `check` → images (**duyệt tay**) | `:prod`, `:X.Y.Z`, `:latest`, `:<sha>` | `prod`     |
+| Trigger                              | Chạy                             | Image                                           | Môi trường |
+| ------------------------------------ | -------------------------------- | ----------------------------------------------- | ---------- |
+| MR / PR                              | `gitflow` + `check`              | –                                               | –          |
+| push `feature/*`…                    | `check` (GitLab; GitHub qua PR)  | –                                               | –          |
+| push `develop`                       | `check` → images                 | `:dev`, `:dev-sha-<sha>`                        | `dev`      |
+| push `release/X.Y.Z`, `hotfix/X.Y.Z` | `check` → images                 | `:stg`, `:stg-sha-<sha>`                        | `stg`      |
+| push `main`                          | `check`                          | –                                               | –          |
+| tag `vX.Y.Z` (phải nằm trên `main`)  | `check` → images (**duyệt tay**) | `:prod`, `:X.Y.Z`, `:latest`, `:prod-sha-<sha>` | `prod`     |
 
 - `check`: `format:check` → `check-types:scripts` + `lint:workspace` → `turbo run build lint check-types test` → `db:deploy` + `db:check` trên Postgres.
 - Images: `api`, `migrate`, `socket`, `web` (đều chạy bằng user `node`; `migrate` chỉ chứa `@repo/db` + Prisma CLI, ~750 MB).
-- Cache: GitHub Actions cache `.turbo/cache` và trình duyệt Playwright (cache trên server GitHub, job e2e chỉ đọc). GitLab hiện **không** cache: runner chạy trên nhiều máy mà cache mặc định nằm trên từng máy; cần cache thì cấu hình distributed cache (S3/MinIO) cho runner hoặc turbo remote cache.
+- Cache: GitHub Actions cache `.turbo/cache` (cache trên server GitHub). GitLab hiện **không** cache: runner chạy trên nhiều máy mà cache mặc định nằm trên từng máy; cần cache thì cấu hình distributed cache (S3/MinIO) cho runner hoặc turbo remote cache.
 - Registry: GitHub → `ghcr.io/<owner>/<repo>-<app>`; GitLab → `$CI_REGISTRY_IMAGE/<app>` (đổi registry, vd. OpenShift như btp: `REGISTRY_IMAGE`, `REGISTRY_HOST`, `REGISTRY_USER`, `REGISTRY_PASSWORD`).
 - 3 môi trường `dev` / `stg` / `prod` – chi tiết (nguồn code, tag image, biến, Swagger, nhãn UI): **[docs/process/environments.md](docs/process/environments.md)**. Variables theo environment: `PUBLIC_API_URL`, `PUBLIC_SOCKET_URL` (bake vào web image), `NEXT_PUBLIC_APP_ENV` do CI tự đặt.
 - Duyệt tay prod: GitLab – job `images:prod` là `when: manual`; GitHub – thêm _Required reviewers_ cho environment `prod`.

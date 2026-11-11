@@ -16,5 +16,7 @@ Mỗi file ghi một quyết định: bối cảnh → quyết định → hệ 
 | 0005 | [Auth – cookie httpOnly cho web, Bearer cho mobile, mặc định chặn](0005-auth-cookie-web-bearer-mobile-mac-dinh-chan.md) | accepted   | 2026-11-11 |
 | 0006 | [Rate limit opt-in theo controller](0006-rate-limit-opt-in-theo-controller.md)                                          | accepted   | 2026-11-10 |
 | 0007 | [Upload file bằng presigned POST, không đi qua api](0007-upload-file-bang-presigned-post.md)                            | accepted   | 2026-10-23 |
+| 0008 | [Tự deploy stg qua SSH forced command, compose server ngoài repo](0008-tu-deploy-stg-qua-ssh-forced-command.md)         | accepted   | 2026-11-11 |
+| 0009 | [Playwright chỉ chạy local, CI không chạy e2e trình duyệt](0009-playwright-chi-chay-local.md)                           | accepted   | 2026-11-11 |
 
 `Ngày` của 0002–0007 = ngày commit đưa quyết định vào code (ADR viết lại sau, ngày 2026-11-11). `UNKNOWN` trong ADR = không có tài liệu về lý do; ai biết thì bổ sung.

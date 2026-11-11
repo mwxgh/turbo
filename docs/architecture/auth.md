@@ -74,6 +74,8 @@ sequenceDiagram
 
 Cookie có `Secure` ở mọi `APP_ENV` trừ `dev` (`env.cookieSecure`).
 
+Tên cookie theo `APP_ENV` (`authCookieNames` trong `@repo/utils`, api/socket: `env.authCookies`, web: `authCookies` trong `lib/env.ts`): prod giữ `access_token` / `refresh_token`, môi trường khác có tiền tố (`stg_access_token`, `dev_access_token`). Lý do: prod đặt cookie trên domain cha (`COOKIE_DOMAIN=example.com`) nên trình duyệt gửi cả sang `*.stg.example.com`; trùng tên sẽ lẫn phiên và đưa token prod cho stg. **KHÔNG ĐƯỢC** viết cứng tên cookie trong code.
+
 ## Thêm cách đăng nhập (SSO / Keycloak / OIDC)
 
 `AuthService.issue(user, meta)` không phụ thuộc cách đăng nhập. Một provider mới chỉ cần:

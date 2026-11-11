@@ -167,5 +167,5 @@ Hai lớp:
 1. **Local – husky `pre-push`** (`scripts/gitflow-check.sh --push`): báo sớm, nhưng **bỏ qua được** bằng `git push --no-verify` hoặc máy chưa cài hook. Maintainer cần push đặc biệt (khởi tạo repo…): `ALLOW_PROTECTED_PUSH=1 git push …`.
 2. **Server – lớp chặn thật** (cấu hình một lần khi tạo repo):
    - **GitLab:** `GITLAB_TOKEN=glpat-… sh scripts/gitlab-protect.sh <group/project>` (xem trước: `DRY_RUN=1`). Protect `main`/`master`/`develop` (push: không ai, merge: maintainer/developer), `release/*`, `hotfix/*` (cấm force push), tag `v*` (maintainer), MR chỉ merge khi pipeline xanh.
-   - **GitHub:** Settings → Rules → Rulesets → _Import a ruleset_, lần lượt các file trong `.github/rulesets/` (`protected-branches.json` – bắt buộc PR + 1 approve + check `gitflow`, `check`, `e2e`; `release-branches.json`; `release-tags.json`). Environment `prod`: thêm _Required reviewers_.
+   - **GitHub:** Settings → Rules → Rulesets → _Import a ruleset_, lần lượt các file trong `.github/rulesets/` (`protected-branches.json` – bắt buộc PR + 1 approve + check `gitflow`, `check`; `release-branches.json`; `release-tags.json`). Environment `prod`: thêm _Required reviewers_.
    - Nhánh mặc định cho MR/PR mới: `develop`.

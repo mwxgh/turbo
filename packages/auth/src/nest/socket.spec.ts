@@ -13,7 +13,7 @@ function handshake(auth: object, headers: object = {}) {
 
 const run = (socket: Socket) =>
   new Promise<Error | undefined>((resolve) =>
-    socketAuth(tokens)(socket, resolve),
+    socketAuth(tokens, 'access_token')(socket, resolve),
   )
 
 describe('socketAuth', () => {
