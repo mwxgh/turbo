@@ -197,7 +197,8 @@ jobs:
       - id: stage
         env:
           REF: ${{ github.ref }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          # Production branch (GitFlow): not the repo default branch, which is develop
+          RELEASE_BRANCH: main
         run: |
           case "$REF" in
             refs/heads/develop) name=dev ;;
@@ -205,8 +206,8 @@ jobs:
               echo "$REF" | grep -Eq '^refs/heads/(release|hotfix)/[0-9]+\.[0-9]+\.[0-9]+$' && name=stg || name="" ;;
             refs/tags/v*)
               echo "$REF" | grep -Eq '^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' || { echo "Not a release tag"; exit 1; }
-              git merge-base --is-ancestor "$GITHUB_SHA" "origin/$DEFAULT_BRANCH" || {
-                echo "::error::${REF#refs/tags/} is not on $DEFAULT_BRANCH; tag releases after merging release/* or hotfix/*."
+              git merge-base --is-ancestor "$GITHUB_SHA" "origin/$RELEASE_BRANCH" || {
+                echo "::error::${REF#refs/tags/} is not on $RELEASE_BRANCH; tag releases after merging release/* or hotfix/*."
                 exit 1
               }
               name=prod ;;
