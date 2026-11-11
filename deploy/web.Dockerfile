@@ -25,9 +25,10 @@ COPY --from=prepare /app/out/json/ .
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 COPY --from=prepare /app/out/full/ .
-# NEXT_PUBLIC_* are inlined into the browser bundle at build time
-ARG NEXT_PUBLIC_API_URL=http://localhost:4000/api
-ARG NEXT_PUBLIC_SOCKET_URL=http://localhost:4001
+# NEXT_PUBLIC_* are inlined into the browser bundle at build time. URLs: required
+# for stg/prod (apps/web/lib/env.ts fails the build), dev falls back to localhost.
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_SOCKET_URL
 # dev | stg | prod – one web image per environment
 ARG NEXT_PUBLIC_APP_ENV=dev
 ENV NEXT_OUTPUT=standalone \
