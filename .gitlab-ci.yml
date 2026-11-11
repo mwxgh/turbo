@@ -13,7 +13,7 @@
 #
 #   check  – format, build, lint, type-check, test; migrations apply on a fresh
 #            Postgres and match schema.prisma.
-#   images – api, migrate, socket, web → ${REGISTRY_IMAGE}/<app>:<env> + :<short sha>
+#   images – api, migrate, socket, web → ${REGISTRY_IMAGE}/<app>:<env> + :<env>-sha-<short sha>
 #
 # CI/CD variables (Settings → CI/CD → Variables):
 #   REGISTRY_IMAGE / REGISTRY_HOST / REGISTRY_USER / REGISTRY_PASSWORD
@@ -107,7 +107,7 @@ check:
   variables:
     DOCKER_TLS_CERTDIR: '/certs'
     DOCKER_BUILDKIT: '1'
-    # Space-separated tags added on top of :<env> and :<short sha>
+    # Space-separated tags added on top of :<env> and :<env>-sha-<short sha>
     EXTRA_TAGS: ''
   needs: [check]
   parallel:
@@ -127,7 +127,8 @@ check:
         *)       FILE=deploy/nest.Dockerfile; TARGET=runner;  WORKSPACE=${APP} ;;
       esac
     - IMAGE="${REGISTRY_IMAGE}/${APP}"
-    - TAGS="${BUILD_STAGE} ${CI_COMMIT_SHORT_SHA} ${EXTRA_TAGS}"
+    # env in the sha tag: develop and release/* can build the same commit
+    - TAGS="${BUILD_STAGE} ${BUILD_STAGE}-sha-${CI_COMMIT_SHORT_SHA} ${EXTRA_TAGS}"
     - TAG_ARGS=""; for t in ${TAGS}; do TAG_ARGS="${TAG_ARGS} -t ${IMAGE}:${t}"; done
     - docker pull "${IMAGE}:${BUILD_STAGE}" || true
     - >

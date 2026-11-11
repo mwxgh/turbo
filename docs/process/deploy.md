@@ -5,7 +5,7 @@ Repo chỉ build image. File compose chạy trên server nằm **trên server**,
 Sau khi đẩy image, CI gọi server để cập nhật. Lý do: [ADR 0008](../decisions/0008-tu-deploy-stg-qua-ssh-forced-command.md).
 
 ```
-push release/X.Y.Z ─▶ check ─▶ images (:stg, :sha-<7>) ─▶ deploy ─ssh─▶ /srv/turbo-stg/deploy.sh sha-<7>
+push release/X.Y.Z ─▶ check ─▶ images (:stg, :stg-sha-<7>) ─▶ deploy ─ssh─▶ /srv/turbo-stg/deploy.sh stg-sha-<7>
 ```
 
 ## GitHub Environment `stg`
@@ -23,7 +23,7 @@ Environment không có `DEPLOY_*` → job `deploy` bỏ qua (dev / prod hiện t
 ## Phía server
 
 Key deploy bị khoá vào script bằng forced command: không mở được shell, không chạy được lệnh
-khác; đầu vào duy nhất là tag image (`stg` hoặc `sha-<hex>`).
+khác; đầu vào duy nhất là tag image (`stg`, `prod`, `X.Y.Z` hoặc `<env>-sha-<hex>`).
 
 ```
 # /root/.ssh/authorized_keys
@@ -37,7 +37,7 @@ command="/srv/turbo-stg/deploy.sh",restrict ssh-ed25519 AAAA… ci-deploy turbo 
 ## Deploy tay / rollback
 
 ```bash
-ssh root@<server> '/srv/turbo-stg/deploy.sh sha-<7 hex>'
+ssh root@<server> '/srv/turbo-stg/deploy.sh stg-sha-<7 hex>'
 ```
 
-Tag `sha-…` nào còn trên ghcr đều deploy lại được bằng lệnh này.
+Tag `stg-sha-…` nào còn trên ghcr đều deploy lại được bằng lệnh này. Tag sha **có tên môi trường**: `develop` và `release/*` có thể build cùng một commit (release vừa tách từ develop); tag `sha-…` chung từng bị image dev đè, stg kéo nhầm bản dev.

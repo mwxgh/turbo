@@ -186,7 +186,8 @@ jobs:
           images: ghcr.io/${{ github.repository }}-${{ matrix.app }}
           tags: |
             type=raw,value=${{ env.STAGE }}
-            type=sha
+            # env in the sha tag: develop and release/* can build the same commit
+            type=sha,prefix=${{ env.STAGE }}-sha-
             type=semver,pattern={{version}},enable=${{ env.STAGE == 'prod' }}
             type=raw,value=latest,enable=${{ env.STAGE == 'prod' }}
 
@@ -218,6 +219,8 @@ jobs:
     if: needs.stage.outputs.name != ''
     runs-on: ubuntu-latest
     environment: ${{ needs.stage.outputs.name }}
+    env:
+      STAGE: ${{ needs.stage.outputs.name }}
     concurrency:
       group: deploy-${{ needs.stage.outputs.name }}
       cancel-in-progress: false
@@ -236,7 +239,7 @@ jobs:
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
           printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          TAG="sha-${GITHUB_SHA::7}"
+          TAG="${STAGE}-sha-${GITHUB_SHA::7}"
           echo "Deploying $TAG to ${HOST#*@}"
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
             -o StrictHostKeyChecking=yes -o ConnectTimeout=20 "$HOST" "$TAG"
