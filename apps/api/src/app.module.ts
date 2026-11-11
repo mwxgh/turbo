@@ -42,6 +42,7 @@ import { HellosModule } from './hellos/hellos.module'
     JwtAuthModule.forRoot({
       secret: env.JWT_SECRET,
       accessTtlSeconds: env.ACCESS_TOKEN_TTL_SECONDS,
+      accessCookie: env.authCookies.access,
     }),
     AuthModule,
     HealthModule,

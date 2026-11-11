@@ -1,4 +1,4 @@
-import { AppEnv } from '@repo/utils'
+import { AppEnv, type AuthCookieNames, authCookieNames } from '@repo/utils'
 
 import { EnumField } from '../fields/other.js'
 import { StringField, UrlField } from '../fields/string.js'
@@ -34,6 +34,11 @@ export class BaseEnv {
   /** Redis key prefix: environments sharing one Redis never see each other's keys. */
   get redisKeyPrefix(): string {
     return `${this.APP_ENV}:`
+  }
+
+  /** Auth cookie names of this environment (`stg_access_token`…; plain names on prod). */
+  get authCookies(): AuthCookieNames {
+    return authCookieNames(this.APP_ENV)
   }
 
   /** `CORS_ORIGINS` as a list (for `enableCors` / gateways). */

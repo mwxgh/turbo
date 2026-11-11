@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test'
 
 import { TEST_USER } from './support.js'
 
+/** The web/api under test run with APP_ENV=dev: cookie names are prefixed (authCookieNames). */
+const ACCESS_COOKIE = 'dev_access_token'
+
 test.describe('signed out', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
@@ -30,11 +33,11 @@ test('refreshes an expired access token before rendering', async ({
   context,
 }) => {
   // Only the refresh cookie left, as after 15 minutes
-  await context.clearCookies({ name: 'access_token' })
+  await context.clearCookies({ name: ACCESS_COOKIE })
   await page.goto('/')
   await expect(page).toHaveURL(/\/$/)
   await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible()
-  expect((await context.cookies()).some((c) => c.name === 'access_token')).toBe(
+  expect((await context.cookies()).some((c) => c.name === ACCESS_COOKIE)).toBe(
     true,
   )
 })

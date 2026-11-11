@@ -2,14 +2,14 @@ import { cookies } from 'next/headers'
 
 import type { User } from '@repo/types'
 import { ModeToggle } from '@repo/ui/components/mode-toggle'
-import { AUTH_COOKIE } from '@repo/utils'
 
 import { UserMenu } from '@/components/user-menu'
 import { apiFetch } from '@/lib/api'
+import { authCookies } from '@/lib/env'
 
 /** The signed-in user, or null (expired session: proxy.ts redirects pages). */
 async function currentUser(): Promise<User | null> {
-  if (!(await cookies()).has(AUTH_COOKIE.Access)) return null
+  if (!(await cookies()).has(authCookies.access)) return null
   return apiFetch<User>('/auth/me', { cache: 'no-store' }).catch(() => null)
 }
 

@@ -1,5 +1,3 @@
-import { AUTH_COOKIE } from '@repo/utils'
-
 /** `name=value` pairs of a Cookie header (no dependency on cookie-parser). */
 export function parseCookies(
   header: string | undefined,
@@ -18,12 +16,15 @@ export function parseCookies(
   return cookies
 }
 
-/** Access token from `Authorization: Bearer …` (native clients) or the access cookie (browsers). */
-export function accessTokenFrom(headers: {
-  authorization?: string
-  cookie?: string
-}): string | undefined {
+/**
+ * Access token from `Authorization: Bearer …` (native clients) or the access cookie (browsers;
+ * name per env: `authCookieNames(appEnv).access`).
+ */
+export function accessTokenFrom(
+  headers: { authorization?: string; cookie?: string },
+  accessCookie: string,
+): string | undefined {
   const [scheme, token] = headers.authorization?.split(' ') ?? []
   if (scheme?.toLowerCase() === 'bearer' && token) return token
-  return parseCookies(headers.cookie)[AUTH_COOKIE.Access] || undefined
+  return parseCookies(headers.cookie)[accessCookie] || undefined
 }

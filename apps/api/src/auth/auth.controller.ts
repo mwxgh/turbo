@@ -22,11 +22,7 @@ import type { CookieOptions, Request, Response } from 'express'
 
 import { parseCookies } from '@repo/auth'
 import { type AuthUser, CurrentUser, Public } from '@repo/auth/nest'
-import {
-  AUTH_COOKIE,
-  AUTH_TRANSPORT_HEADER,
-  AUTH_TRANSPORT_TOKEN,
-} from '@repo/utils'
+import { AUTH_TRANSPORT_HEADER, AUTH_TRANSPORT_TOKEN } from '@repo/utils'
 
 import { env } from '../env'
 import {
@@ -137,11 +133,11 @@ export class AuthController {
     const { user, accessToken, refreshToken, expiresIn } = session
     if (req.get(AUTH_TRANSPORT_HEADER) === AUTH_TRANSPORT_TOKEN)
       return { user, expiresIn, accessToken, refreshToken }
-    res.cookie(AUTH_COOKIE.Access, accessToken, {
+    res.cookie(env.authCookies.access, accessToken, {
       ...cookieOptions(),
       maxAge: expiresIn * 1000,
     })
-    res.cookie(AUTH_COOKIE.Refresh, refreshToken, {
+    res.cookie(env.authCookies.refresh, refreshToken, {
       ...cookieOptions(),
       maxAge: env.REFRESH_TOKEN_TTL_DAYS * 86_400_000,
     })
@@ -149,8 +145,8 @@ export class AuthController {
   }
 
   private clearCookies(res: Response) {
-    res.clearCookie(AUTH_COOKIE.Access, cookieOptions())
-    res.clearCookie(AUTH_COOKIE.Refresh, cookieOptions())
+    res.clearCookie(env.authCookies.access, cookieOptions())
+    res.clearCookie(env.authCookies.refresh, cookieOptions())
   }
 }
 
@@ -170,4 +166,4 @@ const meta = (req: Request): ClientMeta => ({
 })
 
 const refreshTokenOf = (req: Request, dto: RefreshDto) =>
-  dto.refreshToken ?? parseCookies(req.headers.cookie)[AUTH_COOKIE.Refresh]
+  dto.refreshToken ?? parseCookies(req.headers.cookie)[env.authCookies.refresh]
