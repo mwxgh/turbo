@@ -5,7 +5,7 @@ Repo chỉ build image. File compose chạy trên server nằm **trên server**,
 Sau khi đẩy image, CI gọi server để cập nhật. Lý do: [ADR 0008](../decisions/0008-tu-deploy-stg-qua-ssh-forced-command.md).
 
 ```
-push release/X.Y.Z ─▶ check + e2e ─▶ images (:stg, :sha-<7>) ─▶ deploy ─ssh─▶ /srv/turbo-stg/deploy.sh sha-<7>
+push release/X.Y.Z ─▶ check ─▶ images (:stg, :sha-<7>) ─▶ deploy ─ssh─▶ /srv/turbo-stg/deploy.sh sha-<7>
 ```
 
 ## GitHub Environment `stg`
