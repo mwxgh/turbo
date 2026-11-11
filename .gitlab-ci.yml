@@ -89,6 +89,7 @@ check:
   script:
     - pnpm format:check
     - pnpm check-types:scripts
+    - pnpm lint:workspace
     - pnpm turbo run build lint check-types test
     - pnpm db:deploy
     - pnpm db:check

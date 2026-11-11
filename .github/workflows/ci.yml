@@ -84,7 +84,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version-file: .node-version
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
@@ -101,8 +101,8 @@ jobs:
       - name: Format
         run: pnpm format:check
 
-      - name: Type-check generators and repo scripts
-        run: pnpm check-types:scripts
+      - name: Type-check repo scripts, check workspace manifests
+        run: pnpm check-types:scripts && pnpm lint:workspace
 
       - name: Build, lint, type-check, unit tests
         run: pnpm turbo run build lint check-types test
@@ -154,7 +154,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version-file: .node-version
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
