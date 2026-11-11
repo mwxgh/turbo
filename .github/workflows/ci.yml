@@ -4,8 +4,8 @@
 #   ------------------  ---------------------------------------------------------
 #   pull request        gitflow (source → target allowed?) + check + e2e
 #   develop             check → images (dev)
-#   release/X.Y.Z       check → images (stg)
-#   hotfix/X.Y.Z        check → images (stg)
+#   release/X.Y.Z       check → images (stg) → deploy (stg)
+#   hotfix/X.Y.Z        check → images (stg) → deploy (stg)
 #   main                check
 #   tag vX.Y.Z on main  check → images (prod) tagged :prod :X.Y.Z :latest
 #
@@ -14,6 +14,9 @@
 #   Environments dev / stg / prod (docs/process/environments.md) – variables PUBLIC_API_URL, PUBLIC_SOCKET_URL
 #   (browser URLs baked into the web image). Add "Required reviewers" on prod to
 #   make production builds a manual approval.
+#   Auto deploy (optional, per Environment): variables DEPLOY_HOST (user@host) and
+#   DEPLOY_KNOWN_HOSTS, secret DEPLOY_SSH_KEY. The server key runs a forced command
+#   that receives only the image tag (docs/process/deploy.md). Unset → deploy is skipped.
 
 name: ci
 
@@ -272,3 +275,34 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.app }}-${{ env.STAGE }}
           cache-to: type=gha,mode=max,scope=${{ matrix.app }}-${{ env.STAGE }}
+
+  # Roll the freshly pushed images out to the stage's server (skipped when the
+  # Environment has no DEPLOY_HOST / DEPLOY_SSH_KEY). The SSH key is restricted on
+  # the server to a deploy script, which only accepts the image tag.
+  deploy:
+    needs: [stage, images]
+    if: needs.stage.outputs.name != ''
+    runs-on: ubuntu-latest
+    environment: ${{ needs.stage.outputs.name }}
+    concurrency:
+      group: deploy-${{ needs.stage.outputs.name }}
+      cancel-in-progress: false
+    steps:
+      - name: Deploy over SSH
+        env:
+          HOST: ${{ vars.DEPLOY_HOST }}
+          KNOWN_HOSTS: ${{ vars.DEPLOY_KNOWN_HOSTS }}
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          if [ -z "$HOST" ] || [ -z "$SSH_KEY" ] || [ -z "$KNOWN_HOSTS" ]; then
+            echo "No DEPLOY_HOST / DEPLOY_KNOWN_HOSTS / DEPLOY_SSH_KEY on this environment: skipping deploy."
+            exit 0
+          fi
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          TAG="sha-${GITHUB_SHA::7}"
+          echo "Deploying $TAG to ${HOST#*@}"
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o ConnectTimeout=20 "$HOST" "$TAG"

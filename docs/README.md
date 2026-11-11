@@ -12,13 +12,13 @@ Tài liệu dạng Markdown để **người và AI agent đọc trước khi s�
 
 ## Mục lục
 
-| Thư mục         | Nội dung                                                       | Tài liệu                                                                                                   |
-| --------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `process/`      | GitFlow, môi trường, phát hành, quy ước commit                 | [GitFlow](process/gitflow.md), [Môi trường](process/environments.md), [Cache CI](process/ci-cache.md)      |
-| `product/`      | PRD, SRS, BRD, user story… (từ `.docx`/`.pdf` của khách hàng)  | _chưa có_                                                                                                  |
-| `architecture/` | Sơ đồ hệ thống, luồng dữ liệu, tích hợp                        | [Auth](architecture/auth.md), [Rate limit](architecture/rate-limit.md), [Logging](architecture/logging.md) |
-| `decisions/`    | ADR: `NNNN-tieu-de.md` (bối cảnh → quyết định → hệ quả)        | [Mục lục ADR](decisions/README.md) (0001–0007)                                                             |
-| `_sources/`     | File gốc (`.docx`, `.pdf`, `.pptx`, `.xlsx`) trước khi convert | –                                                                                                          |
+| Thư mục         | Nội dung                                                       | Tài liệu                                                                                                                           |
+| --------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `process/`      | GitFlow, môi trường, phát hành, quy ước commit                 | [GitFlow](process/gitflow.md), [Môi trường](process/environments.md), [Cache CI](process/ci-cache.md), [Deploy](process/deploy.md) |
+| `product/`      | PRD, SRS, BRD, user story… (từ `.docx`/`.pdf` của khách hàng)  | _chưa có_                                                                                                                          |
+| `architecture/` | Sơ đồ hệ thống, luồng dữ liệu, tích hợp                        | [Auth](architecture/auth.md), [Rate limit](architecture/rate-limit.md), [Logging](architecture/logging.md)                         |
+| `decisions/`    | ADR: `NNNN-tieu-de.md` (bối cảnh → quyết định → hệ quả)        | [Mục lục ADR](decisions/README.md) (0001–0008)                                                                                     |
+| `_sources/`     | File gốc (`.docx`, `.pdf`, `.pptx`, `.xlsx`) trước khi convert | –                                                                                                                                  |
 
 ## Thêm tài liệu từ file gốc
 
