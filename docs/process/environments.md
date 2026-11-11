@@ -15,16 +15,16 @@ enforced-by:
 
 Dự án có **3 môi trường**, tên viết tắt dùng thống nhất trong code, CI, tag image và tài liệu: `dev`, `stg`, `prod`.
 
-|                         | `dev`                       | `stg`                                    | `prod`                                 |
-| ----------------------- | --------------------------- | ---------------------------------------- | -------------------------------------- |
-| Mục đích                | Tích hợp hằng ngày, máy dev | QA / UAT trước khi phát hành             | Người dùng thật                        |
-| Nguồn code              | `develop` (và máy local)    | `release/X.Y.Z`, `hotfix/X.Y.Z`          | tag `vX.Y.Z` trên `main`               |
-| Build image             | tự động khi push `develop`  | tự động khi push `release/*`, `hotfix/*` | **duyệt tay** khi tạo tag              |
-| Tag image               | `:dev`, `:<sha>`            | `:stg`, `:<sha>`                         | `:prod`, `:X.Y.Z`, `:latest`, `:<sha>` |
-| CI environment          | `dev`                       | `stg`                                    | `prod` (GitHub: _Required reviewers_)  |
-| Swagger `/api/docs`     | bật                         | bật                                      | **tắt**                                |
-| Nhãn môi trường trên UI | `DEV` (xanh)                | `STG` (cam)                              | không hiển thị                         |
-| Dữ liệu                 | giả / seed, reset thoải mái | gần giống prod, đã ẩn danh               | thật – chỉ thay đổi qua migration      |
+|                         | `dev`                       | `stg`                                    | `prod`                                          |
+| ----------------------- | --------------------------- | ---------------------------------------- | ----------------------------------------------- |
+| Mục đích                | Tích hợp hằng ngày, máy dev | QA / UAT trước khi phát hành             | Người dùng thật                                 |
+| Nguồn code              | `develop` (và máy local)    | `release/X.Y.Z`, `hotfix/X.Y.Z`          | tag `vX.Y.Z` trên `main`                        |
+| Build image             | tự động khi push `develop`  | tự động khi push `release/*`, `hotfix/*` | **duyệt tay** khi tạo tag                       |
+| Tag image               | `:dev`, `:dev-sha-<sha>`    | `:stg`, `:stg-sha-<sha>`                 | `:prod`, `:X.Y.Z`, `:latest`, `:prod-sha-<sha>` |
+| CI environment          | `dev`                       | `stg`                                    | `prod` (GitHub: _Required reviewers_)           |
+| Swagger `/api/docs`     | bật                         | bật                                      | **tắt**                                         |
+| Nhãn môi trường trên UI | `DEV` (xanh)                | `STG` (cam)                              | không hiển thị                                  |
+| Dữ liệu                 | giả / seed, reset thoải mái | gần giống prod, đã ẩn danh               | thật – chỉ thay đổi qua migration               |
 
 Luồng: `feature/*` → `develop` (**dev**) → `release/X.Y.Z` (**stg**) → `main` + tag `vX.Y.Z` (**prod**). Xem [GitFlow](gitflow.md).
 

@@ -535,14 +535,14 @@ Tóm tắt: `feature/*` → `develop` → `release/X.Y.Z` → `main` (tag `vX.Y.
 
 GitHub Actions (`.github/workflows/ci.yml`) và GitLab CI (`.gitlab-ci.yml`) làm cùng một việc:
 
-| Trigger                              | Chạy                             | Image                                  | Môi trường |
-| ------------------------------------ | -------------------------------- | -------------------------------------- | ---------- |
-| MR / PR                              | `gitflow` + `check`              | –                                      | –          |
-| push `feature/*`…                    | `check` (GitLab; GitHub qua PR)  | –                                      | –          |
-| push `develop`                       | `check` → images                 | `:dev`, `:<sha>`                       | `dev`      |
-| push `release/X.Y.Z`, `hotfix/X.Y.Z` | `check` → images                 | `:stg`, `:<sha>`                       | `stg`      |
-| push `main`                          | `check`                          | –                                      | –          |
-| tag `vX.Y.Z` (phải nằm trên `main`)  | `check` → images (**duyệt tay**) | `:prod`, `:X.Y.Z`, `:latest`, `:<sha>` | `prod`     |
+| Trigger                              | Chạy                             | Image                                           | Môi trường |
+| ------------------------------------ | -------------------------------- | ----------------------------------------------- | ---------- |
+| MR / PR                              | `gitflow` + `check`              | –                                               | –          |
+| push `feature/*`…                    | `check` (GitLab; GitHub qua PR)  | –                                               | –          |
+| push `develop`                       | `check` → images                 | `:dev`, `:dev-sha-<sha>`                        | `dev`      |
+| push `release/X.Y.Z`, `hotfix/X.Y.Z` | `check` → images                 | `:stg`, `:stg-sha-<sha>`                        | `stg`      |
+| push `main`                          | `check`                          | –                                               | –          |
+| tag `vX.Y.Z` (phải nằm trên `main`)  | `check` → images (**duyệt tay**) | `:prod`, `:X.Y.Z`, `:latest`, `:prod-sha-<sha>` | `prod`     |
 
 - `check`: `format:check` → `check-types:scripts` + `lint:workspace` → `turbo run build lint check-types test` → `db:deploy` + `db:check` trên Postgres.
 - Images: `api`, `migrate`, `socket`, `web` (đều chạy bằng user `node`; `migrate` chỉ chứa `@repo/db` + Prisma CLI, ~750 MB).
