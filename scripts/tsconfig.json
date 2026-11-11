@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    // Run by tsx as ESM (import.meta); the root package.json has no "type": "module"
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "extends": "../packages/tooling/typescript-config/node-library.json",
+  "include": ["*.ts"]
+}

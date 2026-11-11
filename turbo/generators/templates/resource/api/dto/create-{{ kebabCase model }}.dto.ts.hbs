@@ -1,0 +1,6 @@
+import { StringField } from '@repo/nest-common'
+
+export class Create{{ pascalCase model }}Dto {
+  @StringField({ maxLength: 255, example: 'My {{ words model }}' })
+  name: string
+}

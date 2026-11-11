@@ -1,0 +1,76 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common'
+import {
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger'
+import { ThrottlerGuard } from '@nestjs/throttler'
+
+import {
+  ApiListQuery,
+  ApiPaginatedResponse,
+  ListQueryDto,
+} from '@repo/nest-common'
+
+import { Create{{ pascalCase model }}Dto } from './dto/create-{{ kebabCase model }}.dto'
+import { {{ pascalCase model }}Dto } from './dto/{{ kebabCase model }}.dto'
+import { Update{{ pascalCase model }}Dto } from './dto/update-{{ kebabCase model }}.dto'
+import { {{ camelCase model }}ListSpec } from './{{ kebabCase name }}.list-spec'
+import { {{ pascalCase name }}Service } from './{{ kebabCase name }}.service'
+
+// Signed-in users only (global guard); add @Roles(Role.ADMIN) to restrict further
+@UseGuards(ThrottlerGuard)
+@ApiTags('{{ kebabCase name }}')
+@Controller('{{ kebabCase name }}')
+export class {{ pascalCase name }}Controller {
+  constructor(private readonly service: {{ pascalCase name }}Service) {}
+
+  @Get()
+  @ApiListQuery({{ camelCase model }}ListSpec)
+  @ApiPaginatedResponse({{ pascalCase model }}Dto)
+  findAll(@Query() query: ListQueryDto) {
+    return this.service.findAll(query)
+  }
+
+  @Get(':id')
+  @ApiOkResponse({ type: {{ pascalCase model }}Dto })
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.service.findOne(id)
+  }
+
+  @Post()
+  @ApiCreatedResponse({ type: {{ pascalCase model }}Dto })
+  create(@Body() body: Create{{ pascalCase model }}Dto) {
+    return this.service.create(body)
+  }
+
+  @Patch(':id')
+  @ApiOkResponse({ type: {{ pascalCase model }}Dto })
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: Update{{ pascalCase model }}Dto,
+  ) {
+    return this.service.update(id, body)
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiNoContentResponse()
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.service.remove(id)
+  }
+}

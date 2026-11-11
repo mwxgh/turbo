@@ -1,0 +1,75 @@
+'use client'
+
+import { useMemo } from 'react'
+
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+
+import type { {{ pascalCase model }} } from '@repo/types'
+import { toast } from '@repo/ui/components/sonner'
+import { type Paginated, totalPages } from '@repo/utils'
+
+import { type ActionState, withToast } from '../../lib/action-toast'
+import { {{ camelCase name }}Keys } from '../../lib/queries/{{ kebabCase name }}'
+import { create{{ pascalCase model }}, delete{{ pascalCase model }}, update{{ pascalCase model }} } from './actions'
+import type { {{ pascalCase model }}Input } from './{{ kebabCase model }}-form'
+
+/** Server actions with toasts; refresh the cached list on success (stable object). */
+export function use{{ pascalCase model }}Actions() {
+  const queryClient = useQueryClient()
+  return useMemo(() => {
+    const refresh = async (res: ActionState) => {
+      if (!res.errors)
+        await queryClient.invalidateQueries({ queryKey: {{ camelCase name }}Keys.all })
+      return res
+    }
+    return {
+      create: async (input: {{ pascalCase model }}Input) =>
+        refresh(
+          await withToast(create{{ pascalCase model }}(input), {
+            success: '{{ sentenceCase model }} created',
+            error: 'Could not create {{ words model }}',
+          }),
+        ),
+      update: async (id: string, input: {{ pascalCase model }}Input) =>
+        refresh(
+          await withToast(update{{ pascalCase model }}(id, input), {
+            success: '{{ sentenceCase model }} updated',
+            error: 'Could not update {{ words model }}',
+          }),
+        ),
+    }
+  }, [queryClient])
+}
+
+/** Delete with an optimistic update: the row disappears before the API answers. */
+export function useDelete{{ pascalCase model }}() {
+  const queryClient = useQueryClient()
+  const lists = { queryKey: {{ camelCase name }}Keys.lists() }
+
+  return useMutation({
+    mutationFn: (id: string) => delete{{ pascalCase model }}(id),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries(lists)
+      const previous = queryClient.getQueriesData<Paginated<{{ pascalCase model }}>>(lists)
+      queryClient.setQueriesData<Paginated<{{ pascalCase model }}>>(lists, (old) => {
+        if (!old?.items.some((item) => item.id === id)) return old
+        return {
+          ...old,
+          items: old.items.filter((item) => item.id !== id),
+          total: old.total - 1,
+          totalPages: totalPages(old.total - 1, old.pageSize),
+        }
+      })
+      return { previous }
+    },
+    onSuccess: () => toast.success('{{ sentenceCase model }} deleted'),
+    // Put the row back if the API refused
+    onError: (_error, _id, context) => {
+      for (const [key, data] of context?.previous ?? [])
+        queryClient.setQueryData(key, data)
+      toast.error('Could not delete {{ words model }}')
+    },
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: {{ camelCase name }}Keys.all }),
+  })
+}

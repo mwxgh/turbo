@@ -1,0 +1,19 @@
+import type { {{ pascalCase model }} } from '@repo/db'
+import { defineListSpecFor } from '@repo/utils'
+
+/**
+ * What GET /api/{{ kebabCase name }} lets clients search, filter and sort. Anything else is
+ * rejected with 400; Swagger documents it via @ApiListQuery. Field names are
+ * checked against the Prisma model.
+ */
+export const {{ camelCase model }}ListSpec = defineListSpecFor<{{ pascalCase model }}>()({
+  keywordFields: ['name'],
+  sortable: ['name', 'createdAt', 'updatedAt'],
+  defaultSort: { field: 'createdAt', dir: 'desc' },
+  filters: {
+    id: { type: 'uuid' },
+    name: { type: 'string' },
+    createdAt: { type: 'date' },
+    updatedAt: { type: 'date' },
+  },
+})

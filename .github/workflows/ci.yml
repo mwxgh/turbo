@@ -101,6 +101,9 @@ jobs:
       - name: Format
         run: pnpm format:check
 
+      - name: Type-check generators and repo scripts
+        run: pnpm check-types:scripts
+
       - name: Build, lint, type-check, unit tests
         run: pnpm turbo run build lint check-types test
 

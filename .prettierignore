@@ -8,3 +8,6 @@ pnpm-lock.yaml
 **/playwright-report/
 **/blob-report/
 **/coverage/
+
+# Handlebars templates of the code generators (formatted after generation)
+turbo/generators/templates
