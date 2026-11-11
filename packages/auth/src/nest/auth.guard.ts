@@ -12,6 +12,9 @@ import { accessTokenFrom } from '../http.js'
 import { AccessTokens } from '../tokens.js'
 import { type AuthRequest, IS_PUBLIC, ROLES } from './decorators.js'
 
+/** Injection token: the access cookie name (`AuthModuleOptions.accessCookie`). */
+export const AUTH_ACCESS_COOKIE = Symbol('AUTH_ACCESS_COOKIE')
+
 /**
  * Global HTTP guard: every route needs a valid access token unless it is `@Public()`.
  * WebSocket gateways authenticate at the handshake instead (`socketAuth`).
@@ -21,6 +24,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     @Inject(AccessTokens) private readonly tokens: AccessTokens,
+    @Inject(AUTH_ACCESS_COOKIE) private readonly accessCookie: string,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -32,7 +36,7 @@ export class AuthGuard implements CanActivate {
     )
 
     const request = context.switchToHttp().getRequest<AuthRequest>()
-    const token = accessTokenFrom(request.headers)
+    const token = accessTokenFrom(request.headers, this.accessCookie)
     const user = token ? await this.tokens.verify(token) : null
     if (user) request.user = user
     if (isPublic) return true

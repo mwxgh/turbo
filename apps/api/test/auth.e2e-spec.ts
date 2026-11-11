@@ -6,10 +6,13 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { parseCookies } from '@repo/auth'
 import type { PrismaService } from '@repo/db/nest'
 
+import { env } from '../src/env'
 import { createApp } from './create-app'
 
 const PASSWORD = 'correct horse battery'
 const TOKEN_MODE = { 'x-auth-transport': 'token' }
+/** Cookie names of the env the test app runs in (`dev_access_token`…). */
+const COOKIES = env.authCookies
 
 /** `name=value` of every Set-Cookie header, plus the raw attributes. */
 function setCookies(res: request.Response) {
@@ -66,8 +69,8 @@ describe('Auth (e2e)', () => {
 
     const { cookies, raw, header } = setCookies(res)
     expect(Object.keys(cookies).sort()).toEqual([
-      'access_token',
-      'refresh_token',
+      COOKIES.access,
+      COOKIES.refresh,
     ])
     for (const cookie of raw) expect(cookie).toMatch(/HttpOnly.*SameSite=Lax/i)
 
@@ -148,14 +151,16 @@ describe('Auth (e2e)', () => {
       .set('cookie', login.header)
       .expect(200)
     const cookies = setCookies(refreshed)
-    expect(cookies.cookies.refresh_token).not.toBe(login.cookies.refresh_token)
+    expect(cookies.cookies[COOKIES.refresh]).not.toBe(
+      login.cookies[COOKIES.refresh],
+    )
 
     const out = await http()
       .post('/api/auth/logout')
       .set('cookie', cookies.header)
       .expect(204)
     expect(setCookies(out).raw.join()).toMatch(
-      /access_token=;.*Expires=Thu, 01 Jan 1970/,
+      new RegExp(`${COOKIES.access}=;.*Expires=Thu, 01 Jan 1970`),
     )
     await http()
       .post('/api/auth/refresh')

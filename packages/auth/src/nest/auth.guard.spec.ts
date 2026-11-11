@@ -21,7 +21,7 @@ class TestController {
 }
 
 const tokens = new AccessTokens('x'.repeat(32), 60)
-const guard = new AuthGuard(new Reflector(), tokens)
+const guard = new AuthGuard(new Reflector(), tokens, 'access_token')
 
 function contextFor(handler: keyof TestController, request: AuthRequest) {
   return {

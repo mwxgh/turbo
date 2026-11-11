@@ -55,7 +55,7 @@ export class ChatGateway
 
   /** Only signed-in users connect: the handshake carries the access token (cookie or `auth.token`). */
   afterInit(server: AppServer) {
-    server.use(socketAuth(this.tokens))
+    server.use(socketAuth(this.tokens, env.authCookies.access))
   }
 
   handleConnection(client: AppSocket) {

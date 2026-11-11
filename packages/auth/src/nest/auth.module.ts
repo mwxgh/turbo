@@ -2,25 +2,32 @@ import { type DynamicModule, Module } from '@nestjs/common'
 import { APP_GUARD } from '@nestjs/core'
 
 import { AccessTokens } from '../tokens.js'
-import { AuthGuard } from './auth.guard.js'
+import { AUTH_ACCESS_COOKIE, AuthGuard } from './auth.guard.js'
 
 export interface AuthModuleOptions {
   /** HS256 secret shared by every app that verifies tokens (api, socket), ≥ 32 characters. */
   secret: string
   /** Lifetime of tokens this app signs (only the api signs). Default 900. */
   accessTtlSeconds?: number
+  /** Name of the access cookie in this environment: `env.authCookies.access`. */
+  accessCookie: string
 }
 
 /**
  * `AccessTokens` for the whole app plus `AuthGuard` as a global guard (default deny):
  *
- *   AuthModule.forRoot({ secret: env.JWT_SECRET, accessTtlSeconds: env.ACCESS_TOKEN_TTL_SECONDS })
+ *   AuthModule.forRoot({
+ *     secret: env.JWT_SECRET,
+ *     accessTtlSeconds: env.ACCESS_TOKEN_TTL_SECONDS,
+ *     accessCookie: env.authCookies.access,
+ *   })
  */
 @Module({})
 export class AuthModule {
   static forRoot({
     secret,
     accessTtlSeconds = 900,
+    accessCookie,
   }: AuthModuleOptions): DynamicModule {
     return {
       module: AuthModule,
@@ -30,9 +37,10 @@ export class AuthModule {
           provide: AccessTokens,
           useValue: new AccessTokens(secret, accessTtlSeconds),
         },
+        { provide: AUTH_ACCESS_COOKIE, useValue: accessCookie },
         { provide: APP_GUARD, useClass: AuthGuard },
       ],
-      exports: [AccessTokens],
+      exports: [AccessTokens, AUTH_ACCESS_COOKIE],
     }
   }
 }

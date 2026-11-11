@@ -19,7 +19,10 @@ import { HealthModule } from './health/health.module'
     }),
     RedisModule.forRoot({ url: env.REDIS_URL, keyPrefix: env.redisKeyPrefix }),
     // HTTP routes need a token unless @Public(); socket connections: see ChatGateway.afterInit
-    AuthModule.forRoot({ secret: env.JWT_SECRET }),
+    AuthModule.forRoot({
+      secret: env.JWT_SECRET,
+      accessCookie: env.authCookies.access,
+    }),
     HealthModule,
     ChatModule,
   ],

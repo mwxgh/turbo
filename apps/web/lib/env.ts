@@ -1,4 +1,4 @@
-import { parseAppEnv, parseUrlEnv } from '@repo/utils'
+import { authCookieNames, parseAppEnv, parseUrlEnv } from '@repo/utils'
 
 // `NEXT_PUBLIC_*` must be referenced statically so Next.js can inline them in the client bundle.
 // Invalid values throw while `next build` collects page data, so a bad image is never built.
@@ -19,6 +19,9 @@ export const publicEnv = {
     { appEnv, devDefault: 'http://localhost:4001' },
   ),
 }
+
+/** Auth cookie names the api sets in this environment (`stg_access_token`…, plain on prod). */
+export const authCookies = authCookieNames(appEnv)
 
 /** Server-only API base URL (in-cluster address, may be local); falls back to the public one. */
 export const serverApiUrl = process.env.API_URL
