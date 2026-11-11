@@ -25,13 +25,13 @@ describe('@repo/db', () => {
     expect(adapter.config.options).toBe('-c timezone=UTC')
   })
 
-  it('creates a Prisma client exposing the hello model', async () => {
+  it('creates a Prisma client exposing the user model', async () => {
     // Prisma 7 returns an extended client object, so check its API instead of
     // `instanceof PrismaClient`.
     const client = createPrismaClient(URL)
     expect(typeof client.$connect).toBe('function')
     expect(typeof client.$transaction).toBe('function')
-    expect(typeof client.hello.findMany).toBe('function')
+    expect(typeof client.user.findMany).toBe('function')
     await client.$disconnect()
   })
 })

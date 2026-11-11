@@ -8,19 +8,20 @@ test.describe('signed out', () => {
   test('sends anonymous visitors to the login page and back afterwards', async ({
     page,
   }) => {
-    await page.goto('/hellos?page=1')
-    await expect(page).toHaveURL(/\/login\?next=%2Fhellos%3Fpage%3D1$/)
+    await page.goto('/?page=1')
+    await expect(page).toHaveURL(/\/login\?next=%2F%3Fpage%3D1$/)
 
     await page.getByLabel('Email or username').fill(TEST_USER.email)
     await page.getByLabel('Password').fill('wrong password')
     await page.getByRole('button', { name: 'Sign in' }).click()
-    await expect(page.getByRole('alert')).toHaveText(
+    // Scoped to <main>: Next's route announcer is a role=alert too
+    await expect(page.getByRole('main').getByRole('alert')).toHaveText(
       'Wrong email / username or password',
     )
 
     await page.getByLabel('Password').fill(TEST_USER.password)
     await page.getByRole('button', { name: 'Sign in' }).click()
-    await expect(page).toHaveURL(/\/hellos\?page=1$/)
+    await expect(page).toHaveURL(/\/\?page=1$/)
   })
 })
 
@@ -30,8 +31,8 @@ test('refreshes an expired access token before rendering', async ({
 }) => {
   // Only the refresh cookie left, as after 15 minutes
   await context.clearCookies({ name: 'access_token' })
-  await page.goto('/hellos')
-  await expect(page).toHaveURL(/\/hellos$/)
+  await page.goto('/')
+  await expect(page).toHaveURL(/\/$/)
   await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible()
   expect((await context.cookies()).some((c) => c.name === 'access_token')).toBe(
     true,
