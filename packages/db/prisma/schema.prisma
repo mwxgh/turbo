@@ -16,7 +16,7 @@ datasource db {
 }
 
 model Hello {
-  id        String   @id @default(uuid()) @db.Uuid
+  id        String   @id @default(uuid(7)) @db.Uuid
   message   String   @db.VarChar(255)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -35,7 +35,7 @@ enum Role {
 /// Someone who signs in. Password login today; external providers (SSO / Keycloak) attach later
 /// through their own identity table, so `passwordHash` stays null for SSO-only accounts.
 model User {
-  id           String    @id @default(uuid()) @db.Uuid
+  id           String    @id @default(uuid(7)) @db.Uuid
   /// Lowercase. Sign in with email or username
   email        String?   @unique @db.VarChar(255)
   /// Lowercase
@@ -57,7 +57,7 @@ model User {
 /// @private One signed-in device. The refresh token is `<id>.<secret>`; only hashes are stored and the
 /// secret rotates on every refresh (the previous one stays valid for a short grace period).
 model Session {
-  id            String    @id @default(uuid()) @db.Uuid
+  id            String    @id @default(uuid(7)) @db.Uuid
   userId        String    @map("user_id") @db.Uuid
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   /// sha256 (hex) of the current refresh secret
