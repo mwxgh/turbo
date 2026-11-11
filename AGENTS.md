@@ -29,6 +29,7 @@ Rules:
 - Rate limit (api) is opt-in per controller: every controller that takes outside traffic gets `@UseGuards(ThrottlerGuard)`; probes/metrics do not. Per-route `@Throttle()` / `@SkipThrottle()`; controller unit tests `overrideGuard(ThrottlerGuard)`. See `docs/architecture/rate-limit.md`.
 - Redis: only through `@repo/redis` (`@InjectRedis()` / `RedisCache`); never `new Redis()` in apps except `redis.duplicate()` for subscribers/queues. Keys and channels are per-env via `env.redisKeyPrefix`.
 - Socket events: change only `packages/socket-events`; API validation: DTOs with `@repo/nest-common`.
+- Long-lived technical decisions (framework, repo structure, auth/security, storage, build/deploy, a rule in this file): add an ADR in `docs/decisions/` from `0000-template.md`; a changed decision gets a new ADR that supersedes the old one. Read the related ADR before reversing an existing convention.
 - If a requirement in `docs/product/` conflicts with the code, ask instead of guessing.
 
 <!-- BEGIN:turborepo-agent-rules -->

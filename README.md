@@ -275,7 +275,7 @@ STORAGE_BUCKET=btp
 - Server `NAME` = `default` (không có thì server đầu); `PUBLIC_ENDPOINT` (URL trình duyệt upload tới) mặc định = `ENDPOINT`; `REGION` mặc định `us-east-1`. Thiếu / JSON sai → api không khởi động.
 - Bucket phải cho phép CORS `POST` từ origin của web (MinIO mặc định cho phép mọi origin).
 - Giới hạn 50 MB: `MAX_UPLOAD_BYTES` (`apps/api/src/files/storage.ts`). Test không cần storage: `apps/api/test/storage-env.ts` (ký offline), Playwright giả lập S3.
-- Chưa có xác thực: ai gọi được api đều xin được URL upload – thêm guard khi có auth.
+- Cần đăng nhập: `files` không có `@Public()` nên `AuthGuard` global chặn người chưa đăng nhập (ADR [0005](docs/decisions/0005-auth-cookie-web-bearer-mobile-mac-dinh-chan.md), [0007](docs/decisions/0007-upload-file-bang-presigned-post.md)).
 
 ### Utils (`@repo/utils`)
 
