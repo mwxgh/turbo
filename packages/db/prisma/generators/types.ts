@@ -83,7 +83,7 @@ function renderModels(allModels: readonly DMMF.Model[]) {
       ? `import type { ${helpers.join(', ')} } from '../helpers.js'\n`
       : '') +
     (enums.length
-      ? `import type { ${enums.sort().join(', ')} } from './enums.js'\n`
+      ? `import type { ${[...enums].sort(byCodeUnit).join(', ')} } from './enums.js'\n`
       : '')
   const blocks = models.map(
     (m) =>
@@ -109,3 +109,9 @@ generatorHandler({
     ])
   },
 })
+
+/** Same order as Array#sort() without a comparator (UTF-16 code units), stated explicitly. */
+function byCodeUnit(a: string, b: string): number {
+  if (a < b) return -1
+  return a > b ? 1 : 0
+}
