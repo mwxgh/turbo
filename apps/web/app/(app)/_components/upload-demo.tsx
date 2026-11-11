@@ -16,7 +16,7 @@ import {
 import { toast } from '@repo/ui/components/sonner'
 import { MAX_UPLOAD_BYTES, formatBytes } from '@repo/utils'
 
-import { deleteFromStorage, uploadToStorage } from '../lib/storage'
+import { deleteFromStorage, uploadToStorage } from '@/lib/storage'
 
 /**
  * Upload to S3 (presigned POST from the API); removing a file deletes it there.

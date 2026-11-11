@@ -8,8 +8,9 @@ import {
   toListQuery,
 } from '@repo/ui/components/data-table/server'
 
-import { hellosListQueryOptions } from '../../lib/queries/hellos'
-import { getQueryClient } from '../../lib/query-client'
+import { hellosListQueryOptions } from '@/lib/queries/hellos'
+import { getQueryClient } from '@/lib/query-client'
+
 import { HellosView } from './hellos-view'
 
 export const dynamic = 'force-dynamic'

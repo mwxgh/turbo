@@ -1,11 +1,12 @@
 import { screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createTestQueryClient, renderWithQuery } from '../lib/test-utils'
+import { createTestQueryClient, renderWithQuery } from '@/lib/test-utils'
+
 import { HealthCard } from './health-card'
 
 const { apiFetch } = vi.hoisted(() => ({ apiFetch: vi.fn() }))
-vi.mock('../lib/api', () => ({ apiFetch }))
+vi.mock('@/lib/api', () => ({ apiFetch }))
 
 const health = {
   status: 'ok',

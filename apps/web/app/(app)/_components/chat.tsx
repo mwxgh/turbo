@@ -14,7 +14,7 @@ import {
 } from '@repo/ui/components/card'
 import { Input } from '@repo/ui/components/input'
 
-import { type ChatMessage, getSocket } from '../lib/socket'
+import { type ChatMessage, getSocket } from '@/lib/socket'
 
 const ROOM = 'lobby'
 const ROW_HEIGHT = 28

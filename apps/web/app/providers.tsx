@@ -8,8 +8,8 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 
 import { Toaster } from '@repo/ui/components/sonner'
 
-import { ThemeProvider } from '../components/theme-provider'
-import { getQueryClient } from '../lib/query-client'
+import { ThemeProvider } from '@/components/theme-provider'
+import { getQueryClient } from '@/lib/query-client'
 
 /** Client-side providers for the whole app. */
 export function Providers({ children }: { children: ReactNode }) {

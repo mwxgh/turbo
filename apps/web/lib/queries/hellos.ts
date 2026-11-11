@@ -7,7 +7,7 @@ import {
   listQueryToSearchParams,
 } from '@repo/utils'
 
-import { apiFetch } from '../api'
+import { apiFetch } from '@/lib/api'
 
 /** Query keys: invalidate `hellosKeys.all` after any hello mutation. */
 export const hellosKeys = {

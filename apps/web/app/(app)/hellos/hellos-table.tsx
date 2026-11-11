@@ -13,7 +13,8 @@ import {
 } from '@repo/ui/components/data-table'
 import { formatDateTime } from '@repo/utils'
 
-import { hellosListQueryOptions } from '../../lib/queries/hellos'
+import { hellosListQueryOptions } from '@/lib/queries/hellos'
+
 import { HelloForm } from './hello-form'
 import { useDeleteHello, useHelloActions } from './use-hello-mutations'
 

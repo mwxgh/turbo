@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { HEALTH_POLL_MS, healthQueryOptions } from './health'
 
 const { apiFetch } = vi.hoisted(() => ({ apiFetch: vi.fn() }))
-vi.mock('../api', () => ({ apiFetch }))
+vi.mock('@/lib/api', () => ({ apiFetch }))
 
 describe('healthQueryOptions', () => {
   it('polls health and does not retry (shows offline fast)', () => {

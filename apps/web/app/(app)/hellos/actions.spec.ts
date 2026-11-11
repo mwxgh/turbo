@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ApiError } from '../../lib/api'
+import { ApiError } from '@/lib/api'
+
 import { createHello, deleteHello, updateHello } from './actions'
 
 const { apiFetch } = vi.hoisted(() => ({ apiFetch: vi.fn() }))
-vi.mock('../../lib/api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../../lib/api')>()),
+vi.mock('@/lib/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/api')>()),
   apiFetch,
 }))
 

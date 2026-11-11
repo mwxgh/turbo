@@ -4,11 +4,12 @@ import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 
 import { buttonVariants } from '@repo/ui/components/button'
 
-import { healthQueryOptions } from '../lib/queries/health'
-import { getQueryClient } from '../lib/query-client'
-import { Chat } from './chat'
-import { HealthCard } from './health-card'
-import { UploadDemo } from './upload-demo'
+import { healthQueryOptions } from '@/lib/queries/health'
+import { getQueryClient } from '@/lib/query-client'
+
+import { Chat } from './_components/chat'
+import { HealthCard } from './_components/health-card'
+import { UploadDemo } from './_components/upload-demo'
 
 // Always render at request time so the first health status is fresh.
 export const dynamic = 'force-dynamic'
