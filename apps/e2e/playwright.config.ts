@@ -42,6 +42,8 @@ export default defineConfig({
     baseURL: WEB_URL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    // PLAYWRIGHT_CHANNEL=chrome: installed Chrome instead of Playwright's download (setup project too)
+    channel: process.env.PLAYWRIGHT_CHANNEL,
   },
   projects: [
     // Signs in once and saves the cookies for the other tests
@@ -51,7 +53,6 @@ export default defineConfig({
       dependencies: ['setup'],
       use: {
         ...devices['Desktop Chrome'],
-        channel: process.env.PLAYWRIGHT_CHANNEL,
         storageState: AUTH_FILE,
       },
     },

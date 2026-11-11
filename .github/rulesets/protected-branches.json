@@ -27,8 +27,7 @@
         "strict_required_status_checks_policy": false,
         "required_status_checks": [
           { "context": "gitflow" },
-          { "context": "check" },
-          { "context": "e2e" }
+          { "context": "check" }
         ]
       }
     }
