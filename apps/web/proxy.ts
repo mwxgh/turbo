@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { AUTH_COOKIE } from '@repo/utils'
 
-import { serverApiUrl } from './lib/env'
+import { serverApiUrl } from '@/lib/env'
 
 /** Pages anyone may open. */
 const PUBLIC_PATHS = ['/login']

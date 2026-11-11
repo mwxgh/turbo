@@ -8,8 +8,8 @@ import type { {{ pascalCase model }} } from '@repo/types'
 import { toast } from '@repo/ui/components/sonner'
 import { type Paginated, totalPages } from '@repo/utils'
 
-import { type ActionState, withToast } from '../../lib/action-toast'
-import { {{ camelCase name }}Keys } from '../../lib/queries/{{ kebabCase name }}'
+import { type ActionState, withToast } from '@/lib/action-toast'
+import { {{ camelCase name }}Keys } from '@/lib/queries/{{ kebabCase name }}'
 import { create{{ pascalCase model }}, delete{{ pascalCase model }}, update{{ pascalCase model }} } from './actions'
 import type { {{ pascalCase model }}Input } from './{{ kebabCase model }}-form'
 

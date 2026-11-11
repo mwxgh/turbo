@@ -5,8 +5,9 @@ import { describe, expect, it, vi } from 'vitest'
 import type { Hello } from '@repo/types'
 import { paginated } from '@repo/utils'
 
-import { hellosKeys } from '../../lib/queries/hellos'
-import { createTestQueryClient } from '../../lib/test-utils'
+import { hellosKeys } from '@/lib/queries/hellos'
+import { createTestQueryClient } from '@/lib/test-utils'
+
 import { useDeleteHello } from './use-hello-mutations'
 
 vi.mock('./actions', () => ({

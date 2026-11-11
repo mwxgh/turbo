@@ -10,7 +10,8 @@ import {
   vi,
 } from 'vitest'
 
-import type { ChatMessage } from '../lib/socket'
+import type { ChatMessage } from '@/lib/socket'
+
 import { Chat } from './chat'
 
 /** Minimal stand-in for the socket.io client used by <Chat>. */
@@ -46,7 +47,7 @@ function createFakeSocket() {
 const socket = vi.hoisted(() => ({
   current: null as ReturnType<typeof createFakeSocket> | null,
 }))
-vi.mock('../lib/socket', () => ({ getSocket: () => socket.current }))
+vi.mock('@/lib/socket', () => ({ getSocket: () => socket.current }))
 
 const message = (text: string): ChatMessage => ({
   id: crypto.randomUUID(),

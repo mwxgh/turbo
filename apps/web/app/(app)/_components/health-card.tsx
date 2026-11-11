@@ -11,7 +11,7 @@ import {
 } from '@repo/ui/components/card'
 import { formatDate } from '@repo/utils'
 
-import { HEALTH_POLL_MS, healthQueryOptions } from '../lib/queries/health'
+import { HEALTH_POLL_MS, healthQueryOptions } from '@/lib/queries/health'
 
 /** API status, prefetched on the server and re-polled by TanStack Query. */
 export function HealthCard() {

@@ -2,7 +2,7 @@ import { Badge } from '@repo/ui/components/badge'
 import { cn } from '@repo/ui/lib/utils'
 import { type AppEnv, AppEnv as Env } from '@repo/utils'
 
-import { publicEnv } from '../lib/env'
+import { publicEnv } from '@/lib/env'
 
 const COLORS: Record<Exclude<AppEnv, 'prod'>, string> = {
   dev: 'bg-blue-600 text-white',

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
-import { safeNext } from '../../lib/auth'
+import { safeNext } from '@/lib/auth'
+
 import { LoginForm } from './login-form'
 
 export const metadata: Metadata = { title: 'Sign in' }

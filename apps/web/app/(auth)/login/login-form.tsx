@@ -14,7 +14,7 @@ import {
 import { Field, FieldError, FieldLabel } from '@repo/ui/components/field'
 import { Input } from '@repo/ui/components/input'
 
-import { ApiError, apiFetch } from '../../lib/api'
+import { ApiError, apiFetch } from '@/lib/api'
 
 const required = (label: string) => (value: string) =>
   value.trim() ? undefined : `${label} is required`

@@ -3,8 +3,8 @@
 // Mutations for /{{ kebabCase name }}. Callers invalidate `{{ camelCase name }}Keys.all` on success.
 import type { ApiErrorBody, {{ pascalCase model }} } from '@repo/types'
 
-import type { ActionState } from '../../lib/action-toast'
-import { ApiError, apiFetch } from '../../lib/api'
+import type { ActionState } from '@/lib/action-toast'
+import { ApiError, apiFetch } from '@/lib/api'
 import type { {{ pascalCase model }}Input } from './{{ kebabCase model }}-form'
 
 /** Validation lives in the API's DTOs; surface its error messages to the form. */
