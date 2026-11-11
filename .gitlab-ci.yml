@@ -88,6 +88,7 @@ check:
     - pnpm install --frozen-lockfile
   script:
     - pnpm format:check
+    - pnpm check-types:scripts
     - pnpm turbo run build lint check-types test
     - pnpm db:deploy
     - pnpm db:check

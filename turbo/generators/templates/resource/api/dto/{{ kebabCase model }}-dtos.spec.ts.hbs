@@ -1,0 +1,29 @@
+import { describe, expect, it } from 'vitest'
+
+import { validateDto } from '@repo/nest-common'
+
+import { Create{{ pascalCase model }}Dto } from './create-{{ kebabCase model }}.dto'
+import { Update{{ pascalCase model }}Dto } from './update-{{ kebabCase model }}.dto'
+
+describe('Create{{ pascalCase model }}Dto', () => {
+  it('trims the name', () => {
+    expect(validateDto(Create{{ pascalCase model }}Dto, { name: '  a  ' })).toEqual({
+      ok: true,
+      data: { name: 'a' },
+    })
+  })
+
+  it.each([{}, { name: '' }, { name: 'x'.repeat(256) }, { name: 1 }])(
+    'rejects %j',
+    (input) => {
+      expect(validateDto(Create{{ pascalCase model }}Dto, input).ok).toBe(false)
+    },
+  )
+})
+
+describe('Update{{ pascalCase model }}Dto', () => {
+  it('makes every field optional but still validates present ones', () => {
+    expect(validateDto(Update{{ pascalCase model }}Dto, {}).ok).toBe(true)
+    expect(validateDto(Update{{ pascalCase model }}Dto, { name: '' }).ok).toBe(false)
+  })
+})

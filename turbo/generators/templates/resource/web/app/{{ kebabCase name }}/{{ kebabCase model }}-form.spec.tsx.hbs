@@ -1,0 +1,15 @@
+import { describe, expect, it } from 'vitest'
+
+import { NAME_MAX, validateName } from './{{ kebabCase model }}-form'
+
+describe('validateName', () => {
+  it('accepts a trimmed, non-empty name up to NAME_MAX', () => {
+    expect(validateName('  a  ')).toBeUndefined()
+    expect(validateName('x'.repeat(NAME_MAX))).toBeUndefined()
+  })
+
+  it('rejects empty and too long names', () => {
+    expect(validateName('   ')).toBe('Name is required')
+    expect(validateName('x'.repeat(NAME_MAX + 1))).toMatch(/at most/)
+  })
+})

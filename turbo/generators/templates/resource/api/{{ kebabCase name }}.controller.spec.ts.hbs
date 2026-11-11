@@ -1,0 +1,49 @@
+import { Test } from '@nestjs/testing'
+import { ThrottlerGuard } from '@nestjs/throttler'
+
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { {{ pascalCase name }}Controller } from './{{ kebabCase name }}.controller'
+import { {{ pascalCase name }}Service } from './{{ kebabCase name }}.service'
+
+describe('{{ pascalCase name }}Controller', () => {
+  let controller: {{ pascalCase name }}Controller
+  const service = {
+    findAll: vi.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    remove: vi.fn(),
+  }
+
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    const moduleRef = await Test.createTestingModule({
+      controllers: [{{ pascalCase name }}Controller],
+      providers: [{ provide: {{ pascalCase name }}Service, useValue: service }],
+    })
+      .overrideGuard(ThrottlerGuard)
+      .useValue({ canActivate: () => true })
+      .compile()
+    controller = moduleRef.get({{ pascalCase name }}Controller)
+  })
+
+  it('delegates every route to {{ pascalCase name }}Service', async () => {
+    const id = '11111111-1111-4111-8111-111111111111'
+    service.findAll.mockResolvedValue('list')
+    service.findOne.mockResolvedValue('one')
+    service.create.mockResolvedValue('created')
+    service.update.mockResolvedValue('updated')
+    service.remove.mockResolvedValue(undefined)
+
+    await expect(controller.findAll({ page: 1, pageSize: 20 })).resolves.toBe('list')
+    await expect(controller.findOne(id)).resolves.toBe('one')
+    await expect(controller.create({ name: 'A' })).resolves.toBe('created')
+    await expect(controller.update(id, { name: 'B' })).resolves.toBe('updated')
+    await expect(controller.remove(id)).resolves.toBeUndefined()
+
+    expect(service.findAll).toHaveBeenCalledWith({ page: 1, pageSize: 20 })
+    expect(service.update).toHaveBeenCalledWith(id, { name: 'B' })
+    expect(service.remove).toHaveBeenCalledWith(id)
+  })
+})

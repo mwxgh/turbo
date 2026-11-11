@@ -1,0 +1,27 @@
+import { queryOptions } from '@tanstack/react-query'
+
+import type { {{ pascalCase model }} } from '@repo/types'
+import {
+  type ListQuery,
+  type Paginated,
+  listQueryToSearchParams,
+} from '@repo/utils'
+
+import { apiFetch } from '../api'
+
+/** Query keys: invalidate `{{ camelCase name }}Keys.all` after any {{ words model }} mutation. */
+export const {{ camelCase name }}Keys = {
+  all: ['{{ kebabCase name }}'] as const,
+  lists: () => [...{{ camelCase name }}Keys.all, 'list'] as const,
+}
+
+/** One page of GET /{{ kebabCase name }} – the table (`useListTable`) and the page prefetch share it. */
+export const {{ camelCase name }}ListQueryOptions = (query: ListQuery) =>
+  queryOptions({
+    queryKey: [...{{ camelCase name }}Keys.lists(), query],
+    queryFn: () =>
+      apiFetch<Paginated<{{ pascalCase model }}>>(
+        `/{{ kebabCase name }}?${listQueryToSearchParams(query)}`,
+        { cache: 'no-store' },
+      ),
+  })

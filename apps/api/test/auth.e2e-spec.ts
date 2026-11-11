@@ -44,11 +44,10 @@ describe('Auth (e2e)', () => {
   })
 
   it('keeps every route closed without a token, except @Public() ones', async () => {
-    await http().get('/api/hellos').expect(401)
     await http().get('/api/auth/me').expect(401)
     await http().get('/api/health/live').expect(200)
     await http()
-      .get('/api/hellos')
+      .get('/api/auth/me')
       .set('authorization', 'Bearer forged.token.value')
       .expect(401)
   })
@@ -94,7 +93,7 @@ describe('Auth (e2e)', () => {
       })
       expect(res.headers['set-cookie']).toBeUndefined()
       await http()
-        .get('/api/hellos')
+        .get('/api/auth/me')
         .set('authorization', `Bearer ${res.body.accessToken}`)
         .expect(200)
     }

@@ -1,0 +1,7 @@
+export interface GreetingProps {
+  name: string
+}
+
+export function Greeting({ name }: GreetingProps) {
+  return <p className="text-sm text-muted-foreground">Hello, {name}!</p>
+}

@@ -1,0 +1,24 @@
+import { describe, expect, it, vi } from 'vitest'
+
+import { {{ camelCase name }}Keys, {{ camelCase name }}ListQueryOptions } from './{{ kebabCase name }}'
+
+const { apiFetch } = vi.hoisted(() => ({ apiFetch: vi.fn() }))
+vi.mock('../api', () => ({ apiFetch }))
+
+describe('{{ camelCase name }}ListQueryOptions', () => {
+  it('keys each list query under {{ camelCase name }}Keys.all', () => {
+    const query = { page: 2, pageSize: 20, keyword: 'a' }
+    expect({{ camelCase name }}ListQueryOptions(query).queryKey).toEqual([
+      ...{{ camelCase name }}Keys.lists(),
+      query,
+    ])
+  })
+
+  it('fetches GET /{{ kebabCase name }} with the list query', async () => {
+    apiFetch.mockResolvedValue({})
+    await {{ camelCase name }}ListQueryOptions({ page: 1, pageSize: 20 }).queryFn!({} as never)
+    expect(apiFetch).toHaveBeenCalledWith('/{{ kebabCase name }}?page=1&pageSize=20', {
+      cache: 'no-store',
+    })
+  })
+})

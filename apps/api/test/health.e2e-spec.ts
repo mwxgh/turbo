@@ -48,8 +48,8 @@ describe('Health & docs (e2e)', () => {
         '/api/health',
         '/api/health/live',
         '/api/health/ready',
-        '/api/hellos',
-        '/api/hellos/{id}',
+        '/api/auth/login',
+        '/api/auth/me',
       ]),
     )
   })

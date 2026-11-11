@@ -35,10 +35,12 @@ describe('HTTP hardening (e2e)', () => {
   })
 
   it('rate limits controllers that opt in with ThrottlerGuard', async () => {
+    // Any signed token passes the auth guard; the presign is computed locally (no S3)
     const res = await request(app.getHttpServer())
-      .get('/api/hellos')
+      .post('/api/files/uploads')
       .set('authorization', await bearer(app))
-      .expect(200)
+      .send({ fileName: 'a.pdf', contentType: 'application/pdf', size: 1 })
+      .expect(201)
     expect(res.headers['x-ratelimit-limit']).toBe('100000')
     expect(Number(res.headers['x-ratelimit-remaining'])).toBeLessThan(100000)
   })
@@ -52,7 +54,7 @@ describe('HTTP hardening (e2e)', () => {
 
   it('rejects JSON bodies over BODY_LIMIT with 413', async () => {
     await request(app.getHttpServer())
-      .post('/api/hellos')
+      .post('/api/auth/login')
       .set('content-type', 'application/json')
       .send(JSON.stringify({ name: 'x'.repeat(200 * 1024) }))
       .expect(413)

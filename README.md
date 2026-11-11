@@ -93,7 +93,7 @@ Tài liệu dự án (quy trình, yêu cầu, kiến trúc, ADR) ở [`docs/`](d
   - `GET …/health/live` – **liveness**: chỉ báo process còn phục vụ HTTP, không gọi DB/Redis. Dùng cho probe có quyền restart (Kubernetes `livenessProbe`): DB/Redis sự cố không làm restart hàng loạt instance.
   - `GET …/health/ready` (alias `GET …/health`) – **readiness**: ping DB (api) + Redis với timeout 2s → `503` khi một dependency lỗi. Dùng cho load balancer, `readinessProbe`, Docker Compose `healthcheck` / `service_healthy`.
 
-Thêm feature trong api:
+Thêm feature trong api: **`pnpm gen resource`** sinh sẵn cả bộ dưới đây (kèm model Prisma, test và trang web – xem [Sinh code](#sinh-code-generators)). Cấu trúc:
 
 ```text
 apps/api/src/<feature>/
@@ -107,7 +107,7 @@ apps/api/src/<feature>/
 
 rồi import module vào `app.module.ts`. DTO là nguồn duy nhất cho input; Swagger (`/api/docs-json`) mô tả cả input lẫn output.
 
-Mẫu tham khảo: `apps/api/src/hellos` – CRUD đầy đủ trên bảng `hellos`:
+Mẫu tham khảo: `apps/api/src/hellos` – CRUD đầy đủ trên bảng `hellos` (phần mẫu, `pnpm template:init --strip-examples` gỡ đi; `pnpm gen resource` sinh lại đúng dạng này):
 
 | Method   | Path                             | Mô tả                       |
 | -------- | -------------------------------- | --------------------------- |
@@ -559,13 +559,43 @@ GitHub Actions (`.github/workflows/ci.yml`) và GitLab CI (`.gitlab-ci.yml`) là
 
 Package nội bộ khai báo `"files": ["dist", …]` để `pnpm deploy` đóng gói code đã build.
 
+## Sinh code (generators)
+
+Generator của Turborepo (`turbo gen`, Plop) ở `turbo/generators/` – template theo đúng code mẫu trong repo, sinh xong tự chạy Prettier.
+
+| Lệnh                | Sinh ra                                                                                                                                                                                                                                                                     |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm gen resource` | CRUD cho một resource, chọn tầng: `db` (model trong `schema.prisma` + `db:generate` + `db:types`), `api` (module/controller/service/DTO/list spec/test, tự đăng ký vào `app.module.ts`), `web` (`app/<resource>`: bảng, form, server actions + `lib/queries/<resource>.ts`) |
+| `pnpm gen package`  | Package `@repo/<tên>` trong `packages/`: `node` (tsc → `dist/`, như `@repo/utils`) hoặc `react` (source TSX, như `@repo/ui`); thêm scope commitlint, chạy `pnpm install`                                                                                                    |
+
+```bash
+pnpm gen resource                                   # hỏi từng bước
+pnpm gen resource --args order-items OrderItem db,api,web
+pnpm infra:up && pnpm db:migrate --name add_order_items
+pnpm turbo run build lint check-types test --filter=api --filter=web
+```
+
+Model sinh ra có `id`, `name`, `createdAt`, `updatedAt` – sửa field trong `schema.prisma`, DTO, list spec, form theo nghiệp vụ. Sửa template: `turbo/generators/templates/**` (`.hbs`, Prettier bỏ qua thư mục này); `pnpm check-types:scripts` type-check `config.ts` và `scripts/*.ts` (có trong CI).
+
 ## Dùng làm base cho dự án mới
 
-1. Copy repo (bỏ `node_modules`, `.turbo`, `dist`, `.next`, `.env*` không phải `.env.example`).
-2. Đổi `name` trong `package.json` root; đổi scope `@repo/*` nếu cần.
-3. Xoá phần demo: `apps/api/src/hellos`, `apps/socket/src/chat`, event chat trong `packages/socket-events`, `apps/web/app/{chat.tsx,hellos}`, model `Hello` + migrations trong `packages/db/prisma`.
-4. Đổi `COMPOSE_PROJECT_NAME` trong `deploy/.env.example`.
-5. Cập nhật `.env.example` của từng app.
+1. Copy repo (bỏ `node_modules`, `.turbo`, `dist`, `.next`, `.env*` không phải `.env.example`), `git init` / commit, `pnpm install`.
+2. Chạy init (xem trước bằng `--dry-run`, cần working tree sạch):
+
+   ```bash
+   pnpm template:init --name acme-portal --scope @acme --strip-examples [--title "Acme Portal"]
+   ```
+
+   | Option             | Làm gì                                                                                                                                                            |
+   | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+   | `--name`           | Thay `turbo-base`: package root, Docker Compose project, tag image, Expo slug/scheme, JWT issuer; tên hiển thị web/mobile lấy từ `--title` (mặc định từ `--name`) |
+   | `--scope`          | Thay `@repo/` ở mọi file đã track (cả lockfile, import order Prettier, template generator)                                                                        |
+   | `--strip-examples` | Gỡ CRUD `hellos` (db, api, web, mobile, test), widget chat + upload ở trang chủ web; gộp migrations thành một migration `init`                                    |
+
+   Giữ lại có chủ đích: auth, files (presign S3), health, `ChatGateway` của socket + `packages/socket-events` (gateway mẫu; e2e của socket – auth, scale-out qua Redis – chạy trên nó).
+
+3. `pnpm turbo run build lint check-types test`, tạo DB mới: `pnpm infra:up && pnpm db:deploy && pnpm db:seed`.
+4. Cập nhật `.env.example` của từng app, README và `docs/` cho dự án mới.
 
 ## Chưa có (gợi ý mở rộng)
 

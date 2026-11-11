@@ -14,6 +14,13 @@ async function chooseRowAction(page: Page, message: string, name: string) {
 }
 
 test.describe('Hellos', () => {
+  test('is linked from the home page', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('link', { name: /Hellos CRUD/ }).click()
+    await expect(page).toHaveURL(/\/hellos$/)
+    await expect(page.getByRole('heading', { name: /Hellos/ })).toBeVisible()
+  })
+
   test('creates, edits and deletes a hello', async ({ page }) => {
     const message = unique('create')
     const edited = unique('edited')

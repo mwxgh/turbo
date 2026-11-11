@@ -1,0 +1,37 @@
+'use client'
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@repo/ui/components/card'
+
+import { {{ pascalCase model }}Form } from './{{ kebabCase model }}-form'
+import { {{ pascalCase name }}Table } from './{{ kebabCase name }}-table'
+import { use{{ pascalCase model }}Actions } from './use-{{ kebabCase model }}-mutations'
+
+/** Client part of /{{ kebabCase name }}: create form + the list (prefetched on the server). */
+export function {{ pascalCase name }}View() {
+  const actions = use{{ pascalCase model }}Actions()
+
+  return (
+    <>
+      <h1 className="text-3xl font-bold tracking-tight">{{ sentenceCase name }}</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>New {{ words model }}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <{{ pascalCase model }}Form
+            action={actions.create}
+            submitLabel="Add"
+            inputLabel="New {{ words model }} name"
+            placeholder="Name…"
+          />
+        </CardContent>
+      </Card>
+      <{{ pascalCase name }}Table />
+    </>
+  )
+}
