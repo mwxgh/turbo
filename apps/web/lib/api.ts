@@ -13,14 +13,22 @@ const isServer = () => typeof window === 'undefined'
  */
 export const apiBaseUrl = () => (isServer() ? serverApiUrl : publicEnv.apiUrl)
 
-let serverHeaders: (() => Promise<HeadersInit | undefined>) | undefined
+type ServerHeaders = () => Promise<HeadersInit | undefined>
+
+/**
+ * Kept on `globalThis`, not in a module variable: Next bundles this file once for
+ * `instrumentation.ts` and again for Server Components / Actions, so each copy has its own
+ * module scope. A registered symbol is shared by every copy in the process.
+ */
+const SERVER_HEADERS = Symbol.for('web.apiFetch.serverHeaders')
+const registry = globalThis as { [SERVER_HEADERS]?: ServerHeaders }
 
 /**
  * Server only: headers of the current request to forward (the browser's auth cookies). Registered
  * once by `instrumentation.ts` → `lib/api-server.ts`, which may import `next/headers`.
  */
-export function setServerHeaders(get: typeof serverHeaders) {
-  serverHeaders = get
+export function setServerHeaders(get: ServerHeaders | undefined) {
+  registry[SERVER_HEADERS] = get
 }
 
 /**
@@ -30,7 +38,7 @@ export function setServerHeaders(get: typeof serverHeaders) {
  */
 export const apiFetch = createApiFetch(apiBaseUrl, {
   credentials: 'include',
-  headers: () => (isServer() ? serverHeaders?.() : undefined),
+  headers: () => (isServer() ? registry[SERVER_HEADERS]?.() : undefined),
   onUnauthorized: async (path) => {
     // Wrong password on /auth/login is a 401 too: let the form show it
     if (isServer() || path.startsWith('/auth/')) return false
