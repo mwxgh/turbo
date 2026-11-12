@@ -13,13 +13,14 @@ function testEnvDatabaseUrl(): string | undefined {
 }
 
 /**
- * Database for e2e tests: TEST_DATABASE_URL, or the DATABASE_URL of .env.test(.local) with
- * "_test" appended to the database name (`app_e2e_test`: apart from Playwright's `app_e2e`).
- * Never a remote server unless TEST_DATABASE_URL says so.
+ * Database for e2e tests: TEST_DATABASE_URL, else DATABASE_URL from the process environment (CI
+ * sets it for its Postgres service; `.env` is never loaded), else the one of .env.test(.local) –
+ * with "_test" appended to the database name (`app_e2e_test` locally: apart from Playwright's
+ * `app_e2e`). Never a remote server unless TEST_DATABASE_URL says so.
  */
 export function testDatabaseUrl(): string {
   if (process.env.TEST_DATABASE_URL) return process.env.TEST_DATABASE_URL
-  const base = testEnvDatabaseUrl()
+  const base = process.env.DATABASE_URL ?? testEnvDatabaseUrl()
   if (!base)
     throw new Error('Set DATABASE_URL in .env.test or TEST_DATABASE_URL')
 
