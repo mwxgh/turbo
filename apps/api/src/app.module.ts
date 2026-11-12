@@ -43,6 +43,7 @@ import { HellosModule } from './hellos/hellos.module'
       secret: env.JWT_SECRET,
       accessTtlSeconds: env.ACCESS_TOKEN_TTL_SECONDS,
       accessCookie: env.authCookies.access,
+      revocationStore: REDIS,
     }),
     AuthModule,
     HealthModule,

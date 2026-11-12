@@ -17,18 +17,19 @@ enforced-by:
 - **Mặc định chặn**: `AuthGuard` là guard global của api và socket → mọi route HTTP cần access token. Route mở cho khách: `@Public()` (đang có: `/health*`, `/auth/register|login|refresh|logout`).
 - Phân quyền: `@Roles(Role.ADMIN)` trên controller / route (403 nếu sai role). Người đang đăng nhập: `@CurrentUser() user: AuthUser` (`{ id, sessionId, role }`).
 - **Không bao giờ** trả `passwordHash` ra ngoài: query user dùng `omit: { passwordHash: true }`. Field / model đánh dấu `/// @private` trong `schema.prisma` không được sinh vào `@repo/types` (web / mobile không thấy).
-- Socket: kết nối phải có access token (cookie hoặc `auth: { token }`); không có / sai → `connect_error` `unauthorized`.
+- Socket: kết nối phải có access token (cookie hoặc `auth: { token }`) của session chưa bị thu hồi; không có / sai / đã thu hồi → `connect_error` `unauthorized`. Chỉ kiểm tra lúc kết nối: kết nối đang mở không bị đóng khi session kết thúc.
 
 ## Mô hình token
 
-| Token   | Dạng                              | Sống                                                  | Lưu ở server                            |
-| ------- | --------------------------------- | ----------------------------------------------------- | --------------------------------------- |
-| Access  | JWT HS256 (`sub`, `sid`, `role`)  | `ACCESS_TOKEN_TTL_SECONDS` (15 phút)                  | Không (api và socket chỉ verify chữ ký) |
-| Refresh | `<sessionId>.<secret>` ngẫu nhiên | `REFRESH_TOKEN_TTL_DAYS` (30 ngày, trượt khi refresh) | Bảng `sessions`: chỉ sha256 của secret  |
+| Token   | Dạng                              | Sống                                                  | Lưu ở server                                |
+| ------- | --------------------------------- | ----------------------------------------------------- | ------------------------------------------- |
+| Access  | JWT HS256 (`sub`, `sid`, `role`)  | `ACCESS_TOKEN_TTL_SECONDS` (15 phút)                  | Redis: `sid` đã thu hồi (`RevokedSessions`) |
+| Refresh | `<sessionId>.<secret>` ngẫu nhiên | `REFRESH_TOKEN_TTL_DAYS` (30 ngày, trượt khi refresh) | Bảng `sessions`: chỉ sha256 của secret      |
 
 - Mật khẩu: **argon2id** (`node:crypto`, không native addon), định dạng PHC `$argon2id$v=19$m=19456,t=2,p=1$…` (mức tối thiểu OWASP). Tham số lưu trong hash → nâng sau được, `needsRehash` tự hash lại khi user đăng nhập.
 - **Xoay refresh token** mỗi lần refresh. Token vừa bị thay vẫn được chấp nhận **60 giây** (2 tab refresh cùng lúc). Token cũ hơn bị dùng lại = bị đánh cắp → **thu hồi cả session**.
-- Đăng xuất / đổi mật khẩu: session bị thu hồi ngay; access token đã phát vẫn hợp lệ tới khi hết hạn (≤ 15 phút) – đánh đổi để không phải tra DB mỗi request.
+- Đăng xuất / đổi mật khẩu / phát hiện refresh token bị dùng lại: session bị thu hồi trong DB **và** `sid` được ghi vào Redis (`auth:revoked-session:<sid>`, TTL = `ACCESS_TOKEN_TTL_SECONDS`). `AuthGuard` và `socketAuth` kiểm tra key này sau khi verify chữ ký → access token đã phát bị từ chối ngay. Redis lỗi → request lỗi (fail closed). Xem [ADR 0010](../decisions/0010-thu-hoi-session-ngay-qua-redis.md).
+- Đăng xuất chỉ thu hồi khi refresh token đúng (biết `sessionId` thôi thì không đủ).
 - Đổi mật khẩu: đăng xuất mọi thiết bị khác.
 
 ## Theo client
@@ -86,10 +87,10 @@ Tên cookie theo `APP_ENV` (`authCookieNames` trong `@repo/utils`, api/socket: `
 
 ## Test
 
-- `@repo/auth`: unit test (argon2id kể cả vector chuẩn, JWT, guard, socket middleware).
-- api: `test/auth.e2e-spec.ts` (cookie / token mode, xoay token, phát hiện dùng lại, đăng xuất, đổi mật khẩu). Route khác trong e2e dùng `bearer(app)` từ `test/create-app.ts`.
+- `@repo/auth`: unit test (argon2id kể cả vector chuẩn, JWT, `RevokedSessions`, guard, socket middleware).
+- api: `test/auth.e2e-spec.ts` (cookie / token mode, xoay token, phát hiện dùng lại, đăng xuất, đổi mật khẩu; access token bị từ chối ngay sau khi session kết thúc). socket: `test/chat.e2e-spec.ts` từ chối token của session đã thu hồi. Route khác trong e2e dùng `bearer(app)` từ `test/create-app.ts`.
 - Controller có guard trong unit test: `overrideGuard(...)` nếu cần.
-- Playwright: project `setup` (`tests/auth.setup.ts`) đăng ký + đăng nhập qua UI một lần, lưu cookie vào `.auth/user.json`; test khác dùng lại. `tests/auth.spec.ts`: chuyển hướng login, sai mật khẩu, refresh trước khi render, đăng xuất.
+- Playwright: project `setup` (`tests/auth.setup.ts`) đăng ký + đăng nhập qua UI một lần, lưu cookie vào `.auth/user.json`; test khác dùng lại. Test đăng xuất **PHẢI** tự đăng nhập session riêng: đăng xuất session dùng chung làm các test chạy song song nhận 401. `tests/auth.spec.ts`: chuyển hướng login, sai mật khẩu, refresh trước khi render, đăng xuất.
 
 ## Lưu ý khi dev
 

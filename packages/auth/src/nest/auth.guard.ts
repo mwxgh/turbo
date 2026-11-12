@@ -9,6 +9,7 @@ import {
 import { Reflector } from '@nestjs/core'
 
 import { accessTokenFrom } from '../http.js'
+import { RevokedSessions } from '../revoked-sessions.js'
 import { AccessTokens } from '../tokens.js'
 import { type AuthRequest, IS_PUBLIC, ROLES } from './decorators.js'
 
@@ -16,7 +17,8 @@ import { type AuthRequest, IS_PUBLIC, ROLES } from './decorators.js'
 export const AUTH_ACCESS_COOKIE = Symbol('AUTH_ACCESS_COOKIE')
 
 /**
- * Global HTTP guard: every route needs a valid access token unless it is `@Public()`.
+ * Global HTTP guard: every route needs a valid access token of a session that is not signed out
+ * (`RevokedSessions`) unless it is `@Public()`.
  * WebSocket gateways authenticate at the handshake instead (`socketAuth`).
  */
 @Injectable()
@@ -25,6 +27,7 @@ export class AuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     @Inject(AccessTokens) private readonly tokens: AccessTokens,
     @Inject(AUTH_ACCESS_COOKIE) private readonly accessCookie: string,
+    @Inject(RevokedSessions) private readonly revoked: RevokedSessions,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -37,7 +40,12 @@ export class AuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest<AuthRequest>()
     const token = accessTokenFrom(request.headers, this.accessCookie)
-    const user = token ? await this.tokens.verify(token) : null
+    const verified = token ? await this.tokens.verify(token) : null
+    // A signed-out session counts as no token (a @Public() route still serves it, anonymously)
+    const user =
+      verified && !(await this.revoked.isRevoked(verified.sessionId))
+        ? verified
+        : null
     if (user) request.user = user
     if (isPublic) return true
     if (!user) throw new UnauthorizedException()

@@ -42,13 +42,23 @@ test('refreshes an expired access token before rendering', async ({
   )
 })
 
-test('signs out', async ({ page, context }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Sign out' }).click()
-  await expect(page).toHaveURL(/\/login$/)
-  expect(
-    (await context.cookies()).filter((c) => c.name.endsWith('_token')),
-  ).toEqual([])
-  await page.goto('/')
-  await expect(page).toHaveURL(/\/login/)
+test.describe('own session', () => {
+  // Signing out ends the session at once (access token too): never the one other tests share
+  test.use({ storageState: { cookies: [], origins: [] } })
+
+  test('signs out', async ({ page, context }) => {
+    await page.goto('/')
+    await page.getByLabel('Email or username').fill(TEST_USER.email)
+    await page.getByLabel('Password').fill(TEST_USER.password)
+    await page.getByRole('button', { name: 'Sign in' }).click()
+    await expect(page).toHaveURL(/\/$/)
+
+    await page.getByRole('button', { name: 'Sign out' }).click()
+    await expect(page).toHaveURL(/\/login$/)
+    expect(
+      (await context.cookies()).filter((c) => c.name.endsWith('_token')),
+    ).toEqual([])
+    await page.goto('/')
+    await expect(page).toHaveURL(/\/login/)
+  })
 })

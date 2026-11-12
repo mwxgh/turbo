@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { AddressInfo } from 'node:net'
 
 import type { INestApplication } from '@nestjs/common'
@@ -6,6 +7,7 @@ import { Test } from '@nestjs/testing'
 import { type Socket, io } from 'socket.io-client'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { RevokedSessions } from '@repo/auth'
 import {
   type ChatMessage,
   type ClientToServerEvents,
@@ -69,6 +71,22 @@ describe('Chat gateway (e2e)', () => {
       )
       expect(error.message).toBe('unauthorized')
     }
+  })
+
+  it('refuses the token of a session the api signed out', async () => {
+    const sessionId = randomUUID()
+    // What the api's AuthService does on logout (same Redis, same key prefix)
+    await app.get(RevokedSessions).revoke(sessionId)
+    const client: Client = io(url, {
+      transports: ['websocket'],
+      forceNew: true,
+      auth: { token: await testToken(sessionId) },
+    })
+    clients.push(client)
+    const error = await new Promise<Error>((resolve) =>
+      client.once('connect_error', resolve),
+    )
+    expect(error.message).toBe('unauthorized')
   })
 
   it('serves the health endpoint', async () => {
