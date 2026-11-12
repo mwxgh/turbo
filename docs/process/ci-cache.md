@@ -33,7 +33,7 @@ curl http://<ip-máy>:3000/v8/artifacts/status  # {"status":"enabled"}
 ```
 
 - Image `ducktors/turborepo-remote-cache` (pin version trong compose), lưu artifact vào volume `turbo-cache`.
-- Đổi port: `TURBO_CACHE_PORT=4000 docker compose … up -d`.
+- Đổi port: `TURBO_CACHE_PORT=3003 docker compose … up -d`.
 - Runner Docker executor chạy trên **chính máy này** phải gọi bằng IP LAN, không dùng `localhost` (đó là localhost của container job).
 - Mở port từ firewall chỉ cho dải IP của runner/dev.
 

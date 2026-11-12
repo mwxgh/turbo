@@ -16,6 +16,7 @@ import { env } from './env'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
 import { HellosModule } from './hellos/hellos.module'
+import { OAuthModule } from './oauth/oauth.module'
 
 @Module({
   imports: [
@@ -43,8 +44,10 @@ import { HellosModule } from './hellos/hellos.module'
       secret: env.JWT_SECRET,
       accessTtlSeconds: env.ACCESS_TOKEN_TTL_SECONDS,
       accessCookie: env.authCookies.access,
+      revocationStore: REDIS,
     }),
     AuthModule,
+    OAuthModule,
     HealthModule,
     HellosModule,
     FilesModule,

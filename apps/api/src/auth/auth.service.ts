@@ -11,6 +11,7 @@ import {
 import {
   AccessTokens,
   type AuthUser,
+  RevokedSessions,
   createRefreshToken,
   hashPassword,
   needsRehash,
@@ -59,6 +60,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(AccessTokens) private readonly tokens: AccessTokens,
+    @Inject(RevokedSessions) private readonly revoked: RevokedSessions,
   ) {}
 
   async register(dto: RegisterDto, meta: ClientMeta): Promise<IssuedSession> {
@@ -92,6 +94,16 @@ export class AuthService {
         where: { id: user.id },
         data: { passwordHash: await hashPassword(password) },
       })
+    return this.issue(user, meta)
+  }
+
+  /** New session for a user another sign-in method (OAuth) identified. */
+  async issueFor(userId: string, meta: ClientMeta): Promise<IssuedSession> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      omit: OMIT_SECRET,
+    })
+    if (!user || user.disabledAt) throw new UnauthorizedException()
     return this.issue(user, meta)
   }
 
@@ -164,11 +176,14 @@ export class AuthService {
     return this.tokensFor(session.user, session.id, token)
   }
 
-  /** Ends the session of this refresh token (no error if it is unknown or already ended). */
+  /**
+   * Ends the session of this refresh token (no error if it is unknown or already ended); its
+   * access tokens stop working at once.
+   */
   async logout(refreshToken: string | undefined): Promise<void> {
     const parsed = refreshToken ? parseRefreshToken(refreshToken) : null
     if (!parsed) return
-    await this.prisma.session.updateMany({
+    const { count } = await this.prisma.session.updateMany({
       where: {
         id: parsed.sessionId,
         revokedAt: null,
@@ -176,6 +191,8 @@ export class AuthService {
       },
       data: { revokedAt: new Date() },
     })
+    // Only with the right refresh token: knowing a session id is not enough to end it
+    if (count > 0) await this.revoked.revoke(parsed.sessionId)
   }
 
   async me({ id }: AuthUser) {
@@ -198,6 +215,7 @@ export class AuthService {
       !(await verifyPassword(currentPassword, user.passwordHash))
     )
       throw new BadRequestException('Current password is incorrect')
+    const revokedAt = new Date()
     await this.prisma.$transaction([
       this.prisma.user.update({
         where: { id },
@@ -205,16 +223,24 @@ export class AuthService {
       }),
       this.prisma.session.updateMany({
         where: { userId: id, id: { not: sessionId }, revokedAt: null },
-        data: { revokedAt: new Date() },
+        data: { revokedAt },
       }),
     ])
+    // The sessions this call ended (found by its timestamp, so none created meanwhile is missed)
+    const ended = await this.prisma.session.findMany({
+      where: { userId: id, revokedAt },
+      select: { id: true },
+    })
+    await this.revoked.revoke(...ended.map((session) => session.id))
   }
 
-  private revoke(sessionId: string) {
-    return this.prisma.session.update({
+  /** Ends the session in the database and for its access tokens. */
+  private async revoke(sessionId: string) {
+    await this.prisma.session.update({
       where: { id: sessionId },
       data: { revokedAt: new Date() },
     })
+    await this.revoked.revoke(sessionId)
   }
 
   private async tokensFor(

@@ -10,13 +10,13 @@ export const publicEnv = {
   /** Required on stg/prod (CI variable PUBLIC_API_URL); dev falls back to localhost. */
   apiUrl: parseUrlEnv('NEXT_PUBLIC_API_URL', process.env.NEXT_PUBLIC_API_URL, {
     appEnv,
-    devDefault: 'http://localhost:4000/api',
+    devDefault: 'http://localhost:3001/api',
   }),
   /** Required on stg/prod (CI variable PUBLIC_SOCKET_URL); dev falls back to localhost. */
   socketUrl: parseUrlEnv(
     'NEXT_PUBLIC_SOCKET_URL',
     process.env.NEXT_PUBLIC_SOCKET_URL,
-    { appEnv, devDefault: 'http://localhost:4001' },
+    { appEnv, devDefault: 'http://localhost:3002' },
   ),
 }
 

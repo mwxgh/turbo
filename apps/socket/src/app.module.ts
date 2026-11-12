@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 
 import { AuthModule } from '@repo/auth/nest'
 import { createLoggerModule } from '@repo/nest-common/logger'
-import { RedisModule } from '@repo/redis'
+import { REDIS, RedisModule } from '@repo/redis'
 
 import { ChatModule } from './chat/chat.module'
 import { env } from './env'
@@ -22,6 +22,7 @@ import { HealthModule } from './health/health.module'
     AuthModule.forRoot({
       secret: env.JWT_SECRET,
       accessCookie: env.authCookies.access,
+      revocationStore: REDIS,
     }),
     HealthModule,
     ChatModule,

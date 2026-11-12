@@ -1,7 +1,7 @@
 /** Shared by playwright.config.ts and the tests. */
 export const WEB_URL = process.env.E2E_WEB_URL ?? 'http://localhost:3000'
-export const API_URL = process.env.E2E_API_URL ?? 'http://localhost:4000/api'
-export const SOCKET_URL = process.env.E2E_SOCKET_URL ?? 'http://localhost:4001'
+export const API_URL = process.env.E2E_API_URL ?? 'http://localhost:3001/api'
+export const SOCKET_URL = process.env.E2E_SOCKET_URL ?? 'http://localhost:3002'
 
 /** Cookies of the signed-in test user (written by auth.setup.ts). */
 export const AUTH_FILE = '.auth/user.json'

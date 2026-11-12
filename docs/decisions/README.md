@@ -18,5 +18,7 @@ Mỗi file ghi một quyết định: bối cảnh → quyết định → hệ 
 | 0007 | [Upload file bằng presigned POST, không đi qua api](0007-upload-file-bang-presigned-post.md)                            | accepted   | 2026-10-23 |
 | 0008 | [Tự deploy stg qua SSH forced command, compose server ngoài repo](0008-tu-deploy-stg-qua-ssh-forced-command.md)         | accepted   | 2026-11-11 |
 | 0009 | [Playwright chỉ chạy local, CI không chạy e2e trình duyệt](0009-playwright-chi-chay-local.md)                           | accepted   | 2026-11-11 |
+| 0010 | [Thu hồi session ngay lập tức qua danh sách trong Redis](0010-thu-hoi-session-ngay-qua-redis.md)                        | accepted   | 2026-11-12 |
+| 0011 | [Đăng nhập bằng Google / Facebook / GitHub do api xử lý](0011-dang-nhap-bang-provider-qua-api.md)                       | accepted   | 2026-11-12 |
 
 `Ngày` của 0002–0007 = ngày commit đưa quyết định vào code (ADR viết lại sau, ngày 2026-11-11). `UNKNOWN` trong ADR = không có tài liệu về lý do; ai biết thì bổ sung.

@@ -120,6 +120,9 @@ describe('Auth (e2e)', () => {
       .expect(409)
   })
 
+  const me = (accessToken: string) =>
+    http().get('/api/auth/me').set('authorization', `Bearer ${accessToken}`)
+
   it('rotates the refresh token, tolerates a concurrent reuse, revokes on theft', async () => {
     const { body } = await register()
     const refresh = (refreshToken: string) =>
@@ -134,8 +137,11 @@ describe('Auth (e2e)', () => {
     await prisma.session.updateMany({
       data: { rotatedAt: new Date(Date.now() - 3_600_000) },
     })
+    await me(second.body.accessToken).expect(200)
     await refresh(first.body.refreshToken).expect(401)
     await refresh(second.body.refreshToken).expect(401)
+    // Access tokens of the ended session stop working before they expire
+    await me(second.body.accessToken).expect(401)
   })
 
   it('refreshes from the cookie and logs out (session revoked, cookies cleared)', async () => {
@@ -155,6 +161,7 @@ describe('Auth (e2e)', () => {
       login.cookies[COOKIES.refresh],
     )
 
+    await http().get('/api/auth/me').set('cookie', cookies.header).expect(200)
     const out = await http()
       .post('/api/auth/logout')
       .set('cookie', cookies.header)
@@ -166,6 +173,19 @@ describe('Auth (e2e)', () => {
       .post('/api/auth/refresh')
       .set('cookie', cookies.header)
       .expect(401)
+    // The access cookie the browser may still send is refused at once
+    await http().get('/api/auth/me').set('cookie', cookies.header).expect(401)
+  })
+
+  it('does not end a session from its id alone', async () => {
+    const { body } = await register()
+    const [sessionId] = (body.refreshToken as string).split('.')
+    await http()
+      .post('/api/auth/logout')
+      .set(TOKEN_MODE)
+      .send({ refreshToken: `${sessionId}.${'x'.repeat(43)}` })
+      .expect(204)
+    await me(body.accessToken).expect(200)
   })
 
   it('changes the password and signs out the other devices', async () => {
@@ -191,6 +211,8 @@ describe('Auth (e2e)', () => {
     const refresh = (refreshToken: string) =>
       http().post('/api/auth/refresh').set(TOKEN_MODE).send({ refreshToken })
     await refresh(phone.refreshToken).expect(401)
+    await me(phone.accessToken).expect(401)
+    await me(laptop.accessToken).expect(200)
     await refresh(laptop.refreshToken).expect(200)
     await http()
       .post('/api/auth/login')

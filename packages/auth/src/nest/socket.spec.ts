@@ -1,6 +1,7 @@
 import type { Socket } from 'socket.io'
 import { describe, expect, it } from 'vitest'
 
+import { RevokedSessions } from '../revoked-sessions.js'
 import { AccessTokens } from '../tokens.js'
 import { SOCKET_UNAUTHORIZED, socketAuth } from './socket.js'
 
@@ -11,9 +12,22 @@ function handshake(auth: object, headers: object = {}) {
   return { handshake: { auth, headers }, data: {} } as unknown as Socket
 }
 
+let revokedIds = new Set<string>()
+let storeDown = false
+const revoked = new RevokedSessions(
+  {
+    exists: (key) =>
+      storeDown
+        ? Promise.reject(new Error('redis down'))
+        : Promise.resolve(revokedIds.has(key.split(':').pop()!) ? 1 : 0),
+    set: () => Promise.resolve('OK'),
+  },
+  60,
+)
+
 const run = (socket: Socket) =>
   new Promise<Error | undefined>((resolve) =>
-    socketAuth(tokens, 'access_token')(socket, resolve),
+    socketAuth(tokens, revoked, 'access_token')(socket, resolve),
   )
 
 describe('socketAuth', () => {
@@ -32,5 +46,16 @@ describe('socketAuth', () => {
     expect((await run(handshake({ token: 'nope' })))?.message).toBe(
       SOCKET_UNAUTHORIZED,
     )
+  })
+
+  it('refuses a signed-out session, and fails closed without the store', async () => {
+    const token = await tokens.sign(user)
+    revokedIds = new Set(['s1'])
+    expect((await run(handshake({ token })))?.message).toBe(SOCKET_UNAUTHORIZED)
+    revokedIds = new Set()
+
+    storeDown = true
+    expect((await run(handshake({ token })))?.message).toBe('redis down')
+    storeDown = false
   })
 })

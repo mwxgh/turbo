@@ -16,7 +16,7 @@ date: 2026-11-11
 ## Quyết định
 
 - `AuthGuard` là guard **global** của api và socket. Mọi route **PHẢI** có access token, trừ route gắn `@Public()`.
-- Access token: JWT HS256, sống 15 phút (`ACCESS_TOKEN_TTL_SECONDS`). api và socket chỉ kiểm tra chữ ký, không truy vấn DB.
+- Access token: JWT HS256, sống 15 phút (`ACCESS_TOKEN_TTL_SECONDS`). api và socket chỉ kiểm tra chữ ký, không truy vấn DB. _(Thay bởi [0010](0010-thu-hoi-session-ngay-qua-redis.md): kiểm tra thêm danh sách session đã thu hồi trong Redis.)_
 - Refresh token: `<sessionId>.<secret>`, sống 30 ngày. DB chỉ lưu sha256 của secret. Mỗi lần refresh, token được xoay.
   - Token vừa bị thay vẫn được chấp nhận 60 giây (2 tab refresh cùng lúc).
   - Token cũ hơn bị dùng lại → thu hồi cả session.

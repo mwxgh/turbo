@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { AppEnv } from './app-env.js'
 import { parseUrlEnv } from './url-env.js'
 
-const DEV_DEFAULT = 'http://localhost:4000/api'
+const DEV_DEFAULT = 'http://localhost:3001/api'
 
 describe('parseUrlEnv', () => {
   it('falls back to the dev default only in dev', () => {
@@ -40,9 +40,9 @@ describe('parseUrlEnv', () => {
   })
 
   it.each([
-    'http://localhost:4000/api',
-    'http://127.0.0.1:4000',
-    'http://[::1]:4000',
+    'http://localhost:3001/api',
+    'http://127.0.0.1:3001',
+    'http://[::1]:3001',
   ])('rejects local host %s on prod unless allowed', (value) => {
     expect(() => parseUrlEnv('API', value, { appEnv: AppEnv.Prod })).toThrow(
       'but APP_ENV is "prod": set the deployed URL.',
@@ -59,7 +59,7 @@ describe('parseUrlEnv', () => {
       }),
     ).toBe('https://api.example.com/api')
     expect(
-      parseUrlEnv('API', 'http://localhost:4000/api', { appEnv: AppEnv.Dev }),
-    ).toBe('http://localhost:4000/api')
+      parseUrlEnv('API', 'http://localhost:3001/api', { appEnv: AppEnv.Dev }),
+    ).toBe('http://localhost:3001/api')
   })
 })

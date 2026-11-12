@@ -320,7 +320,7 @@ describe('swagger metadata', () => {
 describe('validateEnv', () => {
   class Env {
     @IntField({ optional: true, min: 1 })
-    PORT = 4000
+    PORT = 3001
 
     @StringField()
     DATABASE_URL: string
@@ -329,7 +329,7 @@ describe('validateEnv', () => {
   it('applies defaults and coerces numbers', () => {
     const env = validateEnv(Env, { PORT: '5000', DATABASE_URL: 'pg://x' })
     assert.equal(env.PORT, 5000)
-    assert.equal(validateEnv(Env, { DATABASE_URL: 'pg://x' }).PORT, 4000)
+    assert.equal(validateEnv(Env, { DATABASE_URL: 'pg://x' }).PORT, 3001)
   })
 
   it('throws on missing values', () => {

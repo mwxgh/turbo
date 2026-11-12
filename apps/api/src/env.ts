@@ -15,7 +15,7 @@ export type AuthRegistration =
 /** Environment variables: shared ones in BaseEnv. Property initializers are the defaults. */
 export class Env extends BaseEnv {
   @IntField({ optional: true, min: 1, max: 65535 })
-  PORT = 4000
+  PORT = 3001
 
   @UrlField({ protocols: ['postgres', 'postgresql'] })
   DATABASE_URL: string
@@ -72,6 +72,43 @@ export class Env extends BaseEnv {
   /** Reverse proxies in front of the API (0 = none): client IP from X-Forwarded-For for rate limiting. */
   @IntField({ optional: true, min: 0 })
   TRUST_PROXY = 0
+
+  /** Public URL of this api incl. the `/api` prefix: OAuth providers redirect back to it. */
+  @UrlField({ optional: true })
+  PUBLIC_API_URL = 'http://localhost:3001/api'
+
+  /** Public URL of the web app: where browsers land after signing in with a provider. */
+  @UrlField({ optional: true })
+  WEB_URL = 'http://localhost:3000'
+
+  /** Comma-separated app URLs (custom scheme) mobile sign-in may return to; exact match. */
+  @StringField({ optional: true })
+  OAUTH_MOBILE_REDIRECT_URIS = 'turbobase://oauth'
+
+  /** A provider is enabled when both its client id and secret are set. */
+  @StringField({ optional: true })
+  OAUTH_GOOGLE_CLIENT_ID?: string
+
+  @StringField({ optional: true })
+  OAUTH_GOOGLE_CLIENT_SECRET?: string
+
+  @StringField({ optional: true })
+  OAUTH_FACEBOOK_CLIENT_ID?: string
+
+  @StringField({ optional: true })
+  OAUTH_FACEBOOK_CLIENT_SECRET?: string
+
+  @StringField({ optional: true })
+  OAUTH_GITHUB_CLIENT_ID?: string
+
+  @StringField({ optional: true })
+  OAUTH_GITHUB_CLIENT_SECRET?: string
+
+  get oauthMobileRedirectUris(): string[] {
+    return this.OAUTH_MOBILE_REDIRECT_URIS.split(',')
+      .map((uri) => uri.trim())
+      .filter(Boolean)
+  }
 }
 
 export const env = validateEnv(Env)

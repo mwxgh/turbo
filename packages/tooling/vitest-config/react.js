@@ -15,6 +15,9 @@ export const reactConfig = mergeConfig(
     resolve: { tsconfigPaths: true },
     test: {
       environment: 'jsdom',
+      // user-event flows (type, open a date picker…) take ~1s alone but can pass the 5s default
+      // while turbo runs every package's tests at once (pre-push hook, a busy laptop)
+      testTimeout: 15_000,
       include: [
         'app/**/*.{spec,test}.{ts,tsx}',
         'components/**/*.{spec,test}.{ts,tsx}',

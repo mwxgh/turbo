@@ -6,10 +6,10 @@ import { AccessTokens } from '@repo/auth'
 export const TEST_JWT_SECRET = 'test-jwt-secret-at-least-32-characters-long'
 
 /** Access token as the api would issue it. */
-export function testToken(): Promise<string> {
+export function testToken(sessionId = randomUUID()): Promise<string> {
   return new AccessTokens(TEST_JWT_SECRET, 60).sign({
     id: randomUUID(),
-    sessionId: randomUUID(),
+    sessionId,
     role: 'USER',
   })
 }

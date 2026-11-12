@@ -15,7 +15,7 @@ setup('sign in', async ({ page, request }) => {
   await page.goto('/')
   await expect(page).toHaveURL(/\/login\?next=%2F$/)
   await page.getByLabel('Email or username').fill(TEST_USER.email)
-  await page.getByLabel('Password').fill(TEST_USER.password)
+  await page.getByLabel('Password', { exact: true }).fill(TEST_USER.password)
   await page.getByRole('button', { name: 'Sign in' }).click()
 
   await expect(page).toHaveURL(/\/$/)

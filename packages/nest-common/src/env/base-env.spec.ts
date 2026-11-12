@@ -6,7 +6,7 @@ import { BaseEnv, IntField, validateEnv } from '../index.js'
 
 class AppEnvVars extends BaseEnv {
   @IntField({ optional: true, min: 1 })
-  PORT = 4000
+  PORT = 3001
 }
 
 describe('BaseEnv', () => {
@@ -15,7 +15,7 @@ describe('BaseEnv', () => {
     expect(env).toMatchObject({
       APP_ENV: AppEnv.Dev,
       HOST: '0.0.0.0',
-      PORT: 4000,
+      PORT: 3001,
       LOG_LEVEL: 'info',
       LOG_FORMAT: 'json',
     })
