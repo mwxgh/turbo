@@ -39,6 +39,10 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
 # --- One-shot job: apply Prisma migrations (needs DATABASE_URL)
 FROM node:${NODE_VERSION} AS migrate
 WORKDIR /app
+# Runtime needs only `node`: drop the npm / npx / corepack bundled with the image
+# (their dependencies, e.g. undici and brace-expansion, show up in image scans).
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+    /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 ENV PRISMA_HIDE_UPDATE_MESSAGE=1
 COPY --from=migrate-build --chown=node:node /prod/migrate ./
 USER node
@@ -48,6 +52,10 @@ CMD ["node_modules/.bin/prisma", "migrate", "deploy"]
 FROM node:${NODE_VERSION} AS runner
 ARG APP
 WORKDIR /app
+# Runtime needs only `node`: drop the npm / npx / corepack bundled with the image
+# (their dependencies, e.g. undici and brace-expansion, show up in image scans).
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+    /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 ENV NODE_ENV=production
 
 COPY --from=builder --chown=node:node /prod/app/package.json ./package.json

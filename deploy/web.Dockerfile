@@ -41,6 +41,10 @@ RUN pnpm turbo run build --filter=web
 # --- Runtime (Next.js standalone output)
 FROM node:${NODE_VERSION} AS runner
 WORKDIR /app
+# Runtime needs only `node`: drop the npm / npx / corepack bundled with the image
+# (their dependencies, e.g. undici and brace-expansion, show up in image scans).
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+    /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
