@@ -14,7 +14,7 @@ test('delivers chat messages between two browsers in real time', async ({
   ).newPage()
 
   for (const page of [alice, bob]) {
-    await page.goto('/')
+    await page.goto('/chat')
     await expect(page.getByText('connected', { exact: true })).toBeVisible()
   }
 
