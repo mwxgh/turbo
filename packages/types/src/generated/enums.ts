@@ -7,3 +7,12 @@ export const Role = {
 } as const
 
 export type Role = (typeof Role)[keyof typeof Role]
+
+/** Sign-in providers (OAuth 2.0 authorization code + PKCE, handled by the api). */
+export const OAuthProvider = {
+  GOOGLE: 'GOOGLE',
+  FACEBOOK: 'FACEBOOK',
+  GITHUB: 'GITHUB',
+} as const
+
+export type OAuthProvider = (typeof OAuthProvider)[keyof typeof OAuthProvider]

@@ -16,6 +16,7 @@ import { env } from './env'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
 import { HellosModule } from './hellos/hellos.module'
+import { OAuthModule } from './oauth/oauth.module'
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { HellosModule } from './hellos/hellos.module'
       revocationStore: REDIS,
     }),
     AuthModule,
+    OAuthModule,
     HealthModule,
     HellosModule,
     FilesModule,

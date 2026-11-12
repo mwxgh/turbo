@@ -75,7 +75,7 @@ services:
     restart: ${RESTART_POLICY:-no}
     environment:
       APP_ENV: ${APP_ENV:-dev}
-      PORT: 4000
+      PORT: 3001
       DATABASE_URL: *database-url
       REDIS_URL: &redis-url redis://redis:6379
       # S3 / MinIO (btp format), from deploy/.env
@@ -86,8 +86,18 @@ services:
       JWT_SECRET: &jwt-secret ${JWT_SECRET:-}
       AUTH_REGISTRATION: ${AUTH_REGISTRATION:-closed}
       COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+      # Sign-in with providers (empty id/secret = provider off)
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3001/api}
+      WEB_URL: ${WEB_ORIGIN:-http://localhost:3000}
+      OAUTH_MOBILE_REDIRECT_URIS: ${OAUTH_MOBILE_REDIRECT_URIS:-turbobase://oauth}
+      OAUTH_GOOGLE_CLIENT_ID: ${OAUTH_GOOGLE_CLIENT_ID:-}
+      OAUTH_GOOGLE_CLIENT_SECRET: ${OAUTH_GOOGLE_CLIENT_SECRET:-}
+      OAUTH_FACEBOOK_CLIENT_ID: ${OAUTH_FACEBOOK_CLIENT_ID:-}
+      OAUTH_FACEBOOK_CLIENT_SECRET: ${OAUTH_FACEBOOK_CLIENT_SECRET:-}
+      OAUTH_GITHUB_CLIENT_ID: ${OAUTH_GITHUB_CLIENT_ID:-}
+      OAUTH_GITHUB_CLIENT_SECRET: ${OAUTH_GITHUB_CLIENT_SECRET:-}
     ports:
-      - '${APP_BIND:-127.0.0.1}:${API_PORT:-4000}:4000'
+      - '${APP_BIND:-127.0.0.1}:${API_PORT:-3001}:3001'
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -95,7 +105,7 @@ services:
         condition: service_healthy
     healthcheck:
       test:
-        ['CMD-SHELL', 'wget -qO- http://127.0.0.1:4000/api/health || exit 1']
+        ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3001/api/health || exit 1']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -110,18 +120,18 @@ services:
     restart: ${RESTART_POLICY:-no}
     environment:
       APP_ENV: ${APP_ENV:-dev}
-      PORT: 4001
+      PORT: 3002
       REDIS_URL: *redis-url
       CORS_ORIGINS: ${WEB_ORIGIN:-http://localhost:3000}
       JWT_SECRET: *jwt-secret
     ports:
-      - '${APP_BIND:-127.0.0.1}:${SOCKET_PORT:-4001}:4001'
+      - '${APP_BIND:-127.0.0.1}:${SOCKET_PORT:-3002}:3002'
     depends_on:
       redis:
         condition: service_healthy
     healthcheck:
       test:
-        ['CMD-SHELL', 'wget -qO- http://127.0.0.1:4001/socket/health || exit 1']
+        ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3002/socket/health || exit 1']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -134,13 +144,13 @@ services:
       dockerfile: deploy/web.Dockerfile
       args:
         # Browser-facing URLs, inlined at build time
-        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4000/api}
-        NEXT_PUBLIC_SOCKET_URL: ${PUBLIC_SOCKET_URL:-http://localhost:4001}
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3001/api}
+        NEXT_PUBLIC_SOCKET_URL: ${PUBLIC_SOCKET_URL:-http://localhost:3002}
         NEXT_PUBLIC_APP_ENV: ${APP_ENV:-dev}
     restart: ${RESTART_POLICY:-no}
     environment:
       # Server-side calls stay inside the Docker network
-      API_URL: http://api:4000/api
+      API_URL: http://api:3001/api
     ports:
       - '${APP_BIND:-127.0.0.1}:${WEB_PORT:-3000}:3000'
     depends_on:

@@ -97,6 +97,16 @@ export class AuthService {
     return this.issue(user, meta)
   }
 
+  /** New session for a user another sign-in method (OAuth) identified. */
+  async issueFor(userId: string, meta: ClientMeta): Promise<IssuedSession> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      omit: OMIT_SECRET,
+    })
+    if (!user || user.disabledAt) throw new UnauthorizedException()
+    return this.issue(user, meta)
+  }
+
   /** New session (device) for a user who proved who they are. */
   async issue(
     user: IssuedSession['user'],
