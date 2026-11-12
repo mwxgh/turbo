@@ -5,5 +5,5 @@
   },
   "exclude": ["node_modules"],
   "extends": "@repo/typescript-config/node-library.json",
-  "include": ["tests", "playwright.config.ts"]
+  "include": ["tests", "playwright.config.ts", "prepare-db.ts"]
 }

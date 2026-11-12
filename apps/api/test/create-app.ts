@@ -27,7 +27,8 @@ export async function createApp(): Promise<{
 
 /**
  * `Authorization` header of a signed-in user, for routes behind the global auth guard. The guard
- * only verifies the JWT, so no user row is needed (auth.e2e-spec.ts covers real sign-in).
+ * verifies the JWT and that its session is not revoked (a fresh random one never is), so no user
+ * or session row is needed (auth.e2e-spec.ts covers real sign-in).
  */
 export async function bearer(
   app: INestApplication,

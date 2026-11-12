@@ -9,6 +9,7 @@ import { Reflector } from '@nestjs/core'
 
 import { describe, expect, it } from 'vitest'
 
+import { RevokedSessions } from '../revoked-sessions.js'
 import { AccessTokens } from '../tokens.js'
 import { AuthGuard } from './auth.guard.js'
 import { type AuthRequest, Public, Roles } from './decorators.js'
@@ -21,7 +22,16 @@ class TestController {
 }
 
 const tokens = new AccessTokens('x'.repeat(32), 60)
-const guard = new AuthGuard(new Reflector(), tokens, 'access_token')
+const revokedIds = new Set<string>()
+const revoked = new RevokedSessions(
+  {
+    exists: (key) =>
+      Promise.resolve(revokedIds.has(key.split(':').pop()!) ? 1 : 0),
+    set: () => Promise.resolve('OK'),
+  },
+  60,
+)
+const guard = new AuthGuard(new Reflector(), tokens, 'access_token', revoked)
 
 function contextFor(handler: keyof TestController, request: AuthRequest) {
   return {
@@ -53,6 +63,23 @@ describe('AuthGuard', () => {
       guard.canActivate(contextFor('privateRoute', request)),
     ).resolves.toBe(true)
     expect(request.user).toEqual({ id: 'u1', sessionId: 's1', role: 'USER' })
+  })
+
+  it('rejects a valid token of a signed-out session', async () => {
+    revokedIds.add('s1')
+    try {
+      await expect(
+        guard.canActivate(contextFor('privateRoute', await bearer())),
+      ).rejects.toBeInstanceOf(UnauthorizedException)
+      // @Public() still serves the call, without a user
+      const request: AuthRequest = await bearer()
+      await expect(
+        guard.canActivate(contextFor('publicRoute', request)),
+      ).resolves.toBe(true)
+      expect(request.user).toBeUndefined()
+    } finally {
+      revokedIds.clear()
+    }
   })
 
   it('lets anonymous callers through @Public() routes', async () => {

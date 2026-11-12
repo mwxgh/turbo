@@ -42,3 +42,11 @@ export interface AuthResponse {
   accessToken?: string
   refreshToken?: string
 }
+
+/** GET /auth/methods: how clients may sign in (drives the sign-in screen). */
+export interface AuthMethods {
+  /** Enabled providers (`google`, `facebook`, `github`), as in `/auth/oauth/:provider`. */
+  providers: string[]
+  /** `POST /auth/register` is open. */
+  registration: boolean
+}

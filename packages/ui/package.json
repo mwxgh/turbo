@@ -8,6 +8,7 @@
     "./components/data-table/server": "./src/components/data-table/server.ts",
     "./components/file-upload": "./src/components/file-upload/index.tsx",
     "./components/*": "./src/components/*.tsx",
+    "./hooks/*": "./src/hooks/*.ts",
     "./lib/*": "./src/lib/*.ts"
   },
   "scripts": {

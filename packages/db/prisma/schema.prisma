@@ -32,8 +32,8 @@ enum Role {
   ADMIN
 }
 
-/// Someone who signs in. Password login today; external providers (SSO / Keycloak) attach later
-/// through their own identity table, so `passwordHash` stays null for SSO-only accounts.
+/// Someone who signs in: with a password and / or external providers (`UserIdentity`);
+/// `passwordHash` stays null for accounts that only use a provider.
 model User {
   id           String    @id @default(uuid(7)) @db.Uuid
   /// Lowercase. Sign in with email or username
@@ -49,9 +49,34 @@ model User {
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  sessions Session[]
+  sessions   Session[]
+  identities UserIdentity[]
 
   @@map("users")
+}
+
+/// Sign-in providers (OAuth 2.0 authorization code + PKCE, handled by the api).
+enum OAuthProvider {
+  GOOGLE
+  FACEBOOK
+  GITHUB
+}
+
+/// @private A provider account that signs in as a user. `subject` is the provider's stable user id
+/// (never the email: emails change and can be reassigned).
+model UserIdentity {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider  OAuthProvider
+  subject   String        @db.VarChar(255)
+  /// Email the provider reported at the last sign-in (informational; lowercase)
+  email     String?       @db.VarChar(255)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([provider, subject])
+  @@index([userId])
+  @@map("user_identities")
 }
 
 /// @private One signed-in device. The refresh token is `<id>.<secret>`; only hashes are stored and the

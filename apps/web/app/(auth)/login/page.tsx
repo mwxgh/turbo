@@ -1,19 +1,27 @@
 import type { Metadata } from 'next'
 
+import { oauthErrorMessage } from '@repo/utils'
+
+import { AuthShell } from '@/app/(auth)/_components/auth-shell'
 import { safeNext } from '@/lib/auth'
+import { getAuthMethods } from '@/lib/auth-methods'
 
 import { LoginForm } from './login-form'
 
 export const metadata: Metadata = { title: 'Sign in' }
 
 export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
-  const { next } = await searchParams
+  const { next, error } = await searchParams
+  const target = safeNext(next)
   return (
-    <main
-      className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center
-        px-4"
+    <AuthShell
+      mode="login"
+      next={target}
+      methods={await getAuthMethods()}
+      // Set by the api when a provider sign-in did not complete
+      error={typeof error === 'string' ? oauthErrorMessage(error) : undefined}
     >
-      <LoginForm next={safeNext(next)} />
-    </main>
+      <LoginForm next={target} />
+    </AuthShell>
   )
 }

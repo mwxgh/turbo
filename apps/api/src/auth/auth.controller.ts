@@ -18,23 +18,23 @@ import {
 } from '@nestjs/swagger'
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler'
 
-import type { CookieOptions, Request, Response } from 'express'
+import type { Request, Response } from 'express'
 
-import { parseCookies } from '@repo/auth'
 import { type AuthUser, CurrentUser, Public } from '@repo/auth/nest'
-import { AUTH_TRANSPORT_HEADER, AUTH_TRANSPORT_TOKEN } from '@repo/utils'
 
 import { env } from '../env'
-import {
-  AuthService,
-  type ClientMeta,
-  type IssuedSession,
-} from './auth.service'
+import { AuthService } from './auth.service'
 import { AuthResponseDto, UserDto } from './dto/auth-response.dto'
 import { ChangePasswordDto } from './dto/change-password.dto'
 import { LoginDto } from './dto/login.dto'
 import { RefreshDto } from './dto/refresh.dto'
 import { RegisterDto } from './dto/register.dto'
+import {
+  clearSessionCookies,
+  clientMeta as meta,
+  refreshTokenOf,
+  sendSession,
+} from './session-http'
 
 /** Brute-force guard for credential endpoints (per IP), instead of the default limit. */
 const CREDENTIALS_LIMIT = {
@@ -61,7 +61,7 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.send(req, res, await this.auth.register(dto, meta(req)))
+    return sendSession(req, res, await this.auth.register(dto, meta(req)))
   }
 
   @Public()
@@ -74,7 +74,7 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.send(req, res, await this.auth.login(dto, meta(req)))
+    return sendSession(req, res, await this.auth.login(dto, meta(req)))
   }
 
   @Public()
@@ -88,12 +88,12 @@ export class AuthController {
   ) {
     try {
       const session = await this.auth.refresh(
-        refreshTokenOf(req, dto),
+        refreshTokenOf(req, dto.refreshToken),
         meta(req),
       )
-      return this.send(req, res, session)
+      return sendSession(req, res, session)
     } catch (error) {
-      if (error instanceof UnauthorizedException) this.clearCookies(res)
+      if (error instanceof UnauthorizedException) clearSessionCookies(res)
       throw error
     }
   }
@@ -107,8 +107,8 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    await this.auth.logout(refreshTokenOf(req, dto))
-    this.clearCookies(res)
+    await this.auth.logout(refreshTokenOf(req, dto.refreshToken))
+    clearSessionCookies(res)
   }
 
   @Get('me')
@@ -127,43 +127,4 @@ export class AuthController {
   ) {
     return this.auth.changePassword(user, dto)
   }
-
-  /** Body shape: `AuthResponse` from @repo/types (dates become ISO strings in JSON). */
-  private send(req: Request, res: Response, session: IssuedSession) {
-    const { user, accessToken, refreshToken, expiresIn } = session
-    if (req.get(AUTH_TRANSPORT_HEADER) === AUTH_TRANSPORT_TOKEN)
-      return { user, expiresIn, accessToken, refreshToken }
-    res.cookie(env.authCookies.access, accessToken, {
-      ...cookieOptions(),
-      maxAge: expiresIn * 1000,
-    })
-    res.cookie(env.authCookies.refresh, refreshToken, {
-      ...cookieOptions(),
-      maxAge: env.REFRESH_TOKEN_TTL_DAYS * 86_400_000,
-    })
-    return { user, expiresIn }
-  }
-
-  private clearCookies(res: Response) {
-    res.clearCookie(env.authCookies.access, cookieOptions())
-    res.clearCookie(env.authCookies.refresh, cookieOptions())
-  }
 }
-
-function cookieOptions(): CookieOptions {
-  return {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: env.cookieSecure,
-    domain: env.COOKIE_DOMAIN || undefined,
-    path: '/',
-  }
-}
-
-const meta = (req: Request): ClientMeta => ({
-  ip: req.ip,
-  userAgent: req.get('user-agent'),
-})
-
-const refreshTokenOf = (req: Request, dto: RefreshDto) =>
-  dto.refreshToken ?? parseCookies(req.headers.cookie)[env.authCookies.refresh]

@@ -9,8 +9,8 @@ export interface Hello {
   updatedAt: string
 }
 
-/** Someone who signs in. Password login today; external providers (SSO / Keycloak) attach later
- * through their own identity table, so `passwordHash` stays null for SSO-only accounts. */
+/** Someone who signs in: with a password and / or external providers (`UserIdentity`);
+ * `passwordHash` stays null for accounts that only use a provider. */
 export interface User {
   id: string
   /** Lowercase. Sign in with email or username */

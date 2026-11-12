@@ -83,6 +83,36 @@ export async function signIn(login: string, password: string): Promise<void> {
   )
 }
 
+/** Creates an account and signs in. Rejects with `ApiError` (409 taken, 403 sign-ups closed). */
+export async function signUp(input: {
+  email: string
+  password: string
+  name?: string
+}): Promise<void> {
+  await store(
+    await authFetch<AuthResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  )
+}
+
+/**
+ * Provider sign-in, last step: the one-time code the api redirected the app to, plus the PKCE
+ * verifier of the flow (`lib/oauth.ts`). Rejects with `ApiError` 401 when it expired or was used.
+ */
+export async function redeemOAuthCode(
+  code: string,
+  codeVerifier: string,
+): Promise<void> {
+  await store(
+    await authFetch<AuthResponse>('/auth/oauth/exchange', {
+      method: 'POST',
+      body: JSON.stringify({ code, codeVerifier }),
+    }),
+  )
+}
+
 let refreshing: Promise<boolean> | undefined
 
 /** Rotates the tokens; `false` (and signed out) when the session is over. One call at a time. */

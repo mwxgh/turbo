@@ -13,7 +13,7 @@ import {
 
 import type { Server, Socket } from 'socket.io'
 
-import { AccessTokens } from '@repo/auth'
+import { AccessTokens, RevokedSessions } from '@repo/auth'
 import { socketAuth } from '@repo/auth/nest'
 import { validateDto } from '@repo/nest-common'
 import {
@@ -51,11 +51,14 @@ export class ChatGateway
   @WebSocketServer()
   private readonly server!: AppServer
 
-  constructor(@Inject(AccessTokens) private readonly tokens: AccessTokens) {}
+  constructor(
+    @Inject(AccessTokens) private readonly tokens: AccessTokens,
+    @Inject(RevokedSessions) private readonly revoked: RevokedSessions,
+  ) {}
 
   /** Only signed-in users connect: the handshake carries the access token (cookie or `auth.token`). */
   afterInit(server: AppServer) {
-    server.use(socketAuth(this.tokens, env.authCookies.access))
+    server.use(socketAuth(this.tokens, this.revoked, env.authCookies.access))
   }
 
   handleConnection(client: AppSocket) {

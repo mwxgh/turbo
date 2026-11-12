@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { authCookies, serverApiUrl } from '@/lib/env'
 
 /** Pages anyone may open. */
-const PUBLIC_PATHS = ['/login']
+const PUBLIC_PATHS = ['/login', '/register']
 
 /**
  * Optimistic auth check before rendering (the api decides for real on every call):
