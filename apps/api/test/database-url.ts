@@ -1,19 +1,27 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
+import { parseEnv } from 'node:util'
 
 import { assertLocalUrl } from '@repo/vitest-config/test-env'
 
+/** DATABASE_URL of .env.test, overridden by .env.test.local (never .env: it may be a server). */
+function testEnvDatabaseUrl(): string | undefined {
+  let url: string | undefined
+  for (const file of ['.env.test', '.env.test.local'])
+    if (existsSync(file))
+      url = parseEnv(readFileSync(file, 'utf8')).DATABASE_URL ?? url
+  return url
+}
+
 /**
- * Database for e2e tests: TEST_DATABASE_URL, or DATABASE_URL (env or .env)
- * with "_test" appended to the database name – never the dev database itself,
- * and never a remote server unless TEST_DATABASE_URL says so.
+ * Database for e2e tests: TEST_DATABASE_URL, or the DATABASE_URL of .env.test(.local) with
+ * "_test" appended to the database name (`app_e2e_test`: apart from Playwright's `app_e2e`).
+ * Never a remote server unless TEST_DATABASE_URL says so.
  */
 export function testDatabaseUrl(): string {
   if (process.env.TEST_DATABASE_URL) return process.env.TEST_DATABASE_URL
-  if (!process.env.DATABASE_URL && existsSync('.env'))
-    process.loadEnvFile('.env')
-  const base = process.env.DATABASE_URL
+  const base = testEnvDatabaseUrl()
   if (!base)
-    throw new Error('Set DATABASE_URL or TEST_DATABASE_URL for e2e tests')
+    throw new Error('Set DATABASE_URL in .env.test or TEST_DATABASE_URL')
 
   const url = new URL(base)
   const name = url.pathname.slice(1)

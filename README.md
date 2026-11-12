@@ -4,8 +4,8 @@ Monorepo base (pnpm + Turborepo) để copy làm khung cho các dự án mới.
 
 | Path                                 | Package                   | Mô tả                                                                                                                                   | Port |
 | ------------------------------------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---- |
-| `apps/api`                           | `api`                     | NestJS 12 REST API (prefix `/api`)                                                                                                      | 4000 |
-| `apps/socket`                        | `socket`                  | NestJS 12 + Socket.IO gateway (namespace `/events`)                                                                                     | 4001 |
+| `apps/api`                           | `api`                     | NestJS 12 REST API (prefix `/api`)                                                                                                      | 3001 |
+| `apps/socket`                        | `socket`                  | NestJS 12 + Socket.IO gateway (namespace `/events`)                                                                                     | 3002 |
 | `apps/web`                           | `web`                     | Next.js 16 (App Router)                                                                                                                 | 3000 |
 | `apps/mobile`                        | `mobile`                  | Expo SDK 58 (React Native, Expo Router, NativeWind)                                                                                     | 8081 |
 | `packages/db`                        | `@repo/db`                | Prisma 7 + PostgreSQL (schema, migrations, seed, client)                                                                                | –    |
@@ -494,10 +494,11 @@ TypeScript ghim **6.0.3** (bản 6.x mới nhất): TS 7.0 chỉ có binary `tsc
 
 - Runner: **Vitest** cho mọi package, preset dùng chung trong `@repo/vitest-config` (`base`, `nest` – SWC để giữ decorator metadata cho DI, `react` – jsdom). Playwright cho trình duyệt.
 - Nest unit test dùng `Test.createTestingModule` + mock provider; e2e khởi động app thật bằng `configureApp()` (`src/app.setup.ts`) – cùng cấu hình với `main.ts`.
-- API e2e chạy trên **database riêng** `<tên-db>_test` (hoặc `TEST_DATABASE_URL`), tự tạo + migrate trước khi chạy; DB dev không bị đụng.
+- e2e **không đọc `.env`** (có thể trỏ server dùng chung) mà đọc `apps/{api,socket}/.env.test` (commit, chỉ giá trị local, không bí mật), ghi đè bằng `.env.test.local` (không commit) nếu máy bạn khác (vd. mật khẩu Postgres).
+- API e2e (Vitest) chạy trên **database riêng**: `DATABASE_URL` của `.env.test` + `_test` (`app_e2e_test`) hoặc `TEST_DATABASE_URL`, tự tạo + migrate trước khi chạy.
 - e2e **chỉ chạy với service local** (localhost / tên service Docker như `postgres`, `redis`): nếu `.env` trỏ `DATABASE_URL` lên server dùng chung thì e2e báo lỗi, trừ khi đặt `TEST_DATABASE_URL` rõ ràng (vd. Postgres của `pnpm infra:up`). Redis của e2e: `TEST_REDIS_URL`, mặc định Redis local, **logical DB 15** (không đụng key dev). Helper: `@repo/vitest-config/test-env`.
-- Playwright tự start `api`, `socket`, `web` (bản build) nếu chưa chạy. Browser: `pnpm --filter e2e install-browsers`, hoặc dùng Chrome có sẵn: `PLAYWRIGHT_CHANNEL=chrome pnpm turbo run test:e2e --filter=e2e`. Môi trường đã deploy: `E2E_WEB_URL=https://…`.
-- CI: unit + backend e2e trong job `check`; build image chỉ chạy khi `check` pass. **Playwright không chạy trên CI** ([ADR 0009](docs/decisions/0009-playwright-chi-chay-local.md)): chạy local trước khi mở PR đụng tới web / luồng đăng nhập, với service local (`pnpm infra:up`, api/web không trỏ DB server dùng chung).
+- Playwright tự start `api`, `socket` (`start:e2e`: chỉ `.env.test` + `.env.test.local`) và `web` (bản build) trên cổng 3000 / 3001 / 3002, sau khi tạo + migrate DB `app_e2e` (`apps/e2e/prepare-db.ts`, từ chối DB không phải local). **Không dùng lại** server đang chạy (có thể là `pnpm dev` trên `.env` server): tắt `pnpm dev` trước khi chạy. Browser: `pnpm --filter e2e install-browsers`, hoặc dùng Chrome có sẵn: `PLAYWRIGHT_CHANNEL=chrome pnpm turbo run test:e2e --filter=e2e`. Môi trường đã deploy: `E2E_WEB_URL=https://…`.
+- CI: unit + backend e2e trong job `check`; build image chỉ chạy khi `check` pass. **Playwright không chạy trên CI** ([ADR 0009](docs/decisions/0009-playwright-chi-chay-local.md)): chạy local trước khi mở PR đụng tới web / luồng đăng nhập (`pnpm infra:up`, tắt `pnpm dev`).
 - `test` được turbo cache; `test:e2e` không cache (phụ thuộc DB/app đang chạy).
 
 ## Git & quy ước commit

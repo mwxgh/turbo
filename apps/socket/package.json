@@ -8,6 +8,7 @@
     "dev": "nest start --watch --type-check --env-file .env",
     "start:debug": "nest start --debug --watch --type-check --env-file .env",
     "start": "node --enable-source-maps --env-file-if-exists=.env dist/main.js",
+    "start:e2e": "node --enable-source-maps --env-file-if-exists=.env.test --env-file-if-exists=.env.test.local dist/main.js",
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
