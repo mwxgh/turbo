@@ -26,7 +26,7 @@ describe('hellosInfiniteQueryOptions', () => {
       .mockResolvedValue(new Response(JSON.stringify(page(1, 1))))
     await new QueryClient().fetchInfiniteQuery(hellosInfiniteQueryOptions())
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:4000/api/hellos?page=1&pageSize=20',
+      'http://localhost:3001/api/hellos?page=1&pageSize=20',
       { headers: {} },
     )
   })
