@@ -9,6 +9,7 @@ import {
   refreshSession,
   signIn,
   signOut,
+  signUp,
 } from './session'
 
 const json = (body: unknown, status = 200) =>
@@ -92,5 +93,24 @@ describe('mobile session', () => {
     )
     expect(accessToken()).toBeUndefined()
     expect(await SecureStore.getItemAsync('auth.tokens')).toBeNull()
+  })
+
+  it('signs up in token mode and keeps the tokens', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(json(issued(7)))
+    await signUp({ email: 'jane@example.com', password: 'secret 123' })
+    expect(fetchMock).toHaveBeenCalledWith(`${env.apiUrl}/auth/register`, {
+      method: 'POST',
+      body: JSON.stringify({
+        email: 'jane@example.com',
+        password: 'secret 123',
+      }),
+      headers: {
+        'content-type': 'application/json',
+        'x-auth-transport': 'token',
+      },
+    })
+    expect(accessToken()).toBe('access-7')
   })
 })
