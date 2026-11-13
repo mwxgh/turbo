@@ -56,10 +56,10 @@ export const APPS: AppEntry[] = [
     id: 'studio',
     name: 'Studio',
     description:
-      'Design admin screens from a spec, preview them and export working apps.',
+      'Pick a stack, database first, and preview the monorepo it generates.',
     icon: LayoutTemplate,
     tone: 'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300',
-    status: 'soon',
+    status: 'ready',
     href: '/studio',
   },
 ]
