@@ -3,34 +3,42 @@ import { text } from '../tree.js'
 import { V } from '../versions.js'
 import type { OrmLayer } from './orm.js'
 
+/** oracle://user:pass@host:port/service → the credentials TypeORM's Oracle driver takes (no url option). */
+const ORACLE_CONNECTION = text`
+  /** oracle://user:pass@host:port/service (DATABASE_URL) → TypeORM's Oracle credentials. */
+  function oracleConnection(databaseUrl = '') {
+    const url = new URL(databaseUrl)
+    return {
+      username: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+      connectString: \`\${url.hostname}:\${url.port || 1521}\${url.pathname}\`,
+    }
+  }
+`
+
 export function typeormLayer(o: ScaffoldOptions): OrmLayer {
-  const mongo = o.database === 'mongodb'
+  // TypeORM is offered for SQL databases only (ORMS_BY_DATABASE)
   const driver: Record<string, string> =
     o.database === 'postgres'
       ? { pg: V.pg }
-      : o.database === 'mysql'
-        ? { mysql2: V.mysql2 }
-        : { mongodb: V.mongodb }
-  const entity = mongo
-    ? text`
-        import { Column, CreateDateColumn, Entity, ObjectId, ObjectIdColumn } from 'typeorm'
-
-        @Entity('todos')
-        export class TodoEntity {
-          @ObjectIdColumn()
-          _id: ObjectId
-
-          @Column({ type: 'string' })
-          title: string
-
-          @Column({ type: 'boolean', default: false })
-          done: boolean
-
-          @CreateDateColumn({ name: 'created_at' })
-          createdAt: Date
-        }
-      `
-    : text`
+      : o.database === 'oracle'
+        ? { oracledb: V.oracledb }
+        : { mysql2: V.mysql2 }
+  const oracle = o.database === 'oracle'
+  // Oracle: no varchar / boolean types; TypeORM stores a JS Boolean column as number(1)
+  const titleColumn = oracle
+    ? "{ type: 'varchar2', length: 200 }"
+    : "{ type: 'varchar', length: 200 }"
+  const doneColumn = oracle
+    ? '{ type: Boolean, default: false }'
+    : "{ type: 'boolean', default: false }"
+  const createdType =
+    o.database === 'postgres'
+      ? "'timestamptz'"
+      : oracle
+        ? "'timestamp with time zone'"
+        : "'timestamp'"
+  const entity = text`
         import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
         @Entity('todos')
@@ -38,87 +46,29 @@ export function typeormLayer(o: ScaffoldOptions): OrmLayer {
           @PrimaryGeneratedColumn('uuid')
           id: string
 
-          @Column({ type: 'varchar', length: 200 })
+          @Column(${titleColumn})
           title: string
 
-          @Column({ type: 'boolean', default: false })
+          @Column(${doneColumn})
           done: boolean
 
-          @CreateDateColumn({ name: 'created_at', type: ${o.database === 'postgres' ? "'timestamptz'" : "'timestamp'"} })
+          @CreateDateColumn({ name: 'created_at', type: ${createdType} })
           createdAt: Date
         }
       `
-  const repository = mongo
-    ? text`
-        import { Inject, Injectable } from '@nestjs/common'
-        import { getRepositoryToken } from '@nestjs/typeorm'
-        import { ObjectId } from 'mongodb'
-        import type { MongoRepository } from 'typeorm'
-
-        import type { Todo, UpdateTodo } from '@app/types'
-
-        import { TodosRepository } from '../todos/todos.repository'
-        import { TodoEntity } from './todo.entity'
-
-        const toTodo = (row: TodoEntity): Todo => ({
-          id: row._id.toHexString(),
-          title: row.title,
-          done: row.done,
-          createdAt: row.createdAt.toISOString(),
-        })
-        const objectId = (id: string) => (ObjectId.isValid(id) ? new ObjectId(id) : null)
-
-        @Injectable()
-        export class TypeormTodosRepository extends TodosRepository {
-          constructor(
-            @Inject(getRepositoryToken(TodoEntity)) private readonly repo: MongoRepository<TodoEntity>,
-          ) {
-            super()
-          }
-
-          async list() {
-            const rows = await this.repo.find({ order: { createdAt: 'DESC' } })
-            return rows.map(toTodo)
-          }
-
-          async create(title: string) {
-            return toTodo(await this.repo.save(this.repo.create({ title, done: false })))
-          }
-
-          async update(id: string, changes: UpdateTodo) {
-            const _id = objectId(id)
-            if (!_id) return null
-            const row = await this.repo.findOneBy({ _id })
-            if (!row) return null
-            return toTodo(await this.repo.save(Object.assign(row, changes)))
-          }
-
-          async remove(id: string) {
-            const _id = objectId(id)
-            if (!_id) return false
-            const { deletedCount } = await this.repo.deleteOne({ _id })
-            return deletedCount > 0
-          }
-        }
-      `
-    : text`
-        import { Inject, Injectable } from '@nestjs/common'
-        import { getRepositoryToken } from '@nestjs/typeorm'
+  const repository = text`
         import type { Repository } from 'typeorm'
 
         import type { Todo, UpdateTodo } from '@app/types'
 
-        import { TodosRepository } from '../todos/todos.repository'
-        import { TodoEntity } from './todo.entity'
+        import { TodosRepository } from '../todos/todos.repository.js'
+        import type { TodoEntity } from './todo.entity.js'
 
         const toTodo = (row: TodoEntity): Todo => ({ ...row, createdAt: row.createdAt.toISOString() })
         const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-        @Injectable()
         export class TypeormTodosRepository extends TodosRepository {
-          constructor(
-            @Inject(getRepositoryToken(TodoEntity)) private readonly repo: Repository<TodoEntity>,
-          ) {
+          constructor(private readonly repo: Repository<TodoEntity>) {
             super()
           }
 
@@ -147,8 +97,8 @@ export function typeormLayer(o: ScaffoldOptions): OrmLayer {
       `
   return {
     dependencies: {
-      '@nestjs/typeorm': V.nestTypeorm,
       typeorm: V.typeorm,
+      'reflect-metadata': V.reflectMetadata,
       ...driver,
     },
     devDependencies: {},
@@ -161,30 +111,34 @@ export function typeormLayer(o: ScaffoldOptions): OrmLayer {
     files: {
       'src/database/todo.entity.ts': entity,
       'src/database/typeorm-todos.repository.ts': repository,
-      'src/database/database.module.ts': text`
-        import { Global, Module } from '@nestjs/common'
-        import { TypeOrmModule } from '@nestjs/typeorm'
+      'src/database/database.ts':
+        text`
+        import 'reflect-metadata'
 
-        import { TodosRepository } from '../todos/todos.repository'
-        import { TodoEntity } from './todo.entity'
-        import { TypeormTodosRepository } from './typeorm-todos.repository'
+        import { DataSource } from 'typeorm'
 
-        @Global()
-        @Module({
-          imports: [
-            TypeOrmModule.forRoot({
-              type: '${o.database === 'postgres' ? 'postgres' : o.database === 'mysql' ? 'mysql' : 'mongodb'}',
-              url: process.env.DATABASE_URL,
-              entities: [TodoEntity],
-              synchronize: process.env.DB_SYNCHRONIZE === 'true',
-            }),
-            TypeOrmModule.forFeature([TodoEntity]),
-          ],
-          providers: [{ provide: TodosRepository, useClass: TypeormTodosRepository }],
-          exports: [TodosRepository],
-        })
-        export class DatabaseModule {}
-      `,
+        import type { Database } from '../todos/todos.repository.js'
+        import { TodoEntity } from './todo.entity.js'
+        import { TypeormTodosRepository } from './typeorm-todos.repository.js'
+
+        /** Opens the connection pool; close() on shutdown. */
+        export async function connectDatabase(url = process.env.DATABASE_URL ?? ''): Promise<Database> {
+          const dataSource = new DataSource({
+            type: '${o.database}',
+            ${oracle ? '...oracleConnection(url),' : 'url,'}
+            entities: [TodoEntity],
+            synchronize: process.env.DB_SYNCHRONIZE === 'true',
+          })
+          await dataSource.initialize()
+          return {
+            todos: new TypeormTodosRepository(dataSource.getRepository(TodoEntity)),
+            ping: async () => {
+              await dataSource.query('${oracle ? 'SELECT 1 FROM DUAL' : 'SELECT 1'}')
+            },
+            close: () => dataSource.destroy(),
+          }
+        }
+      ` + (oracle ? `\n${ORACLE_CONNECTION}` : ''),
     },
   }
 }

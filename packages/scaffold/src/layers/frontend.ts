@@ -1,13 +1,15 @@
 import type { ScaffoldOptions } from '../options.js'
 import { type FileTree, json, text } from '../tree.js'
 import { V } from '../versions.js'
+import type { AppContext } from './app.js'
+import { applyUpgrade, webUpgrade } from './modern-apps.js'
 
 /** The todo screen, same for both frontends; only the API URL expression differs. */
 function todoApp(apiUrl: string, directive: string) {
   return (
     directive +
     text`
-      import { type FormEvent, useEffect, useState } from 'react'
+      import { type FormEvent, useCallback, useEffect, useState } from 'react'
 
       import type { Todo } from '@app/types'
 
@@ -27,17 +29,20 @@ function todoApp(apiUrl: string, directive: string) {
         const [title, setTitle] = useState('')
         const [error, setError] = useState<string>()
 
-        const load = () =>
-          call<Todo[]>('/todos')
-            .then((list) => {
-              setTodos(list)
-              setError(undefined)
-            })
-            .catch(() => setError('Cannot reach the API. Is it running on port 3001?'))
+        const load = useCallback(
+          () =>
+            call<Todo[]>('/todos')
+              .then((list) => {
+                setTodos(list)
+                setError(undefined)
+              })
+              .catch(() => setError('Cannot reach the API. Is it running on port 3001?')),
+          [],
+        )
 
         useEffect(() => {
           void load()
-        }, [])
+        }, [load])
 
         async function add(event: FormEvent) {
           event.preventDefault()
@@ -172,10 +177,16 @@ const reactTypes = {
   typescript: V.typescript,
 }
 
-export function frontendLayer(o: ScaffoldOptions): FileTree {
+/** The web app; paths are relative to its folder. */
+export function frontendLayer(o: ScaffoldOptions, ctx: AppContext): FileTree {
+  const files = plainFrontend(o, ctx)
+  return ctx.modern ? applyUpgrade(files, webUpgrade(o)) : files
+}
+
+function plainFrontend(o: ScaffoldOptions, ctx: AppContext): FileTree {
   if (o.frontend === 'next')
     return {
-      'apps/web/package.json': json({
+      'package.json': json({
         name: 'web',
         version: '0.1.0',
         private: true,
@@ -187,21 +198,21 @@ export function frontendLayer(o: ScaffoldOptions): FileTree {
           'check-types': 'next typegen && tsc --noEmit',
         },
         dependencies: {
-          '@app/types': 'workspace:*',
+          ...ctx.typesDependency,
           next: V.next,
           react: V.react,
           'react-dom': V.react,
         },
         devDependencies: { '@types/node': V.typesNode, ...reactTypes },
       }),
-      'apps/web/next.config.ts': text`
+      'next.config.ts': text`
         import type { NextConfig } from 'next'
 
         const config: NextConfig = {}
 
         export default config
       `,
-      'apps/web/tsconfig.json': json({
+      'tsconfig.json': json({
         compilerOptions: {
           target: 'ES2023',
           lib: ['es2023', 'dom', 'dom.iterable'],
@@ -217,6 +228,7 @@ export function frontendLayer(o: ScaffoldOptions): FileTree {
           esModuleInterop: true,
           incremental: false,
           plugins: [{ name: 'next' }],
+          ...(ctx.typesPaths ? { paths: ctx.typesPaths } : {}),
         },
         include: [
           'next-env.d.ts',
@@ -226,9 +238,8 @@ export function frontendLayer(o: ScaffoldOptions): FileTree {
         ],
         exclude: ['node_modules'],
       }),
-      'apps/web/.env.example':
-        'NEXT_PUBLIC_API_URL=http://localhost:3001/api\n',
-      'apps/web/app/layout.tsx': text`
+      '.env.example': 'NEXT_PUBLIC_API_URL=http://localhost:3001/api\n',
+      'app/layout.tsx': text`
         import './globals.css'
 
         export const metadata = { title: '${o.name}' }
@@ -241,22 +252,22 @@ export function frontendLayer(o: ScaffoldOptions): FileTree {
           )
         }
       `,
-      'apps/web/app/page.tsx': text`
+      'app/page.tsx': text`
         import { TodoApp } from './todo-app'
 
         export default function Home() {
           return <TodoApp />
         }
       `,
-      'apps/web/app/todo-app.tsx': todoApp(
+      'app/todo-app.tsx': todoApp(
         'process.env.NEXT_PUBLIC_API_URL',
         "'use client'\n\n",
       ),
-      'apps/web/app/globals.css': css,
+      'app/globals.css': css,
     }
 
   return {
-    'apps/web/package.json': json({
+    'package.json': json({
       name: 'web',
       version: '0.1.0',
       private: true,
@@ -268,7 +279,7 @@ export function frontendLayer(o: ScaffoldOptions): FileTree {
         'check-types': 'tsc --noEmit',
       },
       dependencies: {
-        '@app/types': 'workspace:*',
+        ...ctx.typesDependency,
         react: V.react,
         'react-dom': V.react,
       },
@@ -278,7 +289,7 @@ export function frontendLayer(o: ScaffoldOptions): FileTree {
         ...reactTypes,
       },
     }),
-    'apps/web/vite.config.ts': text`
+    'vite.config.ts': text`
       import react from '@vitejs/plugin-react'
       import { defineConfig } from 'vite'
 
@@ -287,7 +298,7 @@ export function frontendLayer(o: ScaffoldOptions): FileTree {
         server: { port: 3000, strictPort: true },
       })
     `,
-    'apps/web/tsconfig.json': json({
+    'tsconfig.json': json({
       compilerOptions: {
         target: 'ES2023',
         lib: ['es2023', 'dom', 'dom.iterable'],
@@ -299,11 +310,12 @@ export function frontendLayer(o: ScaffoldOptions): FileTree {
         noEmit: true,
         isolatedModules: true,
         types: ['vite/client'],
+        ...(ctx.typesPaths ? { paths: ctx.typesPaths } : {}),
       },
       include: ['src', 'vite.config.ts'],
     }),
-    'apps/web/.env.example': 'VITE_API_URL=http://localhost:3001/api\n',
-    'apps/web/index.html': text`
+    '.env.example': 'VITE_API_URL=http://localhost:3001/api\n',
+    'index.html': text`
       <!doctype html>
       <html lang="en">
         <head>
@@ -317,7 +329,7 @@ export function frontendLayer(o: ScaffoldOptions): FileTree {
         </body>
       </html>
     `,
-    'apps/web/src/main.tsx': text`
+    'src/main.tsx': text`
       import { StrictMode } from 'react'
       import { createRoot } from 'react-dom/client'
 
@@ -330,7 +342,19 @@ export function frontendLayer(o: ScaffoldOptions): FileTree {
         </StrictMode>,
       )
     `,
-    'apps/web/src/todo-app.tsx': todoApp('import.meta.env.VITE_API_URL', ''),
-    'apps/web/src/styles.css': css,
+    'src/todo-app.tsx': todoApp('import.meta.env.VITE_API_URL', ''),
+    // Typed env variables (otherwise \`import.meta.env.X\` is \`any\`)
+    'src/vite-env.d.ts': text`
+      /// <reference types="vite/client" />
+
+      interface ImportMetaEnv {
+        readonly VITE_API_URL?: string
+      }
+
+      interface ImportMeta {
+        readonly env: ImportMetaEnv
+      }
+    `,
+    'src/styles.css': css,
   }
 }

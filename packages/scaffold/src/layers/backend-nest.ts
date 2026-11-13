@@ -1,37 +1,49 @@
 import type { ScaffoldOptions } from '../options.js'
 import { type FileTree, json, text } from '../tree.js'
 import { V } from '../versions.js'
+import { type AppContext, TODOS_REPOSITORY } from './app.js'
 import { DATABASE_PROFILES } from './database.js'
+import { applyUpgrade, nestUpgrade } from './modern-apps.js'
 import type { OrmLayer } from './orm.js'
 
 /**
  * apps/api with NestJS 12: ESM, built by the Nest CLI with SWC (keeps decorator metadata for
- * dependency injection), type-checked by tsc. The ORM layer supplies the DatabaseModule that
- * provides `TodosRepository`.
+ * dependency injection), type-checked by tsc. The ORM layer supplies `connectDatabase()`; the
+ * DatabaseModule here provides its `TodosRepository`. Paths are relative to the api folder.
  */
-export function nestLayer(o: ScaffoldOptions, orm: OrmLayer): FileTree {
+export function nestLayer(
+  o: ScaffoldOptions,
+  orm: OrmLayer,
+  ctx: AppContext,
+): FileTree {
+  const files = plainNestLayer(o, orm, ctx)
+  const pre = orm.generate ? `${orm.generate} && ` : ''
+  return ctx.modern ? applyUpgrade(files, nestUpgrade(o, pre)) : files
+}
+
+function plainNestLayer(
+  o: ScaffoldOptions,
+  orm: OrmLayer,
+  ctx: AppContext,
+): FileTree {
+  const pre = orm.generate ? `${orm.generate} && ` : ''
   return {
-    ...Object.fromEntries(
-      Object.entries(orm.files).map(([path, content]) => [
-        `apps/api/${path}`,
-        content,
-      ]),
-    ),
-    'apps/api/package.json': json({
+    ...orm.files,
+    'package.json': json({
       name: 'api',
       version: '0.1.0',
       private: true,
       type: 'module',
       scripts: {
-        build: 'nest build',
+        build: `${pre}nest build`,
         dev: 'nest start --watch --env-file .env',
         start:
           'node --enable-source-maps --env-file-if-exists=.env dist/main.js',
-        'check-types': 'tsc --noEmit',
+        'check-types': `${pre}tsc --noEmit`,
         ...orm.scripts,
       },
       dependencies: sortKeys({
-        '@app/types': 'workspace:*',
+        ...ctx.typesDependency,
         '@nestjs/common': V.nestCommon,
         '@nestjs/core': V.nestCore,
         '@nestjs/platform-express': V.nestPlatformExpress,
@@ -50,7 +62,7 @@ export function nestLayer(o: ScaffoldOptions, orm: OrmLayer): FileTree {
         ...orm.devDependencies,
       }),
     }),
-    'apps/api/nest-cli.json': json({
+    'nest-cli.json': json({
       $schema: 'https://json.schemastore.org/nest-cli',
       collection: '@nestjs/schematics',
       sourceRoot: 'src',
@@ -61,8 +73,8 @@ export function nestLayer(o: ScaffoldOptions, orm: OrmLayer): FileTree {
         deleteOutDir: true,
       },
     }),
-    'apps/api/.swcrc': json({ jsc: { baseUrl: './' } }),
-    'apps/api/tsconfig.json': json({
+    '.swcrc': json({ jsc: { baseUrl: './' } }),
+    'tsconfig.json': json({
       compilerOptions: {
         target: 'ES2023',
         lib: ['es2023'],
@@ -75,10 +87,11 @@ export function nestLayer(o: ScaffoldOptions, orm: OrmLayer): FileTree {
         skipLibCheck: true,
         noEmit: true,
         types: ['node'],
+        ...(ctx.typesPaths ? { paths: ctx.typesPaths } : {}),
       },
       include: ['src', '*.config.ts'],
     }),
-    'apps/api/.env.example': [
+    '.env.example': [
       'PORT=3001',
       '# Browser origin allowed by CORS (the web app)',
       'WEB_ORIGIN=http://localhost:3000',
@@ -86,7 +99,7 @@ export function nestLayer(o: ScaffoldOptions, orm: OrmLayer): FileTree {
       ...orm.env,
       '',
     ].join('\n'),
-    'apps/api/src/main.ts': text`
+    'src/main.ts': text`
       import 'reflect-metadata'
 
       import { ValidationPipe } from '@nestjs/common'
@@ -107,7 +120,7 @@ export function nestLayer(o: ScaffoldOptions, orm: OrmLayer): FileTree {
 
       void bootstrap()
     `,
-    'apps/api/src/app.module.ts': text`
+    'src/app.module.ts': text`
       import { Module } from '@nestjs/common'
 
       import { DatabaseModule } from './database/database.module'
@@ -120,7 +133,7 @@ export function nestLayer(o: ScaffoldOptions, orm: OrmLayer): FileTree {
       })
       export class AppModule {}
     `,
-    'apps/api/src/health.controller.ts': text`
+    'src/health.controller.ts': text`
       import { Controller, Get } from '@nestjs/common'
 
       @Controller('health')
@@ -131,23 +144,34 @@ export function nestLayer(o: ScaffoldOptions, orm: OrmLayer): FileTree {
         }
       }
     `,
-    'apps/api/src/todos/todos.repository.ts': text`
-      import type { Todo, UpdateTodo } from '@app/types'
+    'src/todos/todos.repository.ts': TODOS_REPOSITORY,
+    'src/database/database.module.ts': text`
+      import { Global, Inject, Module, type OnApplicationShutdown } from '@nestjs/common'
 
-      /**
-       * Storage of todos. The ORM layer implements it (src/database); the rest of the app only
-       * sees this class, so the ORM can change without touching controllers or services.
-       */
-      export abstract class TodosRepository {
-        abstract list(): Promise<Todo[]>
-        abstract create(title: string): Promise<Todo>
-        /** null when there is no such todo. */
-        abstract update(id: string, changes: UpdateTodo): Promise<Todo | null>
-        /** false when there is no such todo. */
-        abstract remove(id: string): Promise<boolean>
+      import { type Database, TodosRepository } from '../todos/todos.repository'
+      import { connectDatabase } from './database'
+
+      /** The connection itself (health checks ping it). */
+      export const DATABASE = Symbol('DATABASE')
+
+      /** Connects once (src/database/database.ts) and provides the repositories to every module. */
+      @Global()
+      @Module({
+        providers: [
+          { provide: DATABASE, useFactory: () => connectDatabase() },
+          { provide: TodosRepository, useFactory: (db: Database) => db.todos, inject: [DATABASE] },
+        ],
+        exports: [DATABASE, TodosRepository],
+      })
+      export class DatabaseModule implements OnApplicationShutdown {
+        constructor(@Inject(DATABASE) private readonly db: Database) {}
+
+        onApplicationShutdown() {
+          return this.db.close()
+        }
       }
     `,
-    'apps/api/src/todos/todo.dto.ts': text`
+    'src/todos/todo.dto.ts': text`
       import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator'
 
       import type { CreateTodo, UpdateTodo } from '@app/types'
@@ -171,7 +195,7 @@ export function nestLayer(o: ScaffoldOptions, orm: OrmLayer): FileTree {
         done?: boolean
       }
     `,
-    'apps/api/src/todos/todos.controller.ts': text`
+    'src/todos/todos.controller.ts': text`
       import {
         Body,
         Controller,
@@ -216,7 +240,7 @@ export function nestLayer(o: ScaffoldOptions, orm: OrmLayer): FileTree {
         }
       }
     `,
-    'apps/api/src/todos/todos.module.ts': text`
+    'src/todos/todos.module.ts': text`
       import { Module } from '@nestjs/common'
 
       import { TodosController } from './todos.controller'

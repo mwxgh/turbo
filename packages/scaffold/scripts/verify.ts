@@ -4,22 +4,30 @@
  * database in Docker, runs the README's database step, builds, type-checks, starts the api and
  * walks the todo CRUD over HTTP.
  *
- *   pnpm --filter @repo/scaffold verify                 # all
- *   pnpm --filter @repo/scaffold verify prisma-mysql    # filter
+ *   pnpm --filter @repo/scaffold verify                 # all, 3 at a time
+ *   pnpm --filter @repo/scaffold verify mysql-prisma    # names containing a filter
+ *   pnpm --filter @repo/scaffold verify --jobs=1        # one at a time (less RAM)
  *
- * Needs Docker, pnpm and network access (npm registry, images).
+ * Combinations run in parallel (--jobs, default 3: next build, type-aware lint and a database
+ * each take ~1 GB); Oracle ones one at a time (its container alone takes ~2 GB). Each combination
+ * has its own folder, ports and database container.
+ *
+ * Needs Docker, pnpm and network access (npm registry, images). Projects are written to
+ * ~/.cache/turbo-studio-verify: Docker Desktop only bind-mounts folders it shares
+ * (by default not $TMPDIR), and the MySQL init file is mounted like docker-compose.yml does.
  */
-import { type SpawnSyncReturns, spawn, spawnSync } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:net'
-import { tmpdir } from 'node:os'
+import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 
-import { generate, supportedCombinations } from '../src/generate.js'
-import { DATABASE_PROFILES } from '../src/layers/database.js'
+import { formatTree } from '../src/format.js'
+import { appDirs, generate, supportedCombinations } from '../src/generate.js'
+import { DATABASE_PROFILES, DB_INIT_MOUNT } from '../src/layers/database.js'
 import type { ScaffoldOptions } from '../src/options.js'
 
-const ROOT = join(tmpdir(), 'turbo-studio-verify')
+const ROOT = join(homedir(), '.cache', 'turbo-studio-verify')
 
 class StepError extends Error {
   constructor(
@@ -30,19 +38,49 @@ class StepError extends Error {
   }
 }
 
-function run(
+/** Runs a command without blocking the other combinations; resolves with its exit code and output. */
+function exec(
+  cmd: string,
+  args: string[],
+  options: { cwd?: string; env?: NodeJS.ProcessEnv; timeoutMs?: number } = {},
+) {
+  return new Promise<{ status: number | null; stdout: string; stderr: string }>(
+    (resolve) => {
+      const child = spawn(cmd, args, {
+        cwd: options.cwd,
+        env: { ...process.env, CI: '1', ...options.env },
+      })
+      let stdout = ''
+      let stderr = ''
+      child.stdout.on('data', (d: Buffer) => (stdout += d.toString()))
+      child.stderr.on('data', (d: Buffer) => (stderr += d.toString()))
+      const timer = setTimeout(
+        () => child.kill('SIGKILL'),
+        options.timeoutMs ?? 600_000,
+      )
+      child.on('error', (error) =>
+        resolve({
+          status: null,
+          stdout,
+          stderr: `${stderr}\n${error.message}`,
+        }),
+      )
+      child.on('close', (status) => {
+        clearTimeout(timer)
+        resolve({ status, stdout, stderr })
+      })
+    },
+  )
+}
+
+async function run(
   step: string,
   cmd: string,
   args: string[],
   cwd: string,
   env: NodeJS.ProcessEnv = {},
 ) {
-  const res: SpawnSyncReturns<string> = spawnSync(cmd, args, {
-    cwd,
-    env: { ...process.env, CI: '1', ...env },
-    encoding: 'utf8',
-    timeout: 600_000,
-  })
+  const res = await exec(cmd, args, { cwd, env })
   if (res.status !== 0)
     throw new StepError(
       step,
@@ -61,6 +99,13 @@ const freePort = () =>
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
+class DatabaseExited extends Error {}
+
+async function dockerLogs(container: string) {
+  const logs = await exec('docker', ['logs', '--tail', '25', container])
+  return `${logs.stdout}\n${logs.stderr}`.trim() || 'container exited'
+}
+
 async function waitFor(
   step: string,
   check: () => boolean | Promise<boolean>,
@@ -70,7 +115,11 @@ async function waitFor(
     if (
       await Promise.resolve()
         .then(check)
-        .catch(() => false)
+        .catch((error: unknown) => {
+          if (error instanceof DatabaseExited)
+            throw new StepError(step, error.message)
+          return false
+        })
     )
       return
     await sleep(1000)
@@ -78,7 +127,11 @@ async function waitFor(
   throw new StepError(step, `not ready after ${seconds}s`)
 }
 
-function startDatabase(o: ScaffoldOptions, port: number): string {
+async function startDatabase(
+  o: ScaffoldOptions,
+  port: number,
+  dir: string,
+): Promise<string> {
   const db = o.database.replace(/-/g, '_')
   const name = o.name.replace(/-/g, '_')
   const env: Record<typeof o.database, string[]> = {
@@ -100,10 +153,18 @@ function startDatabase(o: ScaffoldOptions, port: number): string {
       '-e',
       'MYSQL_ROOT_PASSWORD=root',
     ],
+    oracle: [
+      '-e',
+      'ORACLE_PASSWORD=oracle',
+      '-e',
+      'APP_USER=app',
+      '-e',
+      'APP_USER_PASSWORD=app',
+    ],
     mongodb: [],
   }
   const profile = DATABASE_PROFILES[o.database]
-  const id = run(
+  const id = await run(
     'docker run',
     'docker',
     [
@@ -113,23 +174,40 @@ function startDatabase(o: ScaffoldOptions, port: number): string {
       '-p',
       `127.0.0.1:${port}:${profile.port}`,
       ...env[o.database],
+      // the generated init file, as docker-compose.yml mounts it
+      ...(profile.init
+        ? ['-v', `${join(dir, profile.init.path)}:${DB_INIT_MOUNT}:ro`]
+        : []),
       profile.image,
     ],
     ROOT,
-  ).trim()
+  )
   void db
-  return id
+  return id.trim()
 }
 
 const READY: Record<ScaffoldOptions['database'], string[]> = {
   postgres: ['pg_isready', '-U', 'app'],
   mysql: ['mysql', '-uapp', '-papp', '-h', '127.0.0.1', '-e', 'select 1'],
+  oracle: ['healthcheck.sh'],
   mongodb: ['mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 })'],
 }
 
-function schemaStep(o: ScaffoldOptions, api: string, env: NodeJS.ProcessEnv) {
+/** Oracle creates its database and the app user on first start: give it longer. */
+const READY_SECONDS: Record<ScaffoldOptions['database'], number> = {
+  postgres: 120,
+  mysql: 120,
+  oracle: 600,
+  mongodb: 120,
+}
+
+async function schemaStep(
+  o: ScaffoldOptions,
+  api: string,
+  env: NodeJS.ProcessEnv,
+) {
   if (o.orm === 'prisma')
-    run(
+    await run(
       'db:migrate',
       'pnpm',
       o.database === 'mongodb'
@@ -139,8 +217,8 @@ function schemaStep(o: ScaffoldOptions, api: string, env: NodeJS.ProcessEnv) {
       env,
     )
   if (o.orm === 'drizzle') {
-    run('db:generate', 'pnpm', ['db:generate'], api, env)
-    run('db:migrate', 'pnpm', ['db:migrate'], api, env)
+    await run('db:generate', 'pnpm', ['db:generate'], api, env)
+    await run('db:migrate', 'pnpm', ['db:migrate'], api, env)
   }
   // TypeORM: synchronize on start (DB_SYNCHRONIZE=true)
 }
@@ -206,11 +284,15 @@ async function smoke(base: string) {
 async function verify(o: ScaffoldOptions) {
   const dir = join(ROOT, o.name)
   rmSync(dir, { recursive: true, force: true })
-  for (const [path, content] of Object.entries(generate(o))) {
+  // Formatted like the downloaded project (monorepo: its .prettierrc; separate folders: as is)
+  for (const [path, content] of Object.entries(await formatTree(generate(o)))) {
     mkdirSync(dirname(join(dir, path)), { recursive: true })
     writeFileSync(join(dir, path), content)
   }
-  const api = join(dir, 'apps/api')
+  const dirs = appDirs(o)
+  const api = join(dir, dirs.api)
+  // Monorepo: one install / build at the root (turbo or nx); single: each app on its own
+  const roots = o.repo === 'single' ? [api, join(dir, dirs.web)] : [dir]
   const dbPort = await freePort()
   const apiPort = await freePort()
   const databaseUrl = DATABASE_PROFILES[o.database].url(o.name, dbPort)
@@ -220,22 +302,42 @@ async function verify(o: ScaffoldOptions) {
   )
   const env = { DATABASE_URL: databaseUrl }
 
-  run('pnpm install', 'pnpm', ['install'], dir)
-  const container = startDatabase(o, dbPort)
+  for (const root of roots) await run('pnpm install', 'pnpm', ['install'], root)
+  const container = await startDatabase(o, dbPort, dir)
   let server: ReturnType<typeof spawn> | undefined
   try {
     await waitFor(
       'database ready',
-      () =>
-        spawnSync('docker', ['exec', container, ...READY[o.database]])
-          .status === 0,
-      120,
+      async () => {
+        const state = await exec('docker', [
+          'inspect',
+          '-f',
+          '{{.State.Running}}',
+          container,
+        ])
+        // the container exited (--rm): fail now with its logs instead of waiting the timeout
+        if (state.stdout.trim() !== 'true')
+          throw new DatabaseExited(await dockerLogs(container))
+        const ready = await exec(
+          'docker',
+          ['exec', container, ...READY[o.database]],
+          { timeoutMs: 30_000 },
+        )
+        return ready.status === 0
+      },
+      READY_SECONDS[o.database],
     )
     // MySQL answers inside the container a little before it accepts TCP from outside
     if (o.database === 'mysql') await sleep(3000)
-    schemaStep(o, api, env)
-    run('build', 'pnpm', ['build'], dir)
-    run('check-types', 'pnpm', ['check-types'], dir)
+    await schemaStep(o, api, env)
+    for (const root of roots) await run('build', 'pnpm', ['build'], root)
+    for (const root of roots)
+      await run('check-types', 'pnpm', ['check-types'], root)
+    // Monorepo setup: the CI checks of the generated project
+    if (o.repo !== 'single') {
+      await run('format:check', 'pnpm', ['format:check'], dir)
+      await run('lint', 'pnpm', ['lint'], dir)
+    }
 
     let output = ''
     server = spawn('node', ['--env-file=.env', 'dist/main.js'], {
@@ -255,11 +357,15 @@ async function verify(o: ScaffoldOptions) {
     await smoke(base)
   } finally {
     server?.kill()
-    spawnSync('docker', ['rm', '-f', container])
+    // -v: the database images declare VOLUMEs; without it every run leaves an anonymous volume
+    await exec('docker', ['rm', '-f', '-v', container])
   }
 }
 
-const filters = process.argv.slice(2)
+const args = process.argv.slice(2)
+const jobsArg = args.find((a) => a.startsWith('--jobs='))
+const jobs = Math.max(1, Number(jobsArg?.slice('--jobs='.length) ?? 3) || 3)
+const filters = args.filter((a) => !a.startsWith('--'))
 const combos = supportedCombinations().filter(
   (o) => !filters.length || filters.some((f) => o.name.includes(f)),
 )
@@ -271,30 +377,46 @@ const results: {
   detail?: string
   seconds: number
 }[] = []
-for (const o of combos) {
+
+/** One Oracle container at a time: it alone takes ~2 GB of RAM. */
+let oracleBusy: Promise<void> = Promise.resolve()
+
+async function verifyOne(o: ScaffoldOptions) {
+  let release = () => {}
+  if (o.database === 'oracle') {
+    const previous = oracleBusy
+    oracleBusy = new Promise((resolve) => (release = resolve))
+    await previous
+  }
   const started = Date.now()
-  process.stdout.write(`▶ ${o.name} … `)
+  console.log(`▶ ${o.name}`)
   try {
     await verify(o)
-    results.push({
-      name: o.name,
-      ok: true,
-      seconds: (Date.now() - started) / 1000,
-    })
-    console.log('ok')
+    const seconds = (Date.now() - started) / 1000
+    results.push({ name: o.name, ok: true, seconds })
+    console.log(`  ok ${o.name} (${seconds.toFixed(0)}s)`)
   } catch (error) {
     const step = error instanceof StepError ? error.step : 'unexpected'
     const detail = error instanceof Error ? error.message : String(error)
-    results.push({
-      name: o.name,
-      ok: false,
-      step,
-      detail,
-      seconds: (Date.now() - started) / 1000,
-    })
-    console.log(`FAILED at ${step}`)
+    const seconds = (Date.now() - started) / 1000
+    results.push({ name: o.name, ok: false, step, detail, seconds })
+    console.log(`  FAILED at ${step}: ${o.name} (${seconds.toFixed(0)}s)`)
+  } finally {
+    release()
   }
 }
+
+const started = Date.now()
+const queue = [...combos]
+await Promise.all(
+  Array.from({ length: Math.min(jobs, queue.length) }, async () => {
+    for (let o = queue.shift(); o; o = queue.shift()) await verifyOne(o)
+  }),
+)
+console.log(
+  `\n${results.filter((r) => r.ok).length}/${results.length} ok in ${((Date.now() - started) / 60_000).toFixed(1)} min (${jobs} at a time)`,
+)
+results.sort((a, b) => a.name.localeCompare(b.name))
 console.log(
   '\n' +
     results

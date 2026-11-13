@@ -90,18 +90,36 @@ export function drizzleLayer(o: ScaffoldOptions): OrmLayer {
       `,
       'src/db/schema.ts': schema,
       'src/db/client.ts': client,
+      'src/database/database.ts': text`
+        import { sql } from 'drizzle-orm'
+
+        import type { Database } from '../todos/todos.repository.js'
+        import { createDb } from '../db/client.js'
+        import { DrizzleTodosRepository } from './drizzle-todos.repository.js'
+
+        /** Opens the connection pool (fails now if the database does not answer); close() on shutdown. */
+        export async function connectDatabase(url = process.env.DATABASE_URL ?? ''): Promise<Database> {
+          const db = createDb(url)
+          await db.execute(sql\`select 1\`)
+          return {
+            todos: new DrizzleTodosRepository(db),
+            ping: async () => {
+              await db.execute(sql\`select 1\`)
+            },
+            close: () => db.$client.end(),
+          }
+        }
+      `,
       'src/database/drizzle-todos.repository.ts': [
-        "import { Inject, Injectable } from '@nestjs/common'",
-        ...(pg ? [] : ["import { randomUUID } from 'node:crypto'"]),
+        ...(pg ? [] : ["import { randomUUID } from 'node:crypto'", '']),
         "import { desc, eq } from 'drizzle-orm'",
         '',
         "import type { Todo, UpdateTodo } from '@app/types'",
         '',
-        "import type { createDb } from '../db/client'",
-        "import { todos } from '../db/schema'",
-        "import { TodosRepository } from '../todos/todos.repository'",
+        "import type { createDb } from '../db/client.js'",
+        "import { todos } from '../db/schema.js'",
+        "import { TodosRepository } from '../todos/todos.repository.js'",
         '',
-        "export const DRIZZLE = Symbol('DRIZZLE')",
         'type Db = ReturnType<typeof createDb>',
         'type Row = typeof todos.$inferSelect',
         'const toTodo = (row: Row): Todo => ({ ...row, createdAt: row.createdAt.toISOString() })',
@@ -110,9 +128,8 @@ export function drizzleLayer(o: ScaffoldOptions): OrmLayer {
           ? 'const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i'
           : 'const ID = /^[0-9a-f-]{36}$/i',
         '',
-        '@Injectable()',
         'export class DrizzleTodosRepository extends TodosRepository {',
-        '  constructor(@Inject(DRIZZLE) private readonly db: Db) {',
+        '  constructor(private readonly db: Db) {',
         '    super()',
         '  }',
         '',
@@ -142,23 +159,6 @@ export function drizzleLayer(o: ScaffoldOptions): OrmLayer {
         '}',
         '',
       ].join('\n'),
-      'src/database/database.module.ts': text`
-        import { Global, Module } from '@nestjs/common'
-
-        import { createDb } from '../db/client'
-        import { TodosRepository } from '../todos/todos.repository'
-        import { DRIZZLE, DrizzleTodosRepository } from './drizzle-todos.repository'
-
-        @Global()
-        @Module({
-          providers: [
-            { provide: DRIZZLE, useFactory: () => createDb(process.env.DATABASE_URL!) },
-            { provide: TodosRepository, useClass: DrizzleTodosRepository },
-          ],
-          exports: [TodosRepository],
-        })
-        export class DatabaseModule {}
-      `,
     },
   }
 }

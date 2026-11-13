@@ -78,6 +78,9 @@ catalogs:
     '@testing-library/user-event':
       specifier: 14.6.8
       version: 14.6.8
+    '@trivago/prettier-plugin-sort-imports':
+      specifier: 6.0.2
+      version: 6.0.2
     '@turbo/gen':
       specifier: 2.11.9
       version: 2.11.9
@@ -141,6 +144,12 @@ catalogs:
     pino-pretty:
       specifier: 13.2.0
       version: 13.2.0
+    prettier:
+      specifier: 3.9.6
+      version: 3.9.6
+    prettier-plugin-sort-json:
+      specifier: 4.2.0
+      version: 4.2.0
     prisma:
       specifier: 7.10.1
       version: 7.10.1
@@ -193,7 +202,7 @@ importers:
         specifier: 21.2.4
         version: 21.2.4
       '@trivago/prettier-plugin-sort-imports':
-        specifier: 6.0.2
+        specifier: 'catalog:'
         version: 6.0.2(prettier@3.9.6)(supports-color@10.2.2)
       '@turbo/gen':
         specifier: 'catalog:'
@@ -208,7 +217,7 @@ importers:
         specifier: 17.6.0
         version: 17.6.0
       prettier:
-        specifier: 3.9.6
+        specifier: 'catalog:'
         version: 3.9.6
       prettier-plugin-classnames:
         specifier: 0.10.4
@@ -217,7 +226,7 @@ importers:
         specifier: 0.10.1
         version: 0.10.1(prettier@3.9.6)
       prettier-plugin-sort-json:
-        specifier: 4.2.0
+        specifier: 'catalog:'
         version: 4.2.0(prettier@3.9.6)
       prettier-plugin-tailwindcss:
         specifier: 0.8.1
@@ -588,6 +597,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@repo/scaffold':
+        specifier: workspace:*
+        version: link:../../packages/scaffold
       '@repo/socket-events':
         specifier: workspace:*
         version: link:../../packages/socket-events
@@ -937,6 +949,16 @@ importers:
         version: 5.0.5(@types/node@26.4.1)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3(@noble/hashes@1.8.0))(vite@8.3.4(@types/node@26.4.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
 
   packages/scaffold:
+    dependencies:
+      '@trivago/prettier-plugin-sort-imports':
+        specifier: 'catalog:'
+        version: 6.0.2(prettier@3.9.6)(supports-color@10.2.2)
+      prettier:
+        specifier: 'catalog:'
+        version: 3.9.6
+      prettier-plugin-sort-json:
+        specifier: 'catalog:'
+        version: 4.2.0(prettier@3.9.6)
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*

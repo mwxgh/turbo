@@ -3,17 +3,21 @@ import { text } from '../tree.js'
 import { V } from '../versions.js'
 import type { OrmLayer } from './orm.js'
 
-const PROVIDER = { postgres: 'postgresql', mysql: 'mysql', mongodb: 'mongodb' }
+/** Prisma is offered for SQL databases only (ORMS_BY_DATABASE). */
+type SqlDatabase = 'postgres' | 'mysql'
+
+const PROVIDER: Record<SqlDatabase, string> = {
+  postgres: 'postgresql',
+  mysql: 'mysql',
+}
+const sql = (o: ScaffoldOptions) => o.database as SqlDatabase
 
 function schema(o: ScaffoldOptions) {
   const id =
-    o.database === 'mongodb'
-      ? 'String   @id @default(auto()) @map("_id") @db.ObjectId'
-      : o.database === 'postgres'
-        ? 'String   @id @default(uuid()) @db.Uuid'
-        : 'String   @id @default(uuid()) @db.VarChar(36)'
-  const title =
-    o.database === 'mongodb' ? 'String' : 'String   @db.VarChar(200)'
+    o.database === 'postgres'
+      ? 'String   @id @default(uuid()) @db.Uuid'
+      : 'String   @id @default(uuid()) @db.VarChar(36)'
+  const title = 'String   @db.VarChar(200)'
   return text`
     generator client {
       provider            = "prisma-client"
@@ -23,7 +27,7 @@ function schema(o: ScaffoldOptions) {
     }
 
     datasource db {
-      provider = "${PROVIDER[o.database]}"
+      provider = "${PROVIDER[sql(o)]}"
     }
 
     model Todo {
@@ -45,23 +49,20 @@ function adapter(o: ScaffoldOptions): {
   if (o.database === 'postgres')
     return {
       imports: "import { PrismaPg } from '@prisma/adapter-pg'",
-      expr: 'new PrismaPg({ connectionString: process.env.DATABASE_URL })',
+      expr: 'new PrismaPg({ connectionString: url })',
       dependency: { '@prisma/adapter-pg': V.prisma },
     }
-  if (o.database === 'mysql')
-    return {
-      imports: "import { PrismaMariaDb } from '@prisma/adapter-mariadb'",
-      expr: 'mariadbAdapter(process.env.DATABASE_URL)',
-      dependency: { '@prisma/adapter-mariadb': V.prisma },
-    }
-  return { imports: '', expr: '', dependency: {} }
+  return {
+    imports: "import { PrismaMariaDb } from '@prisma/adapter-mariadb'",
+    expr: 'mariadbAdapter(url)',
+    dependency: { '@prisma/adapter-mariadb': V.prisma },
+  }
 }
 
 /** Ids the database column accepts; anything else is "not found" instead of a driver error. */
-const ID_PATTERN = {
+const ID_PATTERN: Record<SqlDatabase, string> = {
   postgres: '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
   mysql: '/^[0-9a-f-]{36}$/i',
-  mongodb: '/^[0-9a-f]{24}$/i',
 }
 
 export function prismaLayer(o: ScaffoldOptions): OrmLayer {
@@ -85,17 +86,14 @@ export function prismaLayer(o: ScaffoldOptions): OrmLayer {
           '}',
         ].join('\n')
       : ''
-  const push = o.database === 'mongodb'
   return {
     dependencies: { '@prisma/client': V.prisma, ...a.dependency },
     devDependencies: { prisma: V.prisma, dotenv: V.dotenv },
+    generate: 'prisma generate',
     scripts: {
-      build: 'prisma generate && nest build',
-      'check-types': 'prisma generate && tsc --noEmit',
       'db:generate': 'prisma generate',
-      // MongoDB has no migrations in Prisma: the schema is pushed
-      'db:migrate': push ? 'prisma db push' : 'prisma migrate dev',
-      ...(push ? {} : { 'db:deploy': 'prisma migrate deploy' }),
+      'db:migrate': 'prisma migrate dev',
+      'db:deploy': 'prisma migrate deploy',
     },
     env: [],
     files: {
@@ -111,44 +109,40 @@ export function prismaLayer(o: ScaffoldOptions): OrmLayer {
           datasource: { url: process.env.DATABASE_URL },
         })
       `,
-      'src/database/prisma.service.ts': [
-        "import { Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common'",
-        ...(a.imports ? [a.imports] : []),
+      'src/database/database.ts': [
+        a.imports,
         '',
+        "import type { Database } from '../todos/todos.repository.js'",
         "import { PrismaClient } from '../generated/prisma/client.js'",
+        "import { PrismaTodosRepository } from './prisma-todos.repository.js'",
         '',
-        '@Injectable()',
-        'export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {',
-        '  constructor() {',
-        a.expr ? `    super({ adapter: ${a.expr} })` : '    super()',
-        '  }',
-        '',
-        '  async onModuleInit() {',
-        '    await this.$connect()',
-        '  }',
-        '',
-        '  async onModuleDestroy() {',
-        '    await this.$disconnect()',
+        '/** Opens the connection pool; close() on shutdown. */',
+        "export async function connectDatabase(url = process.env.DATABASE_URL ?? ''): Promise<Database> {",
+        `  const prisma = new PrismaClient({ adapter: ${a.expr} })`,
+        '  await prisma.$connect()',
+        '  return {',
+        '    todos: new PrismaTodosRepository(prisma),',
+        '    ping: async () => {',
+        '      await prisma.$queryRaw`SELECT 1`',
+        '    },',
+        '    close: () => prisma.$disconnect(),',
         '  }',
         '}',
         mariadbHelper,
         '',
       ].join('\n'),
       'src/database/prisma-todos.repository.ts': text`
-        import { Inject, Injectable } from '@nestjs/common'
-
         import type { Todo, UpdateTodo } from '@app/types'
 
-        import { TodosRepository } from '../todos/todos.repository'
-        import { PrismaService } from './prisma.service'
+        import type { PrismaClient } from '../generated/prisma/client.js'
+        import { TodosRepository } from '../todos/todos.repository.js'
 
         type Row = { id: string; title: string; done: boolean; createdAt: Date }
         const toTodo = (row: Row): Todo => ({ ...row, createdAt: row.createdAt.toISOString() })
-        const ID = ${ID_PATTERN[o.database]}
+        const ID = ${ID_PATTERN[sql(o)]}
 
-        @Injectable()
         export class PrismaTodosRepository extends TodosRepository {
-          constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {
+          constructor(private readonly prisma: PrismaClient) {
             super()
           }
 
@@ -175,20 +169,6 @@ export function prismaLayer(o: ScaffoldOptions): OrmLayer {
             return count > 0
           }
         }
-      `,
-      'src/database/database.module.ts': text`
-        import { Global, Module } from '@nestjs/common'
-
-        import { TodosRepository } from '../todos/todos.repository'
-        import { PrismaTodosRepository } from './prisma-todos.repository'
-        import { PrismaService } from './prisma.service'
-
-        @Global()
-        @Module({
-          providers: [PrismaService, { provide: TodosRepository, useClass: PrismaTodosRepository }],
-          exports: [TodosRepository],
-        })
-        export class DatabaseModule {}
       `,
     },
   }
