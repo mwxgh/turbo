@@ -1,8 +1,5 @@
-import Link from 'next/link'
-
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 
-import { buttonVariants } from '@repo/ui/components/button'
 import {
   loadListTableState,
   toListQuery,
@@ -25,16 +22,7 @@ export default async function HellosPage({
   await queryClient.prefetchQuery(hellosListQueryOptions(query))
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-12">
-      <Link
-        href="/"
-        className={buttonVariants({
-          variant: 'link',
-          className: 'self-start px-0',
-        })}
-      >
-        ← Home
-      </Link>
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-10">
       <HydrationBoundary state={dehydrate(queryClient)}>
         <HellosView />
       </HydrationBoundary>
