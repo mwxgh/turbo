@@ -230,7 +230,7 @@ describe('OAuth sign-in (e2e)', () => {
       flow.cookie,
     )
     expect(res.headers.location).toBe(
-      'http://localhost:3000/login?error=email_not_verified',
+      'http://localhost:3000/login?error=link_required',
     )
 
     account = { ...account, verified: true }
@@ -244,6 +244,101 @@ describe('OAuth sign-in (e2e)', () => {
     expect(
       await prisma.userIdentity.findMany({ select: { userId: true } }),
     ).toEqual([{ userId: jane.id }])
+  })
+
+  it('links an unverified provider account once the same browser signs in to that account', async () => {
+    const password = 'correct horse battery'
+    const jane = await prisma.user.create({
+      data: {
+        email: 'jane@example.com',
+        passwordHash: await hashPassword(password),
+      },
+    })
+    await prisma.user.create({
+      data: {
+        email: 'mallory@example.com',
+        passwordHash: await hashPassword(password),
+      },
+    })
+    account = { sub: '2002', email: 'jane@example.com', verified: false }
+
+    /** Provider sign-in that hits Jane's email: the pending-link cookie of this browser. */
+    async function pendingLink() {
+      const flow = await start('github')
+      const res = await callback(
+        'github',
+        { code: 'c', state: flow.state },
+        flow.cookie,
+      )
+      expect(res.headers.location).toBe(
+        'http://localhost:3000/login?error=link_required',
+      )
+      const link = parseCookies(sessionCookies(res)).oauth_link
+      expect(link).toBeTruthy()
+      return `oauth_link=${link}`
+    }
+    const login = (login: string, cookie = '') =>
+      http()
+        .post('/api/auth/login')
+        .set('cookie', cookie)
+        .send({ login, password })
+        .expect(200)
+    const identities = () =>
+      prisma.userIdentity.findMany({ select: { userId: true } })
+
+    // Without the cookie (another browser), or signing in to another account: nothing linked
+    await pendingLink()
+    await login('jane@example.com')
+    await login('mallory@example.com', await pendingLink())
+    expect(await identities()).toEqual([])
+
+    // Same browser, Jane's password: linked, then the provider signs in as Jane
+    await login('jane@example.com', await pendingLink())
+    expect(await identities()).toEqual([{ userId: jane.id }])
+    const flow = await start('github')
+    const res = await callback(
+      'github',
+      { code: 'c', state: flow.state },
+      flow.cookie,
+    )
+    expect(res.headers.location).toBe('http://localhost:3000/')
+
+    // Signing in with a provider that vouches for the email links it too
+    account = { sub: '5005', email: 'jane@example.com', verified: false }
+    const link = await pendingLink()
+    account = { sub: '6006', email: 'jane@example.com', verified: true }
+    const google = await start('google')
+    await callback(
+      'google',
+      { code: 'c', state: google.state },
+      `${google.cookie}; ${link}`,
+    )
+    expect(
+      await prisma.userIdentity.findMany({
+        where: { userId: jane.id },
+        select: { provider: true, subject: true },
+        orderBy: { subject: 'asc' },
+      }),
+    ).toEqual([
+      { provider: 'GITHUB', subject: '2002' },
+      { provider: 'GITHUB', subject: '5005' },
+      { provider: 'GOOGLE', subject: '6006' },
+    ])
+  })
+
+  it('keeps `email_not_verified` for the mobile app (no browser to bind a link to)', async () => {
+    await prisma.user.create({ data: { email: 'jane@example.com' } })
+    account = { sub: '2002', email: 'jane@example.com', verified: false }
+    const { state, cookie } = await start('github', {
+      client: 'mobile',
+      redirectUri: 'turbobase://oauth',
+      codeChallenge: sha256('v'.repeat(43)),
+    })
+    const res = await callback('github', { code: 'c', state }, cookie)
+    expect(res.headers.location).toBe(
+      'turbobase://oauth?error=email_not_verified',
+    )
+    expect(res.headers['set-cookie']?.toString()).not.toContain('oauth_link=')
   })
 
   it('creates an account without an unverified email, unless registration is closed', async () => {

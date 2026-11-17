@@ -11,6 +11,7 @@ describe('sign-in providers', () => {
 
   it('has a message for every error code, and a fallback', () => {
     expect(oauthErrorMessage('cancelled')).toMatch(/cancelled/)
+    expect(oauthErrorMessage('link_required')).toMatch(/link/)
     expect(oauthErrorMessage('something_new')).toMatch(/try again/)
   })
 })

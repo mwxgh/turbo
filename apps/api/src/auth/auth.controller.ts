@@ -20,6 +20,7 @@ import { Throttle, ThrottlerGuard } from '@nestjs/throttler'
 
 import type { Request, Response } from 'express'
 
+import { parseCookies } from '@repo/auth'
 import { type AuthUser, CurrentUser, Public } from '@repo/auth/nest'
 
 import { env } from '../env'
@@ -29,6 +30,11 @@ import { ChangePasswordDto } from './dto/change-password.dto'
 import { LoginDto } from './dto/login.dto'
 import { RefreshDto } from './dto/refresh.dto'
 import { RegisterDto } from './dto/register.dto'
+import {
+  PENDING_LINK_COOKIE,
+  PendingLinks,
+  pendingLinkCookieOptions,
+} from './pending-links'
 import {
   clearSessionCookies,
   clientMeta as meta,
@@ -50,7 +56,10 @@ const CREDENTIALS_LIMIT = {
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly pendingLinks: PendingLinks,
+  ) {}
 
   @Public()
   @Throttle(CREDENTIALS_LIMIT)
@@ -74,7 +83,14 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return sendSession(req, res, await this.auth.login(dto, meta(req)))
+    const session = await this.auth.login(dto, meta(req))
+    // A provider sign-in from this browser waits for this account (`OAuthController`)
+    const link = parseCookies(req.headers.cookie)[PENDING_LINK_COOKIE]
+    if (link) {
+      await this.pendingLinks.complete(link, session.user.id)
+      res.clearCookie(PENDING_LINK_COOKIE, pendingLinkCookieOptions())
+    }
+    return sendSession(req, res, session)
   }
 
   @Public()

@@ -29,6 +29,11 @@ import { Public } from '@repo/auth/nest'
 import type { OAuthProvider } from '@repo/db'
 
 import { AuthResponseDto } from '../auth/dto/auth-response.dto'
+import {
+  PENDING_LINK_COOKIE,
+  PendingLinks,
+  pendingLinkCookieOptions,
+} from '../auth/pending-links'
 import { clientMeta, setSessionCookies } from '../auth/session-http'
 import { AuthRegistration, env } from '../env'
 import {
@@ -75,7 +80,10 @@ const single = (value: unknown) =>
 @Public()
 @Controller('auth')
 export class OAuthController {
-  constructor(private readonly oauth: OAuthService) {}
+  constructor(
+    private readonly oauth: OAuthService,
+    private readonly pendingLinks: PendingLinks,
+  ) {}
 
   @Get('methods')
   @ApiOkResponse({ type: AuthMethodsDto })
@@ -119,7 +127,8 @@ export class OAuthController {
   ) {
     const provider = providerFromSlug(slug)
     const state = single(rawState)
-    const boundState = parseCookies(req.headers.cookie)[STATE_COOKIE]
+    const cookies = parseCookies(req.headers.cookie)
+    const boundState = cookies[STATE_COOKIE]
     res.clearCookie(STATE_COOKIE, stateCookieOptions())
 
     const flow = provider ? await this.oauth.takeFlow(provider, state) : null
@@ -144,8 +153,17 @@ export class OAuthController {
     try {
       userId = await this.oauth.complete(flow, code)
     } catch (error) {
-      if (error instanceof OAuthError) return fail(error.code)
-      throw error
+      if (!(error instanceof OAuthError)) throw error
+      // Web: bound to this browser, linked when it signs in to that account (`AuthController`)
+      if (error.link && flow.client.kind === 'web') {
+        res.cookie(
+          PENDING_LINK_COOKIE,
+          await this.pendingLinks.create(error.link),
+          { ...pendingLinkCookieOptions(), maxAge: 600_000 },
+        )
+        return fail(OAuthErrorCode.LinkRequired)
+      }
+      return fail(error.code)
     }
 
     if (flow.client.kind === 'mobile') {
@@ -155,6 +173,10 @@ export class OAuthController {
         await this.oauth.createExchangeCode(userId, flow.client.codeChallenge),
       )
       return res.redirect(HttpStatus.FOUND, url.toString())
+    }
+    if (cookies[PENDING_LINK_COOKIE]) {
+      await this.pendingLinks.complete(cookies[PENDING_LINK_COOKIE], userId)
+      res.clearCookie(PENDING_LINK_COOKIE, pendingLinkCookieOptions())
     }
     setSessionCookies(
       res,

@@ -54,7 +54,7 @@ test.describe('sign-up and provider errors', () => {
   })
 
   test('explains why a provider sign-in did not complete', async ({ page }) => {
-    await page.goto('/login?error=email_not_verified')
+    await page.goto('/login?error=link_required')
     await expect(page.getByRole('main').getByRole('alert')).toContainText(
       'An account with this email already exists',
     )
