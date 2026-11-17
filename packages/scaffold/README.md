@@ -17,10 +17,10 @@ Monorepo (`repo: 'turbo' | 'nx'`):
 <name>/
   package.json  pnpm-workspace.yaml  turbo.json | nx.json  docker-compose.yml  README.md …
   packages/types        @app/types: Todo, CreateTodo, UpdateTodo (shared by api and web)
-  apps/api              NestJS 12 (SWC build) or Express 5 (tsc), ESM (port 3001, prefix /api)
-    src/todos/          routes (Nest controller + DTOs, or Express router + validation)
+  apps/api              NestJS 12 (SWC build), Express 5 or Fastify 5 (tsc), ESM (port 3001, prefix /api)
+    src/todos/          routes (Nest controller + DTOs, Express router + validation, or Fastify plugin + JSON schemas)
     src/database/       database.ts: connectDatabase() → { todos, close }, plain TypeScript
-  apps/web              Next.js 16 or React 19 + Vite 8 (port 3000): the todo screen
+  apps/web              Next.js 16, React 19 + Vite 8 or Nuxt 4 (Vue) (port 3000): the todo screen
 ```
 
 Separate folders (`repo: 'single'`): no workspace and nothing shared.
@@ -50,9 +50,9 @@ Each generated project ships:
 | `src/layers/base.ts`                                          | Root files: Turborepo or Nx shell (pnpm workspace, `packages/types`), or none for separate folders; README, docker-compose                                                                                                              |
 | `src/layers/database.ts`                                      | Per database: image, port, local URL, compose service                                                                                                                                                                                   |
 | `src/layers/app.ts`                                           | Where an app sits (`apps/<app>` or `<app>/`) and how it gets the types; the shared `TodosRepository` / `Database` file                                                                                                                  |
-| `src/layers/backend-{nest,express}.ts`                        | NestJS or Express app on top of an `OrmLayer`. Nest wires `connectDatabase()` in a `DatabaseModule`; Express calls it in `main.ts`                                                                                                      |
+| `src/layers/backend-{nest,express,fastify}.ts`                | NestJS, Express or Fastify app on top of an `OrmLayer` (Express and Fastify share `backend-node.ts`). Nest wires `connectDatabase()` in a `DatabaseModule`; Express and Fastify call it in `main.ts`                                    |
 | `src/layers/orm-{prisma,drizzle,typeorm,mongoose,mongodb}.ts` | Framework-free data layer: `connectDatabase()`, `TodosRepository` implementation, schema, DB scripts. Relative imports end in `.js` (valid for both builds)                                                                             |
-| `src/layers/frontend.ts`                                      | Next.js or Vite. Both share the same `TodoApp` component; only the API URL env var differs                                                                                                                                              |
+| `src/layers/frontend.ts`                                      | Next.js, Vite or Nuxt. The React ones share one `TodoApp` component (only the API URL env var differs); Nuxt has the same screen as a Vue component, API URL from runtime config                                                        |
 | `src/generate.ts`                                             | `generate(options)` (validates, then merges the layers), `supportedCombinations()`                                                                                                                                                      |
 | `scripts/verify.ts`                                           | **End-to-end proof**, described below                                                                                                                                                                                                   |
 
@@ -82,7 +82,10 @@ Decisions taken so far:
 pnpm --filter @repo/scaffold verify                     # every supported combination, 3 at a time
 pnpm --filter @repo/scaffold verify nest-mysql-drizzle  # names (app-<repo>-<backend>-<database>-<orm>-<frontend>) containing a filter
 pnpm --filter @repo/scaffold verify --jobs=1            # one at a time (less RAM)
+pnpm --filter @repo/scaffold verify --force             # also those that passed already
 ```
+
+**Progress is recorded:** each result is written to `verify-results.json` (commit it) as soon as the combination finishes, with a hash of the generated project. A run skips every combination that passed with the same files, so an interrupted run, or one on another machine, picks up where it stopped. When the engine changes a combination's files (code or versions), its hash changes and it runs again.
 
 For each combination the script:
 
@@ -94,38 +97,36 @@ For each combination the script:
 6. Starts the api, then walks the CRUD: create, list, toggle, a 400 on an empty title, a 404 on a bad id, delete, list.
 7. Removes the database container and its volume.
 
-Combinations run in parallel (`--jobs`, default 3 for 8 GB of RAM), Oracle ones one at a time (about 2 GB alone). It needs Docker and network access. One combination takes about 20–60 seconds alone.
+Combinations run in parallel (`--jobs`, default 3 for 8 GB of RAM), Oracle ones one at a time (about 2 GB alone). It needs Docker and network access. One combination takes about 20–60 seconds alone. The generated projects stay in `~/.cache/turbo-studio-verify` (about 1 GB per 10): delete the folder afterwards.
 
 ## Progress
 
 As of 2026-11-17:
 
-| Done | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ✅   | Engine: options, compatibility rules, versions, layers, `generate()`; unit tests (`src/generate.spec.ts`), lint, type-check and build green                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ✅   | Choices in this order: database → backend → ORM → frontend → repository. ORMs come from the backend's language and the database (`ORMS_BY_STACK`); a monorepo needs a TypeScript backend (`monorepoUnavailable()`)                                                                                                                                                                                                                                                                                                                                                                            |
-| ✅   | Repository: Turborepo, Nx (package-based) or separate folders (`api/`, `web/`, nothing shared). Backends: NestJS and Express on one framework-free data layer (`connectDatabase()` → `{ todos, ping, close }`)                                                                                                                                                                                                                                                                                                                                                                                |
-| ✅   | Monorepo setup from this repo's decisions (`layers/modern.ts`, `layers/modern-apps.ts`): pnpm catalog, `packages/tooling` (typescript / eslint config), Prettier + husky + lint-staged + commitlint, validated env, pino, helmet, Swagger, rate limit, health with a database ping, Dockerfiles, GitHub Actions CI                                                                                                                                                                                                                                                                            |
-| ✅   | No unit tests in generated projects (decision 2026-11-14): end-to-end tests (Playwright) will come as a separate package                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| ✅   | `@repo/scaffold/format` (Node only): formats a generated tree with its own `.prettierrc`, so a download passes `format:check`                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ✅   | `verify` runs combinations in parallel (`--jobs`, default 3; Oracle one at a time) and checks `format:check` and `lint` for monorepos                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ✅   | Web `/studio` (ui-ux-pro-max): one step at a time (picked step collapses, Change reopens it), choices in the URL, file tree + viewer; Studio is `ready` in `apps/web/lib/apps.ts`                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ⏳   | **Full `verify` (2026-11-17, Linux, `--jobs=5`): 72/108 ok in 23.6 min.** 35 Next.js combinations failed at `build`: advisory GHSA-mfr8-8qww-v76h (`next` ≤ 16.4.4) was published during the run, and `next build` with `CI=1` turns it into `SecurityFatalError` → `next` 16.4.5. 2 failed at `db:migrate` (Postgres, random ORM): `pg_isready` over the unix socket answers during the image's init-only server → now checked over TCP (`-h 127.0.0.1`). Re-run of the 54 `-next` combinations on 16.4.5 (old readiness check): 32 ok, 1 `db:migrate`, 0 Next.js failures when last checked |
+| Done | Item                                                                                                                                                                                                                                                                                                               |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ✅   | Engine: options, compatibility rules, versions, layers, `generate()`; unit tests (`src/generate.spec.ts`), lint, type-check and build green                                                                                                                                                                        |
+| ✅   | Choices in this order: database → backend → ORM → frontend → repository. ORMs come from the backend's language and the database (`ORMS_BY_STACK`); a monorepo needs a TypeScript backend (`monorepoUnavailable()`)                                                                                                 |
+| ✅   | Repository: Turborepo, Nx (package-based) or separate folders (`api/`, `web/`, nothing shared). Backends: NestJS, Express and Fastify on one framework-free data layer (`connectDatabase()` → `{ todos, ping, close }`)                                                                                            |
+| ✅   | Monorepo setup from this repo's decisions (`layers/modern.ts`, `layers/modern-apps.ts`): pnpm catalog, `packages/tooling` (typescript / eslint config), Prettier + husky + lint-staged + commitlint, validated env, pino, helmet, Swagger, rate limit, health with a database ping, Dockerfiles, GitHub Actions CI |
+| ✅   | No unit tests in generated projects (decision 2026-11-14): end-to-end tests (Playwright) will come as a separate package                                                                                                                                                                                           |
+| ✅   | `@repo/scaffold/format` (Node only): formats a generated tree with its own `.prettierrc`, so a download passes `format:check`                                                                                                                                                                                      |
+| ✅   | `verify` runs combinations in parallel (`--jobs`, default 3; Oracle one at a time) and checks `format:check` and `lint` for monorepos                                                                                                                                                                              |
+| ✅   | Web `/studio` (ui-ux-pro-max): one step at a time (picked step collapses, Change reopens it), choices in the URL, file tree + viewer; Studio is `ready` in `apps/web/lib/apps.ts`                                                                                                                                  |
+| ✅   | **`verify` (2026-11-17), recorded in `verify-results.json`: 243/243 passed with the current files** (Next.js 81, React 81, Nuxt 81; Fastify included); 0 failures. Earlier full run: 108/108 in 12.8 min with `next` 16.4.5 and the Postgres readiness check over TCP; the run before those fixes 72/108           |
 
 Supported combinations (from `supportedCombinations()`):
 
 - **Repository:** Turborepo, Nx (TypeScript backends only), or separate folders.
-- **Backend:** NestJS, Express (Fastify, Spring Boot, Go, FastAPI planned, with their ORMs in `ORMS_BY_STACK`).
+- **Backend:** NestJS, Express, Fastify (Spring Boot, Go, FastAPI planned, with their ORMs in `ORMS_BY_STACK`).
 - **Database × ORM (TypeScript):** postgres, mysql × prisma, drizzle, typeorm; oracle × typeorm; mongodb × mongoose, none.
-- **Frontend:** each of those with next or react.
-- **Total:** 108.
+- **Frontend:** each of those with next, react or nuxt.
+- **Total:** 243 (3 repos × 3 backends × 9 database / ORM pairs × 3 frontends).
 
 ### Where to pick up
 
-1. **Re-run `verify` with both fixes** (`pnpm --filter @repo/scaffold verify --jobs=5`, ~25 min on 12 cores / 30 GB) and record "108/108" here. `verify` keeps the generated projects in `~/.cache/turbo-studio-verify` (about 1 GB per 10): delete the folder afterwards.
-2. **Fix what that run finds.**
-3. **Other languages**, in order: Java (Spring Boot: Spring Data JPA, MyBatis, Spring Data MongoDB), Go (GORM, Ent, mongo driver; no Oracle), Python (FastAPI: SQLAlchemy, SQLModel, Beanie). Separate folders only (no monorepo for them). Build and test them inside Docker (`eclipse-temurin:21`, `golang`, `python:3.12`): no JDK, Go or recent Python on this machine.
-4. **Known follow-ups:**
+1. **Other languages**, in order: Java (Spring Boot: Spring Data JPA, MyBatis, Spring Data MongoDB), Go (GORM, Ent, mongo driver; no Oracle), Python (FastAPI: SQLAlchemy, SQLModel, Beanie). Separate folders only (no monorepo for them). Build and test them inside Docker (`eclipse-temurin:21`, `golang`, `python:3.12`): no JDK, Go or recent Python on this machine.
+2. **Known follow-ups:**
    - The api image with Prisma is about 800 MB: `@prisma/client` pulls the `prisma` CLI and Studio in as peers into `pnpm deploy --prod`.
    - The Studio preview shows unformatted code; the download (API, below) should use `formatTree`.
    - Docker images of the monorepo setup were built for one combination only (Turborepo · NestJS · Prisma · Next.js).
@@ -143,4 +144,4 @@ Supported combinations (from `supportedCombinations()`):
    - Playwright: pick options and download.
 3. **CI:** a scheduled or manual job runs `verify`, because it is too slow for every PR.
 4. **ADR:** "Studio generates projects from composable layers, proven by verify".
-5. **Later:** Fastify (reusing the data layer), TypeORM migrations, Playwright e2e package for generated projects, optional extras (auth, Redis, mobile).
+5. **Later:** TypeORM migrations, Playwright e2e package for generated projects, optional extras (auth, Redis, mobile).

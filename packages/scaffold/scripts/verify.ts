@@ -7,6 +7,10 @@
  *   pnpm --filter @repo/scaffold verify                 # all, 3 at a time
  *   pnpm --filter @repo/scaffold verify mysql-prisma    # names containing a filter
  *   pnpm --filter @repo/scaffold verify --jobs=1        # one at a time (less RAM)
+ *   pnpm --filter @repo/scaffold verify --force         # also those that passed already
+ *
+ * Every result goes to verify-results.json (scripts/verify-record.ts) as soon as it is known. A
+ * combination whose generated project has not changed since it passed is skipped.
  *
  * Combinations run in parallel (--jobs, default 3: next build, type-aware lint and a database
  * each take ~1 GB); Oracle ones one at a time (its container alone takes ~2 GB). Each combination
@@ -26,6 +30,12 @@ import { formatTree } from '../src/format.js'
 import { appDirs, generate, supportedCombinations } from '../src/generate.js'
 import { DATABASE_PROFILES, DB_INIT_MOUNT } from '../src/layers/database.js'
 import type { ScaffoldOptions } from '../src/options.js'
+import {
+  RECORD_FILE,
+  readRecord,
+  treeHash,
+  writeRecord,
+} from './verify-record.js'
 
 const ROOT = join(homedir(), '.cache', 'turbo-studio-verify')
 
@@ -365,9 +375,18 @@ async function verify(o: ScaffoldOptions) {
 const args = process.argv.slice(2)
 const jobsArg = args.find((a) => a.startsWith('--jobs='))
 const jobs = Math.max(1, Number(jobsArg?.slice('--jobs='.length) ?? 3) || 3)
+const force = args.includes('--force')
 const filters = args.filter((a) => !a.startsWith('--'))
-const combos = supportedCombinations().filter(
+const record = readRecord()
+const selected = supportedCombinations().filter(
   (o) => !filters.length || filters.some((f) => o.name.includes(f)),
+)
+const hashes = new Map(selected.map((o) => [o.name, treeHash(generate(o))]))
+const passed = (o: ScaffoldOptions) =>
+  record[o.name]?.ok === true && record[o.name]?.hash === hashes.get(o.name)
+const combos = force ? selected : selected.filter((o) => !passed(o))
+console.log(
+  `${selected.length - combos.length} of ${selected.length} passed already with the same files (${RECORD_FILE}); ${combos.length} to run`,
 )
 mkdirSync(ROOT, { recursive: true })
 const results: {
@@ -380,6 +399,19 @@ const results: {
 
 /** One Oracle container at a time: it alone takes ~2 GB of RAM. */
 let oracleBusy: Promise<void> = Promise.resolve()
+
+function save(
+  o: ScaffoldOptions,
+  result: { ok: boolean; step?: string; seconds: number },
+) {
+  record[o.name] = {
+    hash: hashes.get(o.name)!,
+    ...result,
+    seconds: Math.round(result.seconds),
+    date: new Date().toISOString().slice(0, 10),
+  }
+  writeRecord(record)
+}
 
 async function verifyOne(o: ScaffoldOptions) {
   let release = () => {}
@@ -394,12 +426,14 @@ async function verifyOne(o: ScaffoldOptions) {
     await verify(o)
     const seconds = (Date.now() - started) / 1000
     results.push({ name: o.name, ok: true, seconds })
+    save(o, { ok: true, seconds })
     console.log(`  ok ${o.name} (${seconds.toFixed(0)}s)`)
   } catch (error) {
     const step = error instanceof StepError ? error.step : 'unexpected'
     const detail = error instanceof Error ? error.message : String(error)
     const seconds = (Date.now() - started) / 1000
     results.push({ name: o.name, ok: false, step, detail, seconds })
+    save(o, { ok: false, step, seconds })
     console.log(`  FAILED at ${step}: ${o.name} (${seconds.toFixed(0)}s)`)
   } finally {
     release()
