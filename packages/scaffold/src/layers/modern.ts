@@ -69,8 +69,8 @@ function typescriptConfig(): FileTree {
       declarationMap: false,
       noEmit: true,
     }),
-    // Express: compiled by tsc (NodeNext), decorators for TypeORM entities
-    [`${dir}/express.json`]: extend({
+    // Express and Fastify: compiled by tsc (NodeNext), decorators for TypeORM entities
+    [`${dir}/node.json`]: extend({
       ...decorators,
       declaration: false,
       declarationMap: false,
@@ -105,6 +105,7 @@ function typescriptConfig(): FileTree {
 function eslintConfig(o: ScaffoldOptions): FileTree {
   const dir = 'packages/tooling/eslint-config'
   const turbo = o.repo === 'turbo'
+  const nuxt = o.frontend === 'nuxt'
   return {
     [`${dir}/package.json`]: json({
       name: '@app/eslint-config',
@@ -117,6 +118,7 @@ function eslintConfig(o: ScaffoldOptions): FileTree {
         './node': './node.js',
         './next': './next.js',
         './react': './react.js',
+        ...(nuxt ? { './vue': './vue.js' } : {}),
       },
       dependencies: {
         '@eslint/js': V.eslintJs,
@@ -126,6 +128,12 @@ function eslintConfig(o: ScaffoldOptions): FileTree {
         'eslint-plugin-only-warn': V.eslintPluginOnlyWarn,
         'eslint-plugin-react-hooks': V.eslintPluginReactHooks,
         ...(turbo ? { 'eslint-plugin-turbo': V.eslintPluginTurbo } : {}),
+        ...(nuxt
+          ? {
+              'eslint-plugin-vue': V.eslintPluginVue,
+              'vue-eslint-parser': V.vueEslintParser,
+            }
+          : {}),
         globals: V.globals,
         typescript: V.typescript,
         'typescript-eslint': V.typescriptEslint,
@@ -185,7 +193,7 @@ function eslintConfig(o: ScaffoldOptions): FileTree {
 
       import { config as baseConfig } from './base.js'
 
-      /** Node.js servers (Express). @type {import("eslint").Linter.Config[]} */
+      /** Node.js servers (Express, Fastify). @type {import("eslint").Linter.Config[]} */
       export const config = [...baseConfig, { languageOptions: { globals: globals.node } }]
     `,
     [`${dir}/nest.js`]: text`
@@ -232,10 +240,49 @@ function eslintConfig(o: ScaffoldOptions): FileTree {
         },
       ]
     `,
+    ...(nuxt
+      ? {
+          [`${dir}/vue.js`]: text`
+            import eslintConfigPrettier from 'eslint-config-prettier'
+            import { globalIgnores } from 'eslint/config'
+            import pluginVue from 'eslint-plugin-vue'
+            import globals from 'globals'
+            import tseslint from 'typescript-eslint'
+
+            import { config as baseConfig } from './base.js'
+
+            /** Vue and Nuxt apps. @type {import("eslint").Linter.Config[]} */
+            export const config = [
+              ...baseConfig,
+              globalIgnores(['.nuxt/**', '.output/**']),
+              ...pluginVue.configs['flat/recommended'],
+              {
+                files: ['**/*.vue'],
+                languageOptions: {
+                  parserOptions: { parser: tseslint.parser, extraFileExtensions: ['.vue'] },
+                },
+                // vue-tsc type-checks .vue files (pnpm check-types); names may be Nuxt auto-imports
+                rules: { 'no-undef': 'off' },
+              },
+              // The TypeScript program behind type-aware rules does not read .vue files
+              { files: ['**/*.vue'], ...tseslint.configs.disableTypeChecked },
+              { languageOptions: { globals: globals.browser } },
+              // Config files (nuxt.config.ts, …) run in Node
+              { files: ['*.config.{js,mjs,cjs,ts,mts}'], languageOptions: { globals: globals.node } },
+              // Formatting is Prettier's: drop the Vue layout rules
+              eslintConfigPrettier,
+            ]
+          `,
+        }
+      : {}),
   }
 }
 
 // --- Root: formatting, Git hooks, Docker, CI ---------------------------------------------------
+
+/** Nuxt's generated folders, appended to ignore files (nothing for the other frontends). */
+const NUXT_OUTPUTS = (o: ScaffoldOptions, prefix = '') =>
+  o.frontend === 'nuxt' ? `${prefix}.nuxt\n${prefix}.output\n` : ''
 
 function rootQuality(o: ScaffoldOptions): FileTree {
   return {
@@ -273,7 +320,8 @@ function rootQuality(o: ScaffoldOptions): FileTree {
         },
       ],
     }),
-    '.prettierignore': text`
+    '.prettierignore':
+      text`
       pnpm-lock.yaml
       **/next-env.d.ts
       dist
@@ -283,11 +331,11 @@ function rootQuality(o: ScaffoldOptions): FileTree {
       **/src/generated
       **/drizzle
       **/prisma/migrations
-    `,
+    ` + NUXT_OUTPUTS(o),
     'lint-staged.config.mjs': text`
       /** Format only what is being committed (honours .prettierignore). */
       export default {
-        '*.{ts,tsx,js,mjs,css,json,md,yml,yaml}': 'prettier --write',
+        '*.{ts,tsx,${o.frontend === 'nuxt' ? 'vue,' : ''}js,mjs,css,json,md,yml,yaml}': 'prettier --write',
       }
     `,
     'commitlint.config.mjs': text`
@@ -423,12 +471,34 @@ function dockerAndCi(o: ScaffoldOptions): FileTree {
     'EXPOSE 80',
     '',
   ]
+  const webNuxt = [
+    ...header('web', [
+      '# The API URL is read at runtime: docker run -e NUXT_PUBLIC_API_URL=https://api.example.com/api',
+    ]),
+    ...prepare('web'),
+    'ENV NUXT_TELEMETRY_DISABLED=1',
+    build('web'),
+    '',
+    '# --- Runtime (Nuxt .output: the server bundles its own dependencies)',
+    'FROM node:${NODE_VERSION} AS runner',
+    'WORKDIR /app',
+    ...slimNode,
+    'ENV NODE_ENV=production PORT=3000 HOST=0.0.0.0',
+    'COPY --from=builder --chown=node:node /app/apps/web/.output ./.output',
+    'USER node',
+    'EXPOSE 3000',
+    'CMD ["node", ".output/server/index.mjs"]',
+    '',
+  ]
   return {
     'deploy/api.Dockerfile': api.join('\n'),
-    'deploy/web.Dockerfile': (o.frontend === 'next' ? webNext : webVite).join(
-      '\n',
-    ),
-    '.dockerignore': text`
+    'deploy/web.Dockerfile': {
+      next: webNext,
+      react: webVite,
+      nuxt: webNuxt,
+    }[o.frontend].join('\n'),
+    '.dockerignore':
+      text`
       **/node_modules
       **/dist
       **/.next
@@ -438,7 +508,7 @@ function dockerAndCi(o: ScaffoldOptions): FileTree {
       **/.env
       **/.env.*
       !**/.env.example
-    `,
+    ` + NUXT_OUTPUTS(o, '**/'),
     '.github/workflows/ci.yml': text`
       name: ci
 

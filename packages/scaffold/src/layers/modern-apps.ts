@@ -258,27 +258,26 @@ export function nestUpgrade(o: ScaffoldOptions, pre: string): AppUpgrade {
   }
 }
 
-// --- Express -----------------------------------------------------------------------------------
+// --- Express and Fastify ------------------------------------------------------------------------
 
-export function expressUpgrade(o: ScaffoldOptions, pre: string): AppUpgrade {
+/** What the Express and Fastify apis share: tsc build, lint, validated env, pino logger. */
+function nodeUpgrade(pre: string, own: AppUpgrade): AppUpgrade {
   return {
     // tsconfig.json type-checks and lints (src + config files); tsconfig.build.json compiles src
-    scripts: { ...lintScript(pre), build: `${pre}tsc -p tsconfig.build.json` },
-    dependencies: {
-      'express-rate-limit': V.expressRateLimit,
-      helmet: V.helmet,
-      pino: V.pino,
-      'pino-http': V.pinoHttp,
-      'swagger-ui-express': V.swaggerUiExpress,
+    scripts: {
+      ...lintScript(pre),
+      build: `${pre}tsc -p tsconfig.build.json`,
+      ...own.scripts,
     },
+    dependencies: own.dependencies,
     devDependencies: {
       ...tooling,
-      '@types/swagger-ui-express': V.typesSwaggerUiExpress,
       'pino-pretty': V.pinoPretty,
+      ...own.devDependencies,
     },
     files: {
       'tsconfig.json': json({
-        extends: '@app/typescript-config/express.json',
+        extends: '@app/typescript-config/node.json',
         compilerOptions: { noEmit: true, types: ['node'] },
         include: ['src', '*.config.ts'],
       }),
@@ -349,6 +348,27 @@ export function expressUpgrade(o: ScaffoldOptions, pre: string): AppUpgrade {
               : { target: 'pino-pretty', options: { singleLine: true } },
         })
       `,
+      ...own.files,
+    },
+  }
+}
+
+// --- Express -----------------------------------------------------------------------------------
+
+export function expressUpgrade(o: ScaffoldOptions, pre: string): AppUpgrade {
+  return nodeUpgrade(pre, {
+    scripts: {},
+    dependencies: {
+      'express-rate-limit': V.expressRateLimit,
+      helmet: V.helmet,
+      pino: V.pino,
+      'pino-http': V.pinoHttp,
+      'swagger-ui-express': V.swaggerUiExpress,
+    },
+    devDependencies: {
+      '@types/swagger-ui-express': V.typesSwaggerUiExpress,
+    },
+    files: {
       'src/main.ts': text`
         import { createApp } from './app.js'
         import { connectDatabase } from './database/database.js'
@@ -475,12 +495,122 @@ export function expressUpgrade(o: ScaffoldOptions, pre: string): AppUpgrade {
         }
       `,
     },
-  }
+  })
+}
+
+// --- Fastify -----------------------------------------------------------------------------------
+
+export function fastifyUpgrade(o: ScaffoldOptions, pre: string): AppUpgrade {
+  return nodeUpgrade(pre, {
+    scripts: {},
+    dependencies: {
+      '@fastify/helmet': V.fastifyHelmet,
+      '@fastify/rate-limit': V.fastifyRateLimit,
+      '@fastify/swagger': V.fastifySwagger,
+      '@fastify/swagger-ui': V.fastifySwaggerUi,
+    },
+    devDependencies: {},
+    files: {
+      'src/logger.ts': text`
+        import type { FastifyServerOptions } from 'fastify'
+
+        import { env } from './env.js'
+
+        /** Options of Fastify's own pino logger: readable lines in development, JSON in production. */
+        export const logger: FastifyServerOptions['logger'] = {
+          level: env.LOG_LEVEL,
+          transport:
+            env.NODE_ENV === 'production'
+              ? undefined
+              : { target: 'pino-pretty', options: { singleLine: true } },
+        }
+      `,
+      'src/main.ts': text`
+        import { createApp } from './app.js'
+        import { connectDatabase } from './database/database.js'
+        import { env } from './env.js'
+
+        const app = await createApp(await connectDatabase(env.DATABASE_URL))
+        await app.listen({ port: env.PORT, host: env.HOST })
+        app.log.info(\`API on http://localhost:\${env.PORT}/api (docs: /api/docs)\`)
+
+        // Stop accepting requests, then close the database (onClose hook in app.ts)
+        for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => void app.close())
+      `,
+      'src/app.ts': text`
+        import cors from '@fastify/cors'
+        import helmet from '@fastify/helmet'
+        import rateLimit from '@fastify/rate-limit'
+        import swagger from '@fastify/swagger'
+        import swaggerUi from '@fastify/swagger-ui'
+        import Fastify from 'fastify'
+
+        import { env } from './env.js'
+        import { AJV_OPTIONS, jsonApi } from './http.js'
+        import { logger } from './logger.js'
+        import type { Database } from './todos/todos.repository.js'
+        import { todosRoutes } from './todos/todos.routes.js'
+
+        const TIMEOUT_MS = 2_000
+        /** Probes: no rate limit, and not in the request log (every few seconds would drown it). */
+        const probe = { config: { rateLimit: false }, logLevel: 'silent' } as const
+
+        export async function createApp(db: Database) {
+          const app = Fastify({ logger, ajv: AJV_OPTIONS })
+          app.addHook('onClose', () => db.close())
+          jsonApi(app)
+          // Security headers; CSP off outside production, where Swagger UI serves inline assets
+          await app.register(helmet, { contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false })
+          await app.register(cors, { origin: env.WEB_ORIGIN })
+          // Rate limit per client IP on every route (probes opt out)
+          await app.register(rateLimit, { max: env.RATE_LIMIT, timeWindow: env.RATE_LIMIT_TTL_SECONDS * 1000 })
+
+          // API docs built from the route schemas, never in production
+          if (env.NODE_ENV !== 'production') {
+            await app.register(swagger, { openapi: { info: { title: '${o.name} API', version: '1.0' } } })
+            await app.register(swaggerUi, { routePrefix: '/api/docs' })
+          }
+
+          /** Liveness: the process serves HTTP. Never touches the database. */
+          app.get('/api/health/live', probe, () => ({ status: 'ok', uptime: process.uptime() }))
+          /** Readiness: 200 when the database answers, 503 otherwise. */
+          for (const url of ['/api/health', '/api/health/ready'])
+            app.get(url, probe, async (_req, reply) => {
+              const timeout = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('timeout')), TIMEOUT_MS).unref(),
+              )
+              try {
+                await Promise.race([db.ping(), timeout])
+                return { status: 'ok', database: 'up' }
+              } catch {
+                return reply.code(503).send({ status: 'error', database: 'down' })
+              }
+            })
+
+          await app.register(todosRoutes, { prefix: '/api/todos', todos: db.todos })
+          return app
+        }
+      `,
+    },
+  })
 }
 
 // --- Web ---------------------------------------------------------------------------------------
 
 export function webUpgrade(o: ScaffoldOptions): AppUpgrade {
+  if (o.frontend === 'nuxt')
+    return {
+      scripts: lintScript(),
+      dependencies: {},
+      devDependencies: { ...tooling },
+      files: {
+        'eslint.config.mjs': text`
+          import { config } from '@app/eslint-config/vue'
+
+          export default config
+        `,
+      },
+    }
   const next = o.frontend === 'next'
   return {
     scripts: lintScript(),

@@ -58,7 +58,8 @@ export function baseLayer(o: ScaffoldOptions): FileTree {
 
   return {
     ...(monorepo ? monorepoFiles(o) : {}),
-    '.gitignore': text`
+    '.gitignore':
+      text`
       node_modules
       dist
       .next
@@ -68,7 +69,7 @@ export function baseLayer(o: ScaffoldOptions): FileTree {
       .env.local
       *.tsbuildinfo
       **/src/generated
-    `,
+    ` + (o.frontend === 'nuxt' ? '.nuxt\n.output\n' : ''),
     '.node-version': `${V.node}\n`,
     '.editorconfig': text`
       root = true
@@ -156,7 +157,12 @@ function monorepoFiles(o: ScaffoldOptions): FileTree {
                 inputs: ['$TURBO_DEFAULT$', ...NOT_BUILD_INPUTS],
                 // Inlined into the browser bundle / change the output
                 env: ['NEXT_PUBLIC_*', 'VITE_*', 'NEXT_OUTPUT'],
-                outputs: ['dist/**', '.next/**', '!.next/cache/**'],
+                outputs: [
+                  'dist/**',
+                  '.next/**',
+                  '!.next/cache/**',
+                  ...(o.frontend === 'nuxt' ? ['.output/**'] : []),
+                ],
               },
               lint: { dependsOn: ['^build'] },
               'check-types': { dependsOn: ['^build'] },
@@ -181,7 +187,11 @@ function monorepoFiles(o: ScaffoldOptions): FileTree {
               build: {
                 dependsOn: ['^build'],
                 inputs: ['production', '^production'],
-                outputs: ['{projectRoot}/dist', '{projectRoot}/.next'],
+                outputs: [
+                  '{projectRoot}/dist',
+                  '{projectRoot}/.next',
+                  ...(o.frontend === 'nuxt' ? ['{projectRoot}/.output'] : []),
+                ],
                 cache: true,
               },
               lint: { dependsOn: ['^build'], cache: true },

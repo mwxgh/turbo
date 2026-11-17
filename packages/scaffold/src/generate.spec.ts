@@ -66,7 +66,7 @@ describe('generate', () => {
       incompatibilities({ ...DEFAULT_OPTIONS, backend: 'spring' }),
     ).toEqual([
       'Backend: Spring Boot is not available yet.',
-      'Repository: Turborepo needs a TypeScript backend (NestJS or Express). Pick No monorepo.',
+      'Repository: Turborepo needs a TypeScript backend (NestJS, Express or Fastify). Pick No monorepo.',
       'ORM: Prisma does not fit Spring Boot. Pick Spring Data JPA or MyBatis.',
     ])
   })
@@ -114,7 +114,7 @@ describe('generate', () => {
     ).toEqual([
       'Backend: Spring Boot is not available yet.',
       'ORM: Spring Data JPA is not available yet.',
-      'Repository: Turborepo needs a TypeScript backend (NestJS or Express). Pick No monorepo.',
+      'Repository: Turborepo needs a TypeScript backend (NestJS, Express or Fastify). Pick No monorepo.',
     ])
   })
 
@@ -178,10 +178,10 @@ describe('generate', () => {
       )
   })
 
-  it('lists every supported combination: 3 repos × 2 backends × database / ORM pairs × 2 frontends', () => {
+  it('lists every supported combination: 3 repos × 3 backends × database / ORM pairs × 3 frontends', () => {
     const combos = supportedCombinations()
     const pairs = Object.values(ORMS_BY_STACK.typescript).flat().length
-    expect(combos).toHaveLength(3 * 2 * pairs * 2)
+    expect(combos).toHaveLength(3 * 3 * pairs * 3)
     expect(combos[0]!.name).toBe('app-turbo-nest-postgres-prisma-next')
     expect(new Set(combos.map((c) => c.name)).size).toBe(combos.length)
     for (const c of combos) expect(incompatibilities(c), c.name).toEqual([])
@@ -223,6 +223,68 @@ describe('generate', () => {
     expect(tree).not.toHaveProperty(['apps/api/src/app.module.ts'])
   })
 
+  it('builds a Fastify api on the same data layer, bodies checked by route schemas', () => {
+    const tree = generate({ ...DEFAULT_OPTIONS, backend: 'fastify' })
+    const pkg = JSON.parse(tree['apps/api/package.json']!) as {
+      scripts: Record<string, string>
+      dependencies: Record<string, string>
+    }
+    expect(pkg.dependencies).toHaveProperty('fastify')
+    expect(pkg.dependencies).toHaveProperty('@fastify/swagger')
+    expect(pkg.dependencies).not.toHaveProperty('express')
+    expect(pkg.scripts.build).toBe(
+      'prisma generate && tsc -p tsconfig.build.json',
+    )
+    expect(tree['apps/api/src/todos/todos.routes.ts']).toContain(
+      'additionalProperties: false',
+    )
+    expect(tree['apps/api/src/database/database.ts']).toContain(
+      'connectDatabase',
+    )
+
+    const single = generate({
+      ...DEFAULT_OPTIONS,
+      backend: 'fastify',
+      repo: 'single',
+    })
+    expect(single['api/src/app.ts']).toContain('Fastify({ logger: true')
+    expect(single).not.toHaveProperty(['api/src/logger.ts'])
+  })
+
+  it('builds a Nuxt web app with the same todo screen in Vue', () => {
+    const tree = generate({ ...DEFAULT_OPTIONS, frontend: 'nuxt' })
+    const pkg = JSON.parse(tree['apps/web/package.json']!) as {
+      scripts: Record<string, string>
+      dependencies: Record<string, string>
+    }
+    expect(pkg.dependencies).toHaveProperty('nuxt')
+    expect(pkg.dependencies).not.toHaveProperty('react')
+    expect(pkg.scripts['check-types']).toBe('nuxt typecheck')
+    expect(tree['apps/web/app/components/TodoApp.vue']).toContain(
+      "import type { Todo } from '@app/types'",
+    )
+    expect(tree['apps/web/eslint.config.mjs']).toContain(
+      '@app/eslint-config/vue',
+    )
+    expect(tree).toHaveProperty(['packages/tooling/eslint-config/vue.js'])
+    expect(tree['deploy/web.Dockerfile']).toContain('.output/server/index.mjs')
+
+    // Separate folders: the types copy is reached through a Nuxt alias
+    const single = generate({
+      ...DEFAULT_OPTIONS,
+      frontend: 'nuxt',
+      repo: 'single',
+    })
+    expect(single).toHaveProperty(['web/types.ts'])
+    expect(single['web/nuxt.config.ts']).toContain("'@app/types'")
+  })
+
+  it('adds the Vue lint config only to Nuxt projects', () => {
+    const tree = generate(DEFAULT_OPTIONS)
+    expect(tree).not.toHaveProperty(['packages/tooling/eslint-config/vue.js'])
+    expect(tree['.prettierignore']).not.toContain('.nuxt')
+  })
+
   it('offers a monorepo only with a TypeScript backend', () => {
     expect(monorepoUnavailable('nest')).toBeUndefined()
     expect(monorepoUnavailable('express')).toBeUndefined()
@@ -235,7 +297,7 @@ describe('generate', () => {
         repo: 'nx',
       }),
     ).toContain(
-      'Repository: Nx needs a TypeScript backend (NestJS or Express). Pick No monorepo.',
+      'Repository: Nx needs a TypeScript backend (NestJS, Express or Fastify). Pick No monorepo.',
     )
     expect(
       incompatibilities({

@@ -1,5 +1,6 @@
 import { type AppContext, TYPES, appContext } from './layers/app.js'
 import { expressLayer } from './layers/backend-express.js'
+import { fastifyLayer } from './layers/backend-fastify.js'
 import { nestLayer } from './layers/backend-nest.js'
 import { allowBuilds, appDirs, baseLayer } from './layers/base.js'
 import { frontendLayer } from './layers/frontend.js'
@@ -40,6 +41,14 @@ const ORM_LAYERS: Partial<
   none: mongodbLayer,
 }
 
+/** The backends generated today (TypeScript); the others are planned (options.ts). */
+const BACKEND_LAYERS: Partial<
+  Record<
+    ScaffoldOptions['backend'],
+    (o: ScaffoldOptions, orm: OrmLayer, ctx: AppContext) => FileTree
+  >
+> = { nest: nestLayer, express: expressLayer, fastify: fastifyLayer }
+
 /**
  * An app's files under its folder. Single repo: the app also gets its types file, its own
  * pnpm-workspace.yaml (install-script settings) and the pnpm version, like any standalone project.
@@ -73,9 +82,10 @@ export function generate(options: ScaffoldOptions): FileTree {
   const web = appContext(
     options,
     'web',
-    options.frontend === 'next' ? 'types.ts' : 'src/types.ts',
+    // Next.js and Nuxt: at the app root; Vite: in src/
+    options.frontend === 'react' ? 'src/types.ts' : 'types.ts',
   )
-  const backend = options.backend === 'express' ? expressLayer : nestLayer
+  const backend = BACKEND_LAYERS[options.backend]!
   let tree: FileTree = {
     ...baseLayer(options),
     ...inApp(options, api, backend(options, orm, api)),

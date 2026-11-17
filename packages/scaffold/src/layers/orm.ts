@@ -4,7 +4,8 @@ import type { FileTree } from '../tree.js'
  * What an ORM adds to the api, whatever the backend: files (paths relative to the api), deps,
  * scripts, env. Its `src/database/database.ts` exports `connectDatabase(): Promise<Database>`
  * (`Database` from src/todos/todos.repository.ts); the backend layer wires it. Relative imports
- * in these files end in `.js`: both the Nest SWC build and the Express tsc (NodeNext) build accept it.
+ * in these files end in `.js`: the Nest SWC build and the Express / Fastify tsc (NodeNext) build
+ * both accept it.
  */
 export interface OrmLayer {
   files: FileTree

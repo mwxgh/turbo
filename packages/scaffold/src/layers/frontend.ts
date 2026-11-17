@@ -4,7 +4,7 @@ import { V } from '../versions.js'
 import type { AppContext } from './app.js'
 import { applyUpgrade, webUpgrade } from './modern-apps.js'
 
-/** The todo screen, same for both frontends; only the API URL expression differs. */
+/** The todo screen of the React frontends; only the API URL expression differs. Nuxt: TODO_VUE. */
 function todoApp(apiUrl: string, directive: string) {
   return (
     directive +
@@ -184,6 +184,7 @@ export function frontendLayer(o: ScaffoldOptions, ctx: AppContext): FileTree {
 }
 
 function plainFrontend(o: ScaffoldOptions, ctx: AppContext): FileTree {
+  if (o.frontend === 'nuxt') return nuxtApp(o, ctx)
   if (o.frontend === 'next')
     return {
       'package.json': json({
@@ -356,5 +357,173 @@ function plainFrontend(o: ScaffoldOptions, ctx: AppContext): FileTree {
       }
     `,
     'src/styles.css': css,
+  }
+}
+
+/** The todo screen in Vue, same behaviour as the React one. */
+const TODO_VUE = text`
+  <script setup lang="ts">
+  import { useRuntimeConfig } from '#imports'
+  import { onMounted, ref } from 'vue'
+
+  import type { Todo } from '@app/types'
+
+  const API = useRuntimeConfig().public.apiUrl
+
+  const todos = ref<Todo[]>([])
+  const title = ref('')
+  const error = ref<string>()
+
+  async function call<T>(path: string, init?: RequestInit): Promise<T> {
+    const res = await fetch(\`\${API}\${path}\`, {
+      ...init,
+      headers: { 'content-type': 'application/json', ...init?.headers },
+    })
+    if (!res.ok) throw new Error(\`\${res.status} \${res.statusText}\`)
+    return (res.status === 204 ? undefined : await res.json()) as T
+  }
+
+  async function load() {
+    try {
+      todos.value = await call<Todo[]>('/todos')
+      error.value = undefined
+    } catch {
+      error.value = 'Cannot reach the API. Is it running on port 3001?'
+    }
+  }
+
+  // In the browser only, like the React apps (the server renders the empty page)
+  onMounted(() => void load())
+
+  async function add() {
+    if (!title.value.trim()) return
+    await call('/todos', { method: 'POST', body: JSON.stringify({ title: title.value }) })
+    title.value = ''
+    await load()
+  }
+
+  async function toggle(todo: Todo) {
+    await call(\`/todos/\${todo.id}\`, {
+      method: 'PATCH',
+      body: JSON.stringify({ done: !todo.done }),
+    })
+    await load()
+  }
+
+  async function remove(todo: Todo) {
+    await call(\`/todos/\${todo.id}\`, { method: 'DELETE' })
+    await load()
+  }
+  </script>
+
+  <template>
+    <main class="page">
+      <h1>Todos</h1>
+      <form class="add" @submit.prevent="add">
+        <label for="title" class="sr-only">New todo</label>
+        <input
+          id="title"
+          v-model="title"
+          placeholder="What needs doing?"
+          maxlength="200"
+        />
+        <button type="submit">Add</button>
+      </form>
+      <p v-if="error" role="alert" class="error">{{ error }}</p>
+      <ul class="list">
+        <li v-for="todo in todos" :key="todo.id">
+          <label>
+            <input
+              type="checkbox"
+              :checked="todo.done"
+              @change="toggle(todo)"
+            />
+            <span :class="{ done: todo.done }">{{ todo.title }}</span>
+          </label>
+          <button
+            type="button"
+            :aria-label="\`Delete \${todo.title}\`"
+            @click="remove(todo)"
+          >
+            Delete
+          </button>
+        </li>
+      </ul>
+      <p v-if="!error && todos.length === 0" class="empty">
+        Nothing yet: add your first todo.
+      </p>
+    </main>
+  </template>
+`
+
+/** Nuxt 4: app/ holds the Vue code; the API URL is runtime config (NUXT_PUBLIC_API_URL). */
+function nuxtApp(o: ScaffoldOptions, ctx: AppContext): FileTree {
+  return {
+    'package.json': json({
+      name: 'web',
+      version: '0.1.0',
+      private: true,
+      type: 'module',
+      scripts: {
+        dev: 'nuxt dev --port 3000',
+        build: 'nuxt build',
+        start: 'node .output/server/index.mjs',
+        'check-types': 'nuxt typecheck',
+        // Generates .nuxt/ (types, tsconfig) that the editor and the type check read
+        postinstall: 'nuxt prepare',
+      },
+      dependencies: {
+        ...ctx.typesDependency,
+        nuxt: V.nuxt,
+        vue: V.vue,
+        'vue-router': V.vueRouter,
+      },
+      devDependencies: {
+        '@types/node': V.typesNode,
+        typescript: V.typescript,
+        'vue-tsc': V.vueTsc,
+      },
+    }),
+    'nuxt.config.ts': ctx.typesPaths
+      ? text`
+          import { fileURLToPath } from 'node:url'
+
+          export default defineNuxtConfig({
+            compatibilityDate: '2026-11-01',
+            css: ['~/assets/main.css'],
+            app: { head: { title: '${o.name}' } },
+            // Overridden at runtime by NUXT_PUBLIC_API_URL
+            runtimeConfig: { public: { apiUrl: 'http://localhost:3001/api' } },
+            // The local copy of the shared types (types.ts)
+            alias: { '@app/types': fileURLToPath(new URL('./types.ts', import.meta.url)) },
+          })
+        `
+      : text`
+          export default defineNuxtConfig({
+            compatibilityDate: '2026-11-01',
+            css: ['~/assets/main.css'],
+            app: { head: { title: '${o.name}' } },
+            // Overridden at runtime by NUXT_PUBLIC_API_URL
+            runtimeConfig: { public: { apiUrl: 'http://localhost:3001/api' } },
+          })
+        `,
+    // Nuxt writes the real configs into .nuxt/ (nuxt prepare)
+    'tsconfig.json': json({
+      files: [],
+      references: [
+        { path: './.nuxt/tsconfig.app.json' },
+        { path: './.nuxt/tsconfig.server.json' },
+        { path: './.nuxt/tsconfig.shared.json' },
+        { path: './.nuxt/tsconfig.node.json' },
+      ],
+    }),
+    '.env.example': 'NUXT_PUBLIC_API_URL=http://localhost:3001/api\n',
+    'app/app.vue': text`
+      <template>
+        <TodoApp />
+      </template>
+    `,
+    'app/components/TodoApp.vue': TODO_VUE,
+    'app/assets/main.css': css,
   }
 }

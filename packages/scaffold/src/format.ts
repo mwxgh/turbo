@@ -30,7 +30,7 @@ const PLUGINS: Record<string, Plugin> = {
 }
 
 // .prettierrc itself is JSON (Prettier checks it too)
-const FORMATTED = /(\.(ts|tsx|js|mjs|json|md|ya?ml|css)|\.prettierrc)$/
+const FORMATTED = /(\.(ts|tsx|vue|js|mjs|json|md|ya?ml|css)|\.prettierrc)$/
 
 /** `*.ts`-style globs of the .prettierrc overrides, on the file name. */
 const matches = (globs: string[], path: string) => {

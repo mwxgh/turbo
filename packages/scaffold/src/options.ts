@@ -40,7 +40,7 @@ export type Orm =
 /** A backend's language decides which ORMs exist for it. */
 export type Language = 'typescript' | 'java' | 'go' | 'python'
 export type Database = 'postgres' | 'mysql' | 'oracle' | 'mongodb'
-export type Frontend = 'next' | 'react'
+export type Frontend = 'next' | 'react' | 'nuxt'
 
 export interface Choice<T extends string> {
   value: T
@@ -82,7 +82,15 @@ export const MONOREPO_TOOLS = REPOS.filter((r) => r.value !== 'single')
 export const monorepoUnavailable = (backend: Backend): string | undefined =>
   LANGUAGE_OF[backend] === 'typescript'
     ? undefined
-    : 'Needs a TypeScript backend (NestJS or Express)'
+    : `Needs a TypeScript backend (${typescriptBackends()})`
+
+/** "NestJS, Express or Fastify": the TypeScript backends generated today. */
+const typescriptBackends = () => {
+  const labels = BACKENDS.filter(
+    (b) => LANGUAGE_OF[b.value] === 'typescript' && !b.planned,
+  ).map((b) => b.label)
+  return `${labels.slice(0, -1).join(', ')} or ${labels.at(-1)}`
+}
 
 export const BACKENDS: Choice<Backend>[] = [
   {
@@ -98,8 +106,7 @@ export const BACKENDS: Choice<Backend>[] = [
   {
     value: 'fastify',
     label: 'Fastify',
-    description: 'Fast TypeScript HTTP server with schemas.',
-    planned: true,
+    description: 'Fast TypeScript HTTP server: plugins, JSON schemas.',
   },
   {
     value: 'spring',
@@ -285,6 +292,11 @@ export const FRONTENDS: Choice<Frontend>[] = [
     label: 'React (Vite)',
     description: 'Single-page app built with Vite.',
   },
+  {
+    value: 'nuxt',
+    label: 'Nuxt',
+    description: 'Vue framework: file-based routing, server rendering.',
+  },
 ]
 
 export const DEFAULT_OPTIONS: ScaffoldOptions = {
@@ -328,7 +340,7 @@ export function incompatibilities(options: ScaffoldOptions): string[] {
     monorepoUnavailable(options.backend)
   )
     reasons.push(
-      `Repository: ${repo} needs a TypeScript backend (NestJS or Express). Pick No monorepo.`,
+      `Repository: ${repo} needs a TypeScript backend (${typescriptBackends()}). Pick No monorepo.`,
     )
   if (db && backend && orm) {
     const ids = ormIdsFor(options.backend, options.database)

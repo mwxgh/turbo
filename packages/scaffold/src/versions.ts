@@ -28,6 +28,9 @@ export const V = {
   typesCors: '2.8.19',
   tsx: '4.23.15',
 
+  fastify: '5.12.8',
+  fastifyCors: '11.4.0',
+
   prisma: '7.10.1',
   dotenv: '18.0.8',
   drizzleOrm: '0.45.4',
@@ -68,10 +71,20 @@ export const V = {
   expressRateLimit: '8.7.2',
   swaggerUiExpress: '5.0.1',
   typesSwaggerUiExpress: '4.1.8',
+  fastifyHelmet: '13.2.0',
+  fastifyRateLimit: '11.2.2',
+  fastifySwagger: '9.9.3',
+  fastifySwaggerUi: '6.1.2',
 
   react: '19.3.0',
   typesReact: '19.3.0',
   next: '16.4.5',
   vite: '8.3.5',
   vitePluginReact: '6.1.2',
+  nuxt: '4.6.4',
+  vue: '3.5.44',
+  vueRouter: '5.4.0',
+  vueTsc: '3.3.14',
+  eslintPluginVue: '10.12.0',
+  vueEslintParser: '10.4.1',
 } as const
