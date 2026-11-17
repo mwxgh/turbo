@@ -36,7 +36,7 @@ export const DATABASE_PROFILES: Record<Database, DatabaseProfile> = {
         '    volumes:',
         '      - db-data:/var/lib/postgresql',
         '    healthcheck:',
-        `      test: ['CMD-SHELL', 'pg_isready -U app -d ${ident(name)}']`,
+        `      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U app -d ${ident(name)}']`,
         '      interval: 3s',
         '      retries: 20',
       ].join('\n'),

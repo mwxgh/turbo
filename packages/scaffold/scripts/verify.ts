@@ -187,7 +187,7 @@ async function startDatabase(
 }
 
 const READY: Record<ScaffoldOptions['database'], string[]> = {
-  postgres: ['pg_isready', '-U', 'app'],
+  postgres: ['pg_isready', '-h', '127.0.0.1', '-U', 'app'],
   mysql: ['mysql', '-uapp', '-papp', '-h', '127.0.0.1', '-e', 'select 1'],
   oracle: ['healthcheck.sh'],
   mongodb: ['mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 })'],
