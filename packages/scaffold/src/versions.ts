@@ -50,7 +50,7 @@ export const V = {
   eslintPluginOnlyWarn: '1.2.1',
   eslintPluginReactHooks: '7.1.1',
   eslintPluginTurbo: '2.11.9',
-  nextEslintPlugin: '16.4.1',
+  nextEslintPlugin: '16.4.5',
   globals: '17.12.0',
   prettier: '3.9.6',
   prettierSortImports: '6.0.2',
@@ -71,7 +71,7 @@ export const V = {
 
   react: '19.3.0',
   typesReact: '19.3.0',
-  next: '16.4.1',
+  next: '16.4.5',
   vite: '8.3.5',
   vitePluginReact: '6.1.2',
 } as const
