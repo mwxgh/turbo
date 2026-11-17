@@ -489,11 +489,11 @@ TypeScript ghim **6.0.3** (bản 6.x mới nhất): TS 7.0 chỉ có binary `tsc
 
 ## Test
 
-| Lớp              | Lệnh                                                                        | Ở đâu                                                         | Cần gì                             |
-| ---------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------- |
-| Unit / component | `pnpm test` (`test:watch`, `test:cov`)                                      | `*.spec.ts(x)` / `*.test.ts` cạnh code                        | –                                  |
-| Backend e2e      | `pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis` | `apps/{api,socket}/test/*.e2e-spec.ts`, `packages/redis/test` | Postgres + Redis (`pnpm infra:up`) |
-| Browser e2e      | `pnpm turbo run test:e2e --filter=e2e`                                      | `apps/e2e/tests/*.spec.ts` (Playwright)                       | Postgres + browser                 |
+| Lớp              | Lệnh                                   | Ở đâu                                                         | Cần gì                             |
+| ---------------- | -------------------------------------- | ------------------------------------------------------------- | ---------------------------------- |
+| Unit / component | `pnpm test` (`test:watch`, `test:cov`) | `*.spec.ts(x)` / `*.test.ts` cạnh code                        | –                                  |
+| Backend e2e      | `pnpm test:e2e`                        | `apps/{api,socket}/test/*.e2e-spec.ts`, `packages/redis/test` | Postgres + Redis (`pnpm infra:up`) |
+| Browser e2e      | `pnpm test:e2e:browser`                | `apps/e2e/tests/*.spec.ts` (Playwright)                       | Postgres + browser                 |
 
 - Runner: **Vitest** cho mọi package, preset dùng chung trong `@repo/vitest-config` (`base`, `nest` – SWC để giữ decorator metadata cho DI, `react` – jsdom). Playwright cho trình duyệt.
 - Nest unit test dùng `Test.createTestingModule` + mock provider; e2e khởi động app thật bằng `configureApp()` (`src/app.setup.ts`) – cùng cấu hình với `main.ts`.

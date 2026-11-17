@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --filter=!e2e",
     "lint": "turbo run lint",
     "format": "prettier --write --check .",
     "check-types": "turbo run check-types",
@@ -41,7 +41,8 @@
     "deps:update": "pnpm update -r -i --latest",
     "docs:convert": "sh scripts/docs-convert.sh",
     "test:cov": "turbo run test:cov",
-    "test:e2e": "turbo run test:e2e"
+    "test:e2e": "turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis",
+    "test:e2e:browser": "turbo run test:e2e --filter=e2e"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
