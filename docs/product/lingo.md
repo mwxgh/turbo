@@ -206,7 +206,7 @@ flowchart LR
 khoảng 500–800 token đầu ra, chưa tính thinking. Với giá $4 / $20 mỗi 1M token và giảm 50% của Batches,
 1.000 câu khoảng $5–8 đầu ra. Bài đọc IELTS (khoảng 900 từ + 13 câu) dài hơn nhiều.
 
-Audio và ảnh cần dịch vụ khác: Claude API không có endpoint text-to-speech và không sinh ảnh.
+Audio và ảnh cần dịch vụ khác: Claude API không có endpoint text-to-speech và không sinh ảnh (chỉ đọc được ảnh).
 
 **Audio: Google Cloud Text-to-Speech** (đã chốt).
 
@@ -220,6 +220,18 @@ Audio và ảnh cần dịch vụ khác: Claude API không có endpoint text-to-
 - Gọi qua interface `TtsProvider` (`synthesize(lines) → mp3`). Kỳ thi khai báo vai giọng (`us-male`, `cn-female`…),
   mỗi provider có bảng map vai → giọng. Đổi sang ElevenLabs sau này chỉ cần thêm một provider và đặt
   `TTS_PROVIDER=elevenlabs`, không đổi nội dung đề.
+
+**Ảnh (TOEIC Part 1, thẻ từ vựng có ảnh): OpenAI image generation** (đã chốt).
+
+1. Claude viết mô tả cảnh (người, hành động, vật, bối cảnh công sở) theo spec Part 1.
+2. Worker gọi API sinh ảnh của OpenAI → lưu ảnh vào bucket S3 của môi trường.
+3. Claude **đọc ảnh vừa sinh** (vision) rồi mới viết 4 câu mô tả và đáp án, vì ảnh sinh ra có thể lệch mô tả.
+   Ảnh không khớp (thiếu người, chữ méo, chi tiết sai) → `NEEDS_REVIEW`.
+4. Admin duyệt ảnh cùng câu hỏi như mọi item.
+
+- Gọi qua interface `ImageProvider` (`generate(prompt) → png`), chọn bằng `IMAGE_PROVIDER`, giống `TtsProvider`.
+- `OPENAI_API_KEY` chỉ có trong `.env` server. [Unverified] Model ảnh cụ thể, kích thước và giá chọn khi làm
+  giai đoạn 3, sau khi kiểm tra tài liệu OpenAI hiện tại.
 
 ## 6. Mô hình dữ liệu (Prisma, tiền tố `Lingo`)
 
@@ -313,13 +325,13 @@ Mỗi giai đoạn: PR vào `develop` → tự lên **dev**, rồi theo release 
 
 ## 10. Câu hỏi mở
 
-1. **Ảnh TOEIC Part 1:** AI sinh ảnh / ảnh stock miễn phí + Claude viết câu mô tả / tạm bỏ Part 1.
-2. **Anthropic API key và ngân sách tháng:** môi trường nào sinh đề?
-3. **Nội dung dùng chung giữa dev / stg / prod?** Mỗi môi trường DB riêng: cần lệnh export/import đề đã duyệt không?
-4. **Bảng quy đổi điểm:** chấp nhận bảng ước tính ở MVP, hiệu chỉnh sau?
+1. **Anthropic API key và ngân sách tháng:** môi trường nào sinh đề?
+2. **Nội dung dùng chung giữa dev / stg / prod?** Mỗi môi trường DB riêng: cần lệnh export/import đề đã duyệt không?
+3. **Bảng quy đổi điểm:** chấp nhận bảng ước tính ở MVP, hiệu chỉnh sau?
 
 ## 11. Quyết định cần ADR
 
 - `0012` Cấu trúc kỳ thi khai báo bằng code (`packages/exam-specs`), nội dung trong DB; mã kỳ thi / Part là chuỗi, không phải enum.
 - `0013` Sinh nội dung bằng Claude qua Batches API, bắt buộc admin duyệt trước khi xuất bản.
 - `0014` Audio học bằng Google Cloud Text-to-Speech qua interface `TtsProvider` (thay được bằng ElevenLabs), sinh một lần lúc tạo nội dung, lưu S3.
+- `0015` Ảnh học bằng OpenAI image generation qua interface `ImageProvider`, Claude kiểm ảnh trước khi viết câu hỏi.
