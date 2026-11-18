@@ -52,6 +52,12 @@ model User {
   sessions   Session[]
   identities UserIdentity[]
 
+  lingoBatches    LingoBatch[]
+  lingoAttempts   LingoAttempt[]
+  lingoGoals      LingoGoal[]
+  lingoDecks      LingoDeck[]
+  lingoCardStates LingoCardState[]
+
   @@map("users")
 }
 
@@ -98,4 +104,231 @@ model Session {
 
   @@index([userId])
   @@map("sessions")
+}
+
+// ─── Lingo: language learning and exam prep (docs/product/lingo.md) ───────────────────────────
+// Exam / section / part codes are strings defined in apps/api/src/lingo/specs (not enums), so a
+// new exam needs no migration.
+
+/// Review state of learning content: only PUBLISHED reaches learners
+enum LingoContentStatus {
+  DRAFT
+  NEEDS_REVIEW
+  PUBLISHED
+  REJECTED
+}
+
+enum LingoDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+/// Where a batch of content came from
+enum LingoBatchSource {
+  MANUAL
+  IMPORT
+  AI
+}
+
+/// QUICK: a few questions of one part; PRACTICE: chosen parts of a test; FULL_TEST: scaled score
+enum LingoAttemptMode {
+  QUICK
+  PRACTICE
+  FULL_TEST
+}
+
+/// One import / manual entry / AI run: what came in and what was rejected
+model LingoBatch {
+  id          String           @id @default(uuid(7)) @db.Uuid
+  source      LingoBatchSource
+  exam        String           @db.VarChar(32)
+  part        String?          @db.VarChar(16)
+  fileName    String?          @map("file_name") @db.VarChar(255)
+  succeeded   Int              @default(0)
+  failed      Int              @default(0)
+  /// `[{ line, issues: string[] }]` for rows that failed validation
+  errors      Json?
+  createdById String           @map("created_by_id") @db.Uuid
+  createdBy   User             @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  items LingoItem[]
+
+  @@index([createdAt, id])
+  @@map("lingo_batches")
+}
+
+/// One stimulus (sentence, passage, recording, picture) with its questions
+model LingoItem {
+  id          String             @id @default(uuid(7)) @db.Uuid
+  exam        String             @db.VarChar(32)
+  section     String             @db.VarChar(16)
+  part        String             @db.VarChar(16)
+  difficulty  LingoDifficulty
+  topic       String?            @db.VarChar(100)
+  /// Stimulus as JSON (`{ passage?, transcript? }`), shape set by the part spec
+  content     Json               @default("{}")
+  audioKey    String?            @map("audio_key") @db.VarChar(255)
+  imageKey    String?            @map("image_key") @db.VarChar(255)
+  status      LingoContentStatus @default(DRAFT)
+  batchId     String?            @map("batch_id") @db.Uuid
+  batch       LingoBatch?        @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  /// sha256 of the canonical item: the same item is never imported twice
+  contentHash String             @map("content_hash") @db.Char(64)
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  questions LingoQuestion[]
+
+  @@unique([exam, contentHash])
+  @@index([exam, part, status])
+  @@index([createdAt, id])
+  @@map("lingo_items")
+}
+
+/// One question of an item. `answer` is never sent before the learner submits it
+model LingoQuestion {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  itemId        String    @map("item_id") @db.Uuid
+  item          LingoItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  order         Int       @default(0)
+  /// QuestionType of the spec (SINGLE_CHOICE…)
+  type          String    @db.VarChar(32)
+  /// `{ text?, options: string[] }` for SINGLE_CHOICE
+  prompt        Json
+  /// `{ choice: number }` for SINGLE_CHOICE
+  answer        Json
+  explanationVi String    @default("") @map("explanation_vi")
+  translationVi String?   @map("translation_vi")
+  skillTags     String[]  @map("skill_tags")
+
+  answers LingoAnswer[]
+
+  @@index([itemId, order])
+  @@map("lingo_questions")
+}
+
+/// A practice session or test taken by a user
+model LingoAttempt {
+  id           String           @id @default(uuid(7)) @db.Uuid
+  userId       String           @map("user_id") @db.Uuid
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam         String           @db.VarChar(32)
+  mode         LingoAttemptMode
+  parts        String[]
+  timeLimitSec Int?             @map("time_limit_sec")
+  total        Int
+  correct      Int?
+  /// Per section `{ L: { correct, total, scaled? } }`, set on submit
+  scores       Json?
+  startedAt    DateTime         @default(now()) @map("started_at") @db.Timestamptz(3)
+  submittedAt  DateTime?        @map("submitted_at") @db.Timestamptz(3)
+
+  answers LingoAnswer[]
+
+  @@index([userId, startedAt])
+  @@map("lingo_attempts")
+}
+
+/// A learner's answer to one question of an attempt (row created when the attempt starts)
+model LingoAnswer {
+  id         String        @id @default(uuid(7)) @db.Uuid
+  attemptId  String        @map("attempt_id") @db.Uuid
+  attempt    LingoAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId String        @map("question_id") @db.Uuid
+  question   LingoQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  order      Int
+  /// `{ choice: number }` for SINGLE_CHOICE; null = not answered
+  response   Json?
+  /// Set on submit
+  correct    Boolean?
+  timeMs     Int?          @map("time_ms")
+  flagged    Boolean       @default(false)
+  answeredAt DateTime?     @map("answered_at") @db.Timestamptz(3)
+
+  @@unique([attemptId, questionId])
+  @@index([questionId])
+  @@map("lingo_answers")
+}
+
+/// A learner's goal for one exam
+model LingoGoal {
+  userId         String    @map("user_id") @db.Uuid
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam           String    @db.VarChar(32)
+  /// In the exam's scale (TOEIC 10–990)
+  targetScore    Int?      @map("target_score")
+  examDate       DateTime? @map("exam_date") @db.Date
+  newCardsPerDay Int       @default(20) @map("new_cards_per_day")
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@id([userId, exam])
+  @@map("lingo_goals")
+}
+
+/// A flashcard deck: system deck (ownerId null) or a learner's own
+model LingoDeck {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  exam        String?  @db.VarChar(32)
+  ownerId     String?  @map("owner_id") @db.Uuid
+  owner       User?    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title       String   @db.VarChar(100)
+  description String?  @db.VarChar(500)
+  /// BCP 47 of the terms (en, zh…)
+  language    String   @db.VarChar(8)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  cards LingoCard[]
+
+  @@index([exam])
+  @@index([ownerId])
+  @@map("lingo_decks")
+}
+
+model LingoCard {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  deckId    String    @map("deck_id") @db.Uuid
+  deck      LingoDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  term      String    @db.VarChar(100)
+  pos       String?   @db.VarChar(20)
+  /// IPA (en) or pinyin (zh)
+  reading   String?   @db.VarChar(100)
+  meaningVi String    @map("meaning_vi") @db.VarChar(500)
+  example   String?   @db.VarChar(500)
+  exampleVi String?   @map("example_vi") @db.VarChar(500)
+  topic     String?   @db.VarChar(50)
+  audioKey  String?   @map("audio_key") @db.VarChar(255)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  states LingoCardState[]
+
+  @@unique([deckId, term])
+  @@map("lingo_cards")
+}
+
+/// FSRS memory state of one card for one learner (ts-fsrs `Card`); created on the first review
+model LingoCardState {
+  userId        String    @map("user_id") @db.Uuid
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cardId        String    @map("card_id") @db.Uuid
+  card          LingoCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  due           DateTime  @db.Timestamptz(3)
+  stability     Float
+  difficulty    Float
+  elapsedDays   Int       @map("elapsed_days")
+  scheduledDays Int       @map("scheduled_days")
+  learningSteps Int       @map("learning_steps")
+  reps          Int
+  lapses        Int
+  /// ts-fsrs State: 0 New, 1 Learning, 2 Review, 3 Relearning
+  state         Int
+  lastReview    DateTime? @map("last_review") @db.Timestamptz(3)
+  /// First review: counts against the learner's new cards per day
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@id([userId, cardId])
+  @@index([userId, due])
+  @@map("lingo_card_states")
 }
