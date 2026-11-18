@@ -49,7 +49,7 @@ Người dùng: mọi tài khoản đã đăng nhập. Tiến độ riêng từn
 Ý chính: **cấu trúc kỳ thi là code, nội dung là dữ liệu.**
 
 ```
-Exam (TOEIC_LR, IELTS_AC, HSK3…)         ← code: packages/exam-specs
+Exam (TOEIC_LR, IELTS_AC, HSK3…)         ← code: apps/api/src/lingo/specs
  └─ Section (Listening, Reading…)          thời gian, cách quy đổi điểm
      └─ Part (TOEIC Part 5, IELTS Recording 1, HSK 阅读 第一部分…)
          └─ dạng câu cho phép, số câu, tag dạng câu
@@ -58,12 +58,12 @@ Test (một đề)                             ← dữ liệu: DB
                  └─ Question (dạng câu + đáp án + giải thích)
 ```
 
-### 3.1 `packages/exam-specs` (mới)
+### 3.1 `apps/api/src/lingo/specs`
 
-Mỗi kỳ thi là một file khai báo. Thêm kỳ thi = thêm một file + nội dung, không migration.
+Mỗi kỳ thi là một file khai báo trong api (không tách package riêng, xem ADR 0012). Thêm kỳ thi = thêm một file + nội dung, không migration.
 
 ```ts
-// packages/exam-specs/src/toeic-lr.ts
+// apps/api/src/lingo/specs/toeic-lr.ts
 export const toeicLr = defineExam({
   code: 'TOEIC_LR',
   name: 'TOEIC Listening & Reading',
@@ -111,8 +111,8 @@ export const toeicLr = defineExam({
 })
 ```
 
-- Dùng ở cả api (kiểm tra khi nhập, chấm, quy đổi điểm) và web (dựng màn chọn Part, thời gian).
-- Mỗi dạng câu có **schema Zod** dùng chung cho: kiểm tra file nhập ở api, form nhập / duyệt ở web, và structured output khi có AI sinh đề.
+- Api dùng để kiểm tra khi nhập, chấm, quy đổi điểm. Web lấy cấu trúc qua `GET /lingo/exams/:exam` (kèm số câu đã xuất bản mỗi Part), không khai báo lại.
+- Mỗi dạng câu có **schema Zod** (`specs/schemas.ts`): kiểm tra file nhập ở api, và structured output khi có AI sinh đề. Lỗi trả về theo từng dòng cho web.
 
 ### 3.2 Dạng câu (`QuestionType`)
 
@@ -142,7 +142,7 @@ Mỗi Section khai báo hàm quy đổi trong spec. [Unverified] Các bảng sau
 Giống study4: chỉ chế độ **Full test** mới có điểm quy đổi. Chế độ luyện chỉ có số câu đúng.
 
 **Đã chốt:** MVP dùng bảng **ước tính** (số câu đúng → điểm, nội suy tuyến tính theo đoạn), khai báo trong
-`exam-specs` cạnh Section. Hiệu chỉnh bảng sau chỉ cần sửa spec; điểm đã lưu của các lần thi cũ giữ nguyên.
+`specs` cạnh Section. Hiệu chỉnh bảng sau chỉ cần sửa spec; điểm đã lưu của các lần thi cũ giữ nguyên.
 
 ## 4. Tính năng
 
@@ -187,7 +187,7 @@ Giống study4: chỉ chế độ **Full test** mới có điểm quy đổi. Ch
 ## 5. Nhập nội dung
 
 MVP **không dùng AI để tạo nội dung**. Mọi nguồn đi qua cùng một đường: kiểm tra bằng schema Zod của
-`exam-specs` → `DRAFT` → admin duyệt → `PUBLISHED`. Thêm nguồn mới (AI) không đổi phần còn lại.
+`specs` → `DRAFT` → admin duyệt → `PUBLISHED`. Thêm nguồn mới (AI) không đổi phần còn lại.
 
 ```mermaid
 flowchart LR
@@ -195,7 +195,7 @@ flowchart LR
   B[File JSON đề] --> V
   C[File CSV từ vựng] --> V
   X[AI sinh đề<br/>sau MVP] -.-> V
-  V[Kiểm tra schema<br/>exam-specs] --> M[TTS audio / ảnh]
+  V[Kiểm tra schema<br/>specs] --> M[TTS audio / ảnh]
   M --> F[(DRAFT)]
   F --> G[Admin duyệt]
   G --> H[(PUBLISHED)]
@@ -214,7 +214,7 @@ flowchart LR
 ```ts
 // apps/api/src/lingo/admin/import.service.ts
 async importItems(exam: string, part: string, raw: unknown[], userId: string) {
-  const schema = getExam(exam).part(part).itemSchema // @repo/exam-specs
+  const schema = getExam(exam).part(part).itemSchema // apps/api/src/lingo/specs
   const results = raw.map((r) => schema.safeParse(r))
   const ok = results.filter((r) => r.success).map((r) => r.data)
   const batch = await this.db.lingoBatch.create({
@@ -300,7 +300,7 @@ erDiagram
 | `LingoHighlight` | `userId`, `attemptId`, `questionId?`, `text`, `cardId?`                                                                                                                                                           |
 | `LingoBatch`     | `source` (MANUAL, IMPORT, AI), `exam`, `part?`, `fileName?`, `succeeded`, `failed`, `errors` (JSON), `meta` (JSON: model, usage khi là AI), `createdBy`                                                           |
 
-- `exam`, `section`, `part` là chuỗi mã trong `exam-specs` (không phải enum Prisma), nên thêm kỳ thi không cần migration. Api kiểm tra mã hợp lệ bằng spec.
+- `exam`, `section`, `part` là chuỗi mã trong `specs` (không phải enum Prisma), nên thêm kỳ thi không cần migration. Api kiểm tra mã hợp lệ bằng spec.
 - Sổ câu sai, thống kê dạng câu, streak tính từ `LingoAnswer` / `LingoCardState`.
 
 ## 7. API (`apps/api/src/lingo`)
@@ -346,32 +346,32 @@ Thêm kỳ thi mới không cần màn mới. Giao diện theo skill `ui-ux-pro-
 
 ## 9. Lộ trình
 
-| Giai đoạn | Nội dung                                                                                                                | Kết quả dùng được           |
-| --------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| 1         | `exam-specs` (TOEIC), schema, nhập (form + JSON) và duyệt Part 5, luyện nhanh Part 5, nhập CSV từ vựng + SRS, dashboard | Học từ vựng + ngữ pháp      |
-| 2         | Part 6, 7; ghép đề; thư viện đề; chế độ Luyện tập theo Part; highlight → thẻ                                            | Luyện đủ Reading như study4 |
-| 3         | TTS, Listening Part 1–4                                                                                                 | Luyện đủ Listening          |
-| 4         | Full test + điểm quy đổi, mini test, điểm dự đoán theo thời gian                                                        | Thi thử TOEIC đầy đủ        |
-| 5         | IELTS Listening + Reading (`GAP_FILL`, `TRUE_FALSE_NG`, `MATCHING`, `MULTI_CHOICE`)                                     | Kỳ thi thứ hai              |
-| 6         | HSK (thẻ pinyin, `ORDERING`), AI chấm IELTS Writing                                                                     | Kỳ thi thứ ba               |
-| 7         | AI sinh đề qua `LlmProvider` (Claude API hoặc model local), AI điền thẻ highlight, AI viết câu Part 1 từ ảnh            | Bớt việc soạn đề tay        |
+| Giai đoạn | Nội dung                                                                                                           | Kết quả dùng được           |
+| --------- | ------------------------------------------------------------------------------------------------------------------ | --------------------------- |
+| 1         | `specs` (TOEIC), schema, nhập (form + JSON) và duyệt Part 5, luyện nhanh Part 5, nhập CSV từ vựng + SRS, dashboard | Học từ vựng + ngữ pháp      |
+| 2         | Part 6, 7; ghép đề; thư viện đề; chế độ Luyện tập theo Part; highlight → thẻ                                       | Luyện đủ Reading như study4 |
+| 3         | TTS, Listening Part 1–4                                                                                            | Luyện đủ Listening          |
+| 4         | Full test + điểm quy đổi, mini test, điểm dự đoán theo thời gian                                                   | Thi thử TOEIC đầy đủ        |
+| 5         | IELTS Listening + Reading (`GAP_FILL`, `TRUE_FALSE_NG`, `MATCHING`, `MULTI_CHOICE`)                                | Kỳ thi thứ hai              |
+| 6         | HSK (thẻ pinyin, `ORDERING`), AI chấm IELTS Writing                                                                | Kỳ thi thứ ba               |
+| 7         | AI sinh đề qua `LlmProvider` (Claude API hoặc model local), AI điền thẻ highlight, AI viết câu Part 1 từ ảnh       | Bớt việc soạn đề tay        |
 
 Mỗi giai đoạn: PR vào `develop` → tự lên **dev**, rồi theo release lên stg và prod.
 
 ## 10. Đã chốt
 
-| Câu hỏi                      | Quyết định                                                                                                  |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Tên app                      | Lingo, `/lingo`. Gym là app riêng về sau                                                                    |
-| Nguồn nội dung MVP           | Admin nhập (form, JSON, CSV), chưa dùng AI                                                                  |
-| Audio                        | Google Cloud TTS qua `TtsProvider`                                                                          |
-| Ảnh Part 1                   | OpenAI image generation qua `ImageProvider`                                                                 |
-| Nội dung giữa các môi trường | Không đồng bộ. Mỗi môi trường tự nhập. Repo có vài item mẫu (`packages/exam-specs/fixtures`) cho dev và e2e |
-| Quy đổi điểm                 | Bảng ước tính trong `exam-specs`, hiệu chỉnh sau                                                            |
+| Câu hỏi                      | Quyết định                                                                                                                                    |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tên app                      | Lingo, `/lingo`. Gym là app riêng về sau                                                                                                      |
+| Nguồn nội dung MVP           | Admin nhập (form, JSON, CSV), chưa dùng AI                                                                                                    |
+| Audio                        | Google Cloud TTS qua `TtsProvider`                                                                                                            |
+| Ảnh Part 1                   | OpenAI image generation qua `ImageProvider`                                                                                                   |
+| Nội dung giữa các môi trường | Không đồng bộ. Mỗi môi trường tự nhập. Repo có vài item mẫu (`POST /lingo/admin/samples` nạp từ `apps/api/src/lingo/fixtures`) cho dev và e2e |
+| Quy đổi điểm                 | Bảng ước tính trong `specs`, hiệu chỉnh sau                                                                                                   |
 
 ## 11. Quyết định cần ADR
 
-- `0012` Cấu trúc kỳ thi khai báo bằng code (`packages/exam-specs`), nội dung trong DB; mã kỳ thi / Part là chuỗi, không phải enum.
-- `0013` Mọi nội dung học vào qua một đường nhập chung (kiểm tra schema `exam-specs` → DRAFT → admin duyệt). MVP nhập tay / JSON / CSV, AI là nguồn thêm sau qua `LlmProvider`.
+- `0012` Cấu trúc kỳ thi khai báo bằng code (`apps/api/src/lingo/specs`), nội dung trong DB; mã kỳ thi / Part là chuỗi, không phải enum.
+- `0013` Mọi nội dung học vào qua một đường nhập chung (kiểm tra schema `specs` → DRAFT → admin duyệt). MVP nhập tay / JSON / CSV, AI là nguồn thêm sau qua `LlmProvider`.
 - `0014` Audio học bằng Google Cloud Text-to-Speech qua interface `TtsProvider` (thay được bằng ElevenLabs), sinh một lần lúc tạo nội dung, lưu S3.
 - `0015` Ảnh học bằng OpenAI image generation qua interface `ImageProvider`, câu hỏi viết sau khi xem ảnh thật.
