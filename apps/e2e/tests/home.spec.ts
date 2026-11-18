@@ -6,13 +6,10 @@ test('home lists the apps and shows the API as online', async ({ page }) => {
   await expect(
     page.getByRole('heading', { name: 'Choose an app', level: 1 }),
   ).toBeVisible()
-  for (const name of ['Hellos', 'Chat', 'Files'])
+  for (const name of ['Hellos', 'Chat', 'Files', 'Studio'])
     await expect(
       page.getByRole('link', { name: new RegExp(name) }),
     ).toBeVisible()
-  // Not available yet: shown, but not a link
-  await expect(page.getByText('Coming soon')).toBeVisible()
-  await expect(page.getByRole('link', { name: /Studio/ })).toHaveCount(0)
   await expect(page.getByText('online')).toBeVisible()
 })
 

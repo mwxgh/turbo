@@ -1,0 +1,1460 @@
+{
+  "app-nx-express-mongodb-mongoose-next": {
+    "hash": "07a8e67909465e8a",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 30
+  },
+  "app-nx-express-mongodb-mongoose-nuxt": {
+    "hash": "797acedab6fa6d9d",
+    "ok": true,
+    "seconds": 35,
+    "date": "2026-11-17"
+  },
+  "app-nx-express-mongodb-mongoose-react": {
+    "hash": "372510d7f2c21215",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 27
+  },
+  "app-nx-express-mongodb-none-next": {
+    "hash": "051434a07dfaaa9f",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 33
+  },
+  "app-nx-express-mongodb-none-nuxt": {
+    "hash": "b633f1f019bba455",
+    "ok": true,
+    "seconds": 35,
+    "date": "2026-11-17"
+  },
+  "app-nx-express-mongodb-none-react": {
+    "hash": "d816c903c42c0133",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 26
+  },
+  "app-nx-express-mysql-drizzle-next": {
+    "hash": "75318e79cbc4d040",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 46
+  },
+  "app-nx-express-mysql-drizzle-nuxt": {
+    "hash": "d541aa73d17e2307",
+    "ok": true,
+    "seconds": 49,
+    "date": "2026-11-17"
+  },
+  "app-nx-express-mysql-drizzle-react": {
+    "hash": "624dec872bb7c23f",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 40
+  },
+  "app-nx-express-mysql-prisma-next": {
+    "hash": "edb05397db10aab3",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 46
+  },
+  "app-nx-express-mysql-prisma-nuxt": {
+    "hash": "81020ad931c0c5f6",
+    "ok": true,
+    "seconds": 45,
+    "date": "2026-11-17"
+  },
+  "app-nx-express-mysql-prisma-react": {
+    "hash": "e9d6db1a42a5c1a9",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 41
+  },
+  "app-nx-express-mysql-typeorm-next": {
+    "hash": "a73dcedbeaff0fae",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 38
+  },
+  "app-nx-express-mysql-typeorm-nuxt": {
+    "hash": "771654ec476e32ef",
+    "ok": true,
+    "seconds": 46,
+    "date": "2026-11-17"
+  },
+  "app-nx-express-mysql-typeorm-react": {
+    "hash": "8dd23ba064ed3bc4",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 36
+  },
+  "app-nx-express-oracle-typeorm-next": {
+    "hash": "4d6a1c0386520367",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 35
+  },
+  "app-nx-express-oracle-typeorm-nuxt": {
+    "hash": "5e039a4a9caad715",
+    "ok": true,
+    "seconds": 42,
+    "date": "2026-11-17"
+  },
+  "app-nx-express-oracle-typeorm-react": {
+    "hash": "cc8693dbe14e01a0",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 33
+  },
+  "app-nx-express-postgres-drizzle-next": {
+    "hash": "7f910aa48c5f1680",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 41
+  },
+  "app-nx-express-postgres-drizzle-nuxt": {
+    "hash": "fdc6b52c9ef63a5c",
+    "ok": true,
+    "seconds": 47,
+    "date": "2026-11-17"
+  },
+  "app-nx-express-postgres-drizzle-react": {
+    "hash": "65a4e528ca460e2d",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 34
+  },
+  "app-nx-express-postgres-prisma-next": {
+    "hash": "dded654bd1c0ea18",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 42
+  },
+  "app-nx-express-postgres-prisma-nuxt": {
+    "hash": "eb4682adec034566",
+    "ok": true,
+    "seconds": 46,
+    "date": "2026-11-17"
+  },
+  "app-nx-express-postgres-prisma-react": {
+    "hash": "bd81238bc6edb3a7",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 36
+  },
+  "app-nx-express-postgres-typeorm-next": {
+    "hash": "30f936459e828d88",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 36
+  },
+  "app-nx-express-postgres-typeorm-nuxt": {
+    "hash": "456e51812f493864",
+    "ok": true,
+    "seconds": 43,
+    "date": "2026-11-17"
+  },
+  "app-nx-express-postgres-typeorm-react": {
+    "hash": "22bd5c621f78d9b3",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 30
+  },
+  "app-nx-fastify-mongodb-mongoose-next": {
+    "hash": "6569c4604e049bfd",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 37
+  },
+  "app-nx-fastify-mongodb-mongoose-nuxt": {
+    "hash": "2c43425b1eb3a058",
+    "ok": true,
+    "seconds": 37,
+    "date": "2026-11-17"
+  },
+  "app-nx-fastify-mongodb-mongoose-react": {
+    "hash": "99a28aa56b8ce265",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 32
+  },
+  "app-nx-fastify-mongodb-none-next": {
+    "hash": "87e5bca3dd72eba7",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 34
+  },
+  "app-nx-fastify-mongodb-none-nuxt": {
+    "hash": "bcd9c1abd13341a5",
+    "ok": true,
+    "seconds": 32,
+    "date": "2026-11-17"
+  },
+  "app-nx-fastify-mongodb-none-react": {
+    "hash": "414f38eb5dec7f46",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 31
+  },
+  "app-nx-fastify-mysql-drizzle-next": {
+    "hash": "d9dcd3bbd2448d9f",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 45
+  },
+  "app-nx-fastify-mysql-drizzle-nuxt": {
+    "hash": "cad6092460b0388b",
+    "ok": true,
+    "seconds": 47,
+    "date": "2026-11-17"
+  },
+  "app-nx-fastify-mysql-drizzle-react": {
+    "hash": "b79b1107cc7374e9",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 43
+  },
+  "app-nx-fastify-mysql-prisma-next": {
+    "hash": "0a0f9a6d7850037a",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 48
+  },
+  "app-nx-fastify-mysql-prisma-nuxt": {
+    "hash": "01850d67b65a52b5",
+    "ok": true,
+    "seconds": 49,
+    "date": "2026-11-17"
+  },
+  "app-nx-fastify-mysql-prisma-react": {
+    "hash": "c5b08433ac1a5933",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 43
+  },
+  "app-nx-fastify-mysql-typeorm-next": {
+    "hash": "15d49d696d2f33fe",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 40
+  },
+  "app-nx-fastify-mysql-typeorm-nuxt": {
+    "hash": "1ba31eb050d49e66",
+    "ok": true,
+    "seconds": 43,
+    "date": "2026-11-17"
+  },
+  "app-nx-fastify-mysql-typeorm-react": {
+    "hash": "db9105f646b08c04",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 34
+  },
+  "app-nx-fastify-oracle-typeorm-next": {
+    "hash": "6d9fedd69219c91e",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 44
+  },
+  "app-nx-fastify-oracle-typeorm-nuxt": {
+    "hash": "d7c079fcc1afe672",
+    "ok": true,
+    "seconds": 45,
+    "date": "2026-11-17"
+  },
+  "app-nx-fastify-oracle-typeorm-react": {
+    "hash": "923253921d131f33",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 39
+  },
+  "app-nx-fastify-postgres-drizzle-next": {
+    "hash": "dcdbdf7bd230c844",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 42
+  },
+  "app-nx-fastify-postgres-drizzle-nuxt": {
+    "hash": "b0dee806682c72d7",
+    "ok": true,
+    "seconds": 42,
+    "date": "2026-11-17"
+  },
+  "app-nx-fastify-postgres-drizzle-react": {
+    "hash": "2dcc8a6caf68d497",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 38
+  },
+  "app-nx-fastify-postgres-prisma-next": {
+    "hash": "463403b74f02556d",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 46
+  },
+  "app-nx-fastify-postgres-prisma-nuxt": {
+    "hash": "9720ab63b016567e",
+    "ok": true,
+    "seconds": 44,
+    "date": "2026-11-17"
+  },
+  "app-nx-fastify-postgres-prisma-react": {
+    "hash": "eec0ac3a59dde6b6",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 39
+  },
+  "app-nx-fastify-postgres-typeorm-next": {
+    "hash": "8ae279f1b7a557b2",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 38
+  },
+  "app-nx-fastify-postgres-typeorm-nuxt": {
+    "hash": "100b2108adf0f7af",
+    "ok": true,
+    "seconds": 39,
+    "date": "2026-11-17"
+  },
+  "app-nx-fastify-postgres-typeorm-react": {
+    "hash": "87c0762bb7b26828",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 25
+  },
+  "app-nx-nest-mongodb-mongoose-next": {
+    "hash": "c9962cf413975837",
+    "ok": true,
+    "seconds": 29,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mongodb-mongoose-nuxt": {
+    "hash": "3f18dd5cba351a13",
+    "ok": true,
+    "seconds": 35,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mongodb-mongoose-react": {
+    "hash": "1037872e4905021d",
+    "ok": true,
+    "seconds": 25,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mongodb-none-next": {
+    "hash": "d203492b9b2ea6e4",
+    "ok": true,
+    "seconds": 26,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mongodb-none-nuxt": {
+    "hash": "e255641879078f50",
+    "ok": true,
+    "seconds": 35,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mongodb-none-react": {
+    "hash": "09d5170d68da84b9",
+    "ok": true,
+    "seconds": 21,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mysql-drizzle-next": {
+    "hash": "b48f5bf510542562",
+    "ok": true,
+    "seconds": 45,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mysql-drizzle-nuxt": {
+    "hash": "2e4f65291f794250",
+    "ok": true,
+    "seconds": 48,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mysql-drizzle-react": {
+    "hash": "19f95296d76ab65f",
+    "ok": true,
+    "seconds": 40,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mysql-prisma-next": {
+    "hash": "f0c3831cf5b5864b",
+    "ok": true,
+    "seconds": 44,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mysql-prisma-nuxt": {
+    "hash": "a3229651244ae1cd",
+    "ok": true,
+    "seconds": 48,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mysql-prisma-react": {
+    "hash": "341384045a1407e4",
+    "ok": true,
+    "seconds": 41,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mysql-typeorm-next": {
+    "hash": "6d787b34188863ba",
+    "ok": true,
+    "seconds": 39,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mysql-typeorm-nuxt": {
+    "hash": "166fceda8bb28c0f",
+    "ok": true,
+    "seconds": 45,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-mysql-typeorm-react": {
+    "hash": "ebaf2f4949a036e9",
+    "ok": true,
+    "seconds": 35,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-oracle-typeorm-next": {
+    "hash": "d8b9eac4a9533b7a",
+    "ok": true,
+    "seconds": 36,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-oracle-typeorm-nuxt": {
+    "hash": "3977f0a267c9b3cc",
+    "ok": true,
+    "seconds": 41,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-oracle-typeorm-react": {
+    "hash": "00e6d850ae941d88",
+    "ok": true,
+    "seconds": 27,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-postgres-drizzle-next": {
+    "hash": "4d1ad208de38c552",
+    "ok": true,
+    "seconds": 43,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-postgres-drizzle-nuxt": {
+    "hash": "506ae5049daa97fb",
+    "ok": true,
+    "seconds": 48,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-postgres-drizzle-react": {
+    "hash": "d3ac1eaf0a2bd83a",
+    "ok": true,
+    "seconds": 36,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-postgres-prisma-next": {
+    "hash": "a032179aedbd611b",
+    "ok": true,
+    "seconds": 41,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-postgres-prisma-nuxt": {
+    "hash": "269d57b40f28585a",
+    "ok": true,
+    "seconds": 49,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-postgres-prisma-react": {
+    "hash": "0e9f24c983930835",
+    "ok": true,
+    "seconds": 36,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-postgres-typeorm-next": {
+    "hash": "426a98622aa59325",
+    "ok": true,
+    "seconds": 37,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-postgres-typeorm-nuxt": {
+    "hash": "e9ee89352c9c1017",
+    "ok": true,
+    "seconds": 43,
+    "date": "2026-11-17"
+  },
+  "app-nx-nest-postgres-typeorm-react": {
+    "hash": "722ff3f10c489a84",
+    "ok": true,
+    "seconds": 23,
+    "date": "2026-11-17"
+  },
+  "app-single-express-mongodb-mongoose-next": {
+    "hash": "2f62659b5f772707",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 21
+  },
+  "app-single-express-mongodb-mongoose-nuxt": {
+    "hash": "4a5f5ea3f2a896ec",
+    "ok": true,
+    "seconds": 21,
+    "date": "2026-11-17"
+  },
+  "app-single-express-mongodb-mongoose-react": {
+    "hash": "e5a9fafe4e7c0a48",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 15
+  },
+  "app-single-express-mongodb-none-next": {
+    "hash": "25426e4df715842f",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 17
+  },
+  "app-single-express-mongodb-none-nuxt": {
+    "hash": "f7ea31ed69e49105",
+    "ok": true,
+    "seconds": 18,
+    "date": "2026-11-17"
+  },
+  "app-single-express-mongodb-none-react": {
+    "hash": "df4bf66af46c7855",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 10
+  },
+  "app-single-express-mysql-drizzle-next": {
+    "hash": "796be27904d5f2e4",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 31
+  },
+  "app-single-express-mysql-drizzle-nuxt": {
+    "hash": "6a1ce34a798b082c",
+    "ok": true,
+    "seconds": 33,
+    "date": "2026-11-17"
+  },
+  "app-single-express-mysql-drizzle-react": {
+    "hash": "bbe91074dfe9930c",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 24
+  },
+  "app-single-express-mysql-prisma-next": {
+    "hash": "5efe6eeb3d2df923",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 31
+  },
+  "app-single-express-mysql-prisma-nuxt": {
+    "hash": "c8d2e46095ad8612",
+    "ok": true,
+    "seconds": 34,
+    "date": "2026-11-17"
+  },
+  "app-single-express-mysql-prisma-react": {
+    "hash": "ef5e59f96f23aa7d",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 27
+  },
+  "app-single-express-mysql-typeorm-next": {
+    "hash": "5853acf7605842f0",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 27
+  },
+  "app-single-express-mysql-typeorm-nuxt": {
+    "hash": "e5beaec6e1eabf12",
+    "ok": true,
+    "seconds": 32,
+    "date": "2026-11-17"
+  },
+  "app-single-express-mysql-typeorm-react": {
+    "hash": "b6d5c985180e1b97",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 20
+  },
+  "app-single-express-oracle-typeorm-next": {
+    "hash": "48f3b524de76202e",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 27
+  },
+  "app-single-express-oracle-typeorm-nuxt": {
+    "hash": "b867827f94bf7008",
+    "ok": true,
+    "seconds": 27,
+    "date": "2026-11-17"
+  },
+  "app-single-express-oracle-typeorm-react": {
+    "hash": "a3239369b7b00878",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 17
+  },
+  "app-single-express-postgres-drizzle-next": {
+    "hash": "a233b0e0bca16b7f",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 24
+  },
+  "app-single-express-postgres-drizzle-nuxt": {
+    "hash": "ee5d6fbccb3bb090",
+    "ok": true,
+    "seconds": 63,
+    "date": "2026-11-17"
+  },
+  "app-single-express-postgres-drizzle-react": {
+    "hash": "55ef3cb01856048e",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 18
+  },
+  "app-single-express-postgres-prisma-next": {
+    "hash": "04567a0281f62e5b",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 24
+  },
+  "app-single-express-postgres-prisma-nuxt": {
+    "hash": "96a53729af872efc",
+    "ok": true,
+    "seconds": 28,
+    "date": "2026-11-17"
+  },
+  "app-single-express-postgres-prisma-react": {
+    "hash": "6a2f4061688e6795",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 19
+  },
+  "app-single-express-postgres-typeorm-next": {
+    "hash": "9bd08532f1d99267",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 22
+  },
+  "app-single-express-postgres-typeorm-nuxt": {
+    "hash": "152e330ef2440697",
+    "ok": true,
+    "seconds": 23,
+    "date": "2026-11-17"
+  },
+  "app-single-express-postgres-typeorm-react": {
+    "hash": "dd5d879fe075b26f",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 14
+  },
+  "app-single-fastify-mongodb-mongoose-next": {
+    "hash": "ea3bca261bcd0e42",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 21
+  },
+  "app-single-fastify-mongodb-mongoose-nuxt": {
+    "hash": "ad8c7dd7528b3174",
+    "ok": true,
+    "seconds": 20,
+    "date": "2026-11-17"
+  },
+  "app-single-fastify-mongodb-mongoose-react": {
+    "hash": "b239654d080e7c86",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 15
+  },
+  "app-single-fastify-mongodb-none-next": {
+    "hash": "dd657726d52b3a69",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 14
+  },
+  "app-single-fastify-mongodb-none-nuxt": {
+    "hash": "34aa4d10627601fa",
+    "ok": true,
+    "seconds": 18,
+    "date": "2026-11-17"
+  },
+  "app-single-fastify-mongodb-none-react": {
+    "hash": "8c66aa88b860b37c",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 11
+  },
+  "app-single-fastify-mysql-drizzle-next": {
+    "hash": "0d3ffa07a20e4a13",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 31
+  },
+  "app-single-fastify-mysql-drizzle-nuxt": {
+    "hash": "64a10c7c49cbd051",
+    "ok": true,
+    "seconds": 34,
+    "date": "2026-11-17"
+  },
+  "app-single-fastify-mysql-drizzle-react": {
+    "hash": "f671f3691c6e78a9",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 27
+  },
+  "app-single-fastify-mysql-prisma-next": {
+    "hash": "c77c628ea5f1576b",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 35
+  },
+  "app-single-fastify-mysql-prisma-nuxt": {
+    "hash": "4f683d5d540cf240",
+    "ok": true,
+    "seconds": 36,
+    "date": "2026-11-17"
+  },
+  "app-single-fastify-mysql-prisma-react": {
+    "hash": "0bb4bf655a77d333",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 28
+  },
+  "app-single-fastify-mysql-typeorm-next": {
+    "hash": "548a4fa755d61ff9",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 28
+  },
+  "app-single-fastify-mysql-typeorm-nuxt": {
+    "hash": "03049cedd6f65103",
+    "ok": true,
+    "seconds": 30,
+    "date": "2026-11-17"
+  },
+  "app-single-fastify-mysql-typeorm-react": {
+    "hash": "c69bf95cfd1be43f",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 24
+  },
+  "app-single-fastify-oracle-typeorm-next": {
+    "hash": "90d0042da99fd0b6",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 26
+  },
+  "app-single-fastify-oracle-typeorm-nuxt": {
+    "hash": "5e0a3050e64feaf1",
+    "ok": true,
+    "seconds": 24,
+    "date": "2026-11-17"
+  },
+  "app-single-fastify-oracle-typeorm-react": {
+    "hash": "30bc8fbcc0277da5",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 16
+  },
+  "app-single-fastify-postgres-drizzle-next": {
+    "hash": "904f11ba85c6dab3",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 29
+  },
+  "app-single-fastify-postgres-drizzle-nuxt": {
+    "hash": "050671f5c877e487",
+    "ok": true,
+    "seconds": 25,
+    "date": "2026-11-17"
+  },
+  "app-single-fastify-postgres-drizzle-react": {
+    "hash": "c5b853607be6988c",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 22
+  },
+  "app-single-fastify-postgres-prisma-next": {
+    "hash": "f42070faa4ea8ed3",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 31
+  },
+  "app-single-fastify-postgres-prisma-nuxt": {
+    "hash": "78e2faa5c14039b7",
+    "ok": true,
+    "seconds": 28,
+    "date": "2026-11-17"
+  },
+  "app-single-fastify-postgres-prisma-react": {
+    "hash": "cf9c8334d897a517",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 24
+  },
+  "app-single-fastify-postgres-typeorm-next": {
+    "hash": "ade9fa7a3c37afc5",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 22
+  },
+  "app-single-fastify-postgres-typeorm-nuxt": {
+    "hash": "b98686f131329c7a",
+    "ok": true,
+    "seconds": 22,
+    "date": "2026-11-17"
+  },
+  "app-single-fastify-postgres-typeorm-react": {
+    "hash": "8d51649cf249b909",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 17
+  },
+  "app-single-nest-mongodb-mongoose-next": {
+    "hash": "8fa1c1206a1db1f4",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 16
+  },
+  "app-single-nest-mongodb-mongoose-nuxt": {
+    "hash": "cb1d1c44d9c825fa",
+    "ok": true,
+    "seconds": 20,
+    "date": "2026-11-17"
+  },
+  "app-single-nest-mongodb-mongoose-react": {
+    "hash": "78ddbf8e31a64a1c",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 13
+  },
+  "app-single-nest-mongodb-none-next": {
+    "hash": "4c15fcf5c8f8b066",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 17
+  },
+  "app-single-nest-mongodb-none-nuxt": {
+    "hash": "45be0f3abcfc7430",
+    "ok": true,
+    "seconds": 20,
+    "date": "2026-11-17"
+  },
+  "app-single-nest-mongodb-none-react": {
+    "hash": "d71459590dec5d3c",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 12
+  },
+  "app-single-nest-mysql-drizzle-next": {
+    "hash": "c3748e26bf847e06",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 33
+  },
+  "app-single-nest-mysql-drizzle-nuxt": {
+    "hash": "3e299dfbc5dd1076",
+    "ok": true,
+    "seconds": 33,
+    "date": "2026-11-17"
+  },
+  "app-single-nest-mysql-drizzle-react": {
+    "hash": "86f991d735f9e843",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 26
+  },
+  "app-single-nest-mysql-prisma-next": {
+    "hash": "965a6f74b1824c2a",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 34
+  },
+  "app-single-nest-mysql-prisma-nuxt": {
+    "hash": "7e2c13e5b2cbdf21",
+    "ok": true,
+    "seconds": 34,
+    "date": "2026-11-17"
+  },
+  "app-single-nest-mysql-prisma-react": {
+    "hash": "4c4f2df6f839c2f4",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 29
+  },
+  "app-single-nest-mysql-typeorm-next": {
+    "hash": "f701781495147e5d",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 26
+  },
+  "app-single-nest-mysql-typeorm-nuxt": {
+    "hash": "a6704ab917af488d",
+    "ok": true,
+    "seconds": 30,
+    "date": "2026-11-17"
+  },
+  "app-single-nest-mysql-typeorm-react": {
+    "hash": "0ec149c192c1d458",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 20
+  },
+  "app-single-nest-oracle-typeorm-next": {
+    "hash": "009fcb2492796c9d",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 23
+  },
+  "app-single-nest-oracle-typeorm-nuxt": {
+    "hash": "ecd2f24a3c7391b4",
+    "ok": true,
+    "seconds": 27,
+    "date": "2026-11-17"
+  },
+  "app-single-nest-oracle-typeorm-react": {
+    "hash": "dd1bd40927128a5b",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 19
+  },
+  "app-single-nest-postgres-drizzle-next": {
+    "hash": "18410adbf9249159",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 27
+  },
+  "app-single-nest-postgres-drizzle-nuxt": {
+    "hash": "2626a94e3c036b59",
+    "ok": true,
+    "seconds": 33,
+    "date": "2026-11-17"
+  },
+  "app-single-nest-postgres-drizzle-react": {
+    "hash": "778de3998cd62452",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 20
+  },
+  "app-single-nest-postgres-prisma-next": {
+    "hash": "72276b4785655784",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 30
+  },
+  "app-single-nest-postgres-prisma-nuxt": {
+    "hash": "3770651f0ab47d3e",
+    "ok": true,
+    "seconds": 33,
+    "date": "2026-11-17"
+  },
+  "app-single-nest-postgres-prisma-react": {
+    "hash": "b38da676b2a4f2c0",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 24
+  },
+  "app-single-nest-postgres-typeorm-next": {
+    "hash": "9333be7facf517b9",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 21
+  },
+  "app-single-nest-postgres-typeorm-nuxt": {
+    "hash": "a608d7916851a126",
+    "ok": true,
+    "seconds": 24,
+    "date": "2026-11-17"
+  },
+  "app-single-nest-postgres-typeorm-react": {
+    "hash": "5fc4f5970b919380",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 15
+  },
+  "app-turbo-express-mongodb-mongoose-next": {
+    "hash": "2e9c3e2b4af0c684",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 30
+  },
+  "app-turbo-express-mongodb-mongoose-nuxt": {
+    "hash": "bbd624e576268be1",
+    "ok": true,
+    "seconds": 33,
+    "date": "2026-11-17"
+  },
+  "app-turbo-express-mongodb-mongoose-react": {
+    "hash": "5fa9847c5592a6cd",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 27
+  },
+  "app-turbo-express-mongodb-none-next": {
+    "hash": "142d79f9c3a2c8a8",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 28
+  },
+  "app-turbo-express-mongodb-none-nuxt": {
+    "hash": "fc3a28b0c665f654",
+    "ok": true,
+    "seconds": 38,
+    "date": "2026-11-17"
+  },
+  "app-turbo-express-mongodb-none-react": {
+    "hash": "488910f27ae2a3f2",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 25
+  },
+  "app-turbo-express-mysql-drizzle-next": {
+    "hash": "c90716289074ec68",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 42
+  },
+  "app-turbo-express-mysql-drizzle-nuxt": {
+    "hash": "e71f18355087732c",
+    "ok": true,
+    "seconds": 49,
+    "date": "2026-11-17"
+  },
+  "app-turbo-express-mysql-drizzle-react": {
+    "hash": "2c2d8897e7c5200b",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 36
+  },
+  "app-turbo-express-mysql-prisma-next": {
+    "hash": "811681bec238ade4",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 40
+  },
+  "app-turbo-express-mysql-prisma-nuxt": {
+    "hash": "b73dda7aef4b187e",
+    "ok": true,
+    "seconds": 49,
+    "date": "2026-11-17"
+  },
+  "app-turbo-express-mysql-prisma-react": {
+    "hash": "b8c808b22882579c",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 39
+  },
+  "app-turbo-express-mysql-typeorm-next": {
+    "hash": "6d8c25478c217c72",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 38
+  },
+  "app-turbo-express-mysql-typeorm-nuxt": {
+    "hash": "df2696fedb16d8b8",
+    "ok": true,
+    "seconds": 46,
+    "date": "2026-11-17"
+  },
+  "app-turbo-express-mysql-typeorm-react": {
+    "hash": "ba6322823ddd0576",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 30
+  },
+  "app-turbo-express-oracle-typeorm-next": {
+    "hash": "baf45a36ed59be04",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 28
+  },
+  "app-turbo-express-oracle-typeorm-nuxt": {
+    "hash": "23c96465f5e17af4",
+    "ok": true,
+    "seconds": 42,
+    "date": "2026-11-17"
+  },
+  "app-turbo-express-oracle-typeorm-react": {
+    "hash": "85da9f2482c674d9",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 28
+  },
+  "app-turbo-express-postgres-drizzle-next": {
+    "hash": "5becba6437474904",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 34
+  },
+  "app-turbo-express-postgres-drizzle-nuxt": {
+    "hash": "e3cdce01fa49b49e",
+    "ok": true,
+    "seconds": 50,
+    "date": "2026-11-17"
+  },
+  "app-turbo-express-postgres-drizzle-react": {
+    "hash": "ce8540662f628034",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 28
+  },
+  "app-turbo-express-postgres-prisma-next": {
+    "hash": "efb5a37a95e48531",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 34
+  },
+  "app-turbo-express-postgres-prisma-nuxt": {
+    "hash": "76ffcc675d8d5031",
+    "ok": true,
+    "seconds": 43,
+    "date": "2026-11-17"
+  },
+  "app-turbo-express-postgres-prisma-react": {
+    "hash": "bb393c3e8e0d2009",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 30
+  },
+  "app-turbo-express-postgres-typeorm-next": {
+    "hash": "42e357fa94889707",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 30
+  },
+  "app-turbo-express-postgres-typeorm-nuxt": {
+    "hash": "0fe80e978f239c3b",
+    "ok": true,
+    "seconds": 39,
+    "date": "2026-11-17"
+  },
+  "app-turbo-express-postgres-typeorm-react": {
+    "hash": "ea7dd1c4fc340248",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 25
+  },
+  "app-turbo-fastify-mongodb-mongoose-next": {
+    "hash": "93b8f8c04c8a2d3e",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 36
+  },
+  "app-turbo-fastify-mongodb-mongoose-nuxt": {
+    "hash": "3bcbb888095d3674",
+    "ok": true,
+    "seconds": 39,
+    "date": "2026-11-17"
+  },
+  "app-turbo-fastify-mongodb-mongoose-react": {
+    "hash": "70fbb73aadad3042",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 32
+  },
+  "app-turbo-fastify-mongodb-none-next": {
+    "hash": "27c94a2f27465316",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 34
+  },
+  "app-turbo-fastify-mongodb-none-nuxt": {
+    "hash": "73847660a4d5e4f5",
+    "ok": true,
+    "seconds": 38,
+    "date": "2026-11-17"
+  },
+  "app-turbo-fastify-mongodb-none-react": {
+    "hash": "e5d56119527bd227",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 28
+  },
+  "app-turbo-fastify-mysql-drizzle-next": {
+    "hash": "986aaed5b654b294",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 43
+  },
+  "app-turbo-fastify-mysql-drizzle-nuxt": {
+    "hash": "42a7cd20d6da9895",
+    "ok": true,
+    "seconds": 48,
+    "date": "2026-11-17"
+  },
+  "app-turbo-fastify-mysql-drizzle-react": {
+    "hash": "30f6881a425e5247",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 37
+  },
+  "app-turbo-fastify-mysql-prisma-next": {
+    "hash": "0c71d43ee886cd99",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 45
+  },
+  "app-turbo-fastify-mysql-prisma-nuxt": {
+    "hash": "28b487cedc5e4c74",
+    "ok": true,
+    "seconds": 50,
+    "date": "2026-11-17"
+  },
+  "app-turbo-fastify-mysql-prisma-react": {
+    "hash": "2eb160c9884666f6",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 40
+  },
+  "app-turbo-fastify-mysql-typeorm-next": {
+    "hash": "12f0e98dac0d88cc",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 39
+  },
+  "app-turbo-fastify-mysql-typeorm-nuxt": {
+    "hash": "e7f80731e057d93c",
+    "ok": true,
+    "seconds": 41,
+    "date": "2026-11-17"
+  },
+  "app-turbo-fastify-mysql-typeorm-react": {
+    "hash": "221f689a5645be77",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 31
+  },
+  "app-turbo-fastify-oracle-typeorm-next": {
+    "hash": "fde59a292b23fd95",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 39
+  },
+  "app-turbo-fastify-oracle-typeorm-nuxt": {
+    "hash": "206efa1888ba69c8",
+    "ok": true,
+    "seconds": 49,
+    "date": "2026-11-17"
+  },
+  "app-turbo-fastify-oracle-typeorm-react": {
+    "hash": "4ff58eca211a6bc8",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 41
+  },
+  "app-turbo-fastify-postgres-drizzle-next": {
+    "hash": "d55832de76c1acf8",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 35
+  },
+  "app-turbo-fastify-postgres-drizzle-nuxt": {
+    "hash": "4c4fefa61dd2310c",
+    "ok": true,
+    "seconds": 40,
+    "date": "2026-11-17"
+  },
+  "app-turbo-fastify-postgres-drizzle-react": {
+    "hash": "0114aca1d711b592",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 32
+  },
+  "app-turbo-fastify-postgres-prisma-next": {
+    "hash": "338e78fff7f87bd5",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 39
+  },
+  "app-turbo-fastify-postgres-prisma-nuxt": {
+    "hash": "e039d083bb757f12",
+    "ok": true,
+    "seconds": 41,
+    "date": "2026-11-17"
+  },
+  "app-turbo-fastify-postgres-prisma-react": {
+    "hash": "3096c78525e22d86",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 34
+  },
+  "app-turbo-fastify-postgres-typeorm-next": {
+    "hash": "dbf9f7350439e7f1",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 32
+  },
+  "app-turbo-fastify-postgres-typeorm-nuxt": {
+    "hash": "1ca8186ba16b7ecb",
+    "ok": true,
+    "seconds": 35,
+    "date": "2026-11-17"
+  },
+  "app-turbo-fastify-postgres-typeorm-react": {
+    "hash": "d4fa34dee92812ce",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 26
+  },
+  "app-turbo-nest-mongodb-mongoose-next": {
+    "hash": "6861e0d4ab301ac9",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 22
+  },
+  "app-turbo-nest-mongodb-mongoose-nuxt": {
+    "hash": "42422b2132cf558a",
+    "ok": true,
+    "seconds": 33,
+    "date": "2026-11-17"
+  },
+  "app-turbo-nest-mongodb-mongoose-react": {
+    "hash": "70af69a06b0369bb",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 20
+  },
+  "app-turbo-nest-mongodb-none-next": {
+    "hash": "aa45498adbab7462",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 24
+  },
+  "app-turbo-nest-mongodb-none-nuxt": {
+    "hash": "65d8a6020a2c1663",
+    "ok": true,
+    "seconds": 33,
+    "date": "2026-11-17"
+  },
+  "app-turbo-nest-mongodb-none-react": {
+    "hash": "b083c43d486248ce",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 20
+  },
+  "app-turbo-nest-mysql-drizzle-next": {
+    "hash": "74975112e86c4a6d",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 39
+  },
+  "app-turbo-nest-mysql-drizzle-nuxt": {
+    "hash": "76f384ce1017ae4b",
+    "ok": true,
+    "seconds": 50,
+    "date": "2026-11-17"
+  },
+  "app-turbo-nest-mysql-drizzle-react": {
+    "hash": "ac38f9335028bb92",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 38
+  },
+  "app-turbo-nest-mysql-prisma-next": {
+    "hash": "154c4faf0e4cc0ad",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 41
+  },
+  "app-turbo-nest-mysql-prisma-nuxt": {
+    "hash": "dbf3d5098977f9ac",
+    "ok": true,
+    "seconds": 50,
+    "date": "2026-11-17"
+  },
+  "app-turbo-nest-mysql-prisma-react": {
+    "hash": "a037c8d163d8d206",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 36
+  },
+  "app-turbo-nest-mysql-typeorm-next": {
+    "hash": "e5c1b98e02e83947",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 35
+  },
+  "app-turbo-nest-mysql-typeorm-nuxt": {
+    "hash": "b9ef3660dbd04c48",
+    "ok": true,
+    "seconds": 46,
+    "date": "2026-11-17"
+  },
+  "app-turbo-nest-mysql-typeorm-react": {
+    "hash": "49c3ee051a718d36",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 32
+  },
+  "app-turbo-nest-oracle-typeorm-next": {
+    "hash": "d9c174125a0450e4",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 30
+  },
+  "app-turbo-nest-oracle-typeorm-nuxt": {
+    "hash": "819cda650de5b5c5",
+    "ok": true,
+    "seconds": 41,
+    "date": "2026-11-17"
+  },
+  "app-turbo-nest-oracle-typeorm-react": {
+    "hash": "ec2496f6acaef629",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 21
+  },
+  "app-turbo-nest-postgres-drizzle-next": {
+    "hash": "9e36935565c98899",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 38
+  },
+  "app-turbo-nest-postgres-drizzle-nuxt": {
+    "hash": "0d8193ab09bbd375",
+    "ok": true,
+    "seconds": 51,
+    "date": "2026-11-17"
+  },
+  "app-turbo-nest-postgres-drizzle-react": {
+    "hash": "1115a4e865777b7c",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 33
+  },
+  "app-turbo-nest-postgres-prisma-next": {
+    "hash": "7293acf1a2c200ff",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 37
+  },
+  "app-turbo-nest-postgres-prisma-nuxt": {
+    "hash": "3e3d41be473fbcdc",
+    "ok": true,
+    "seconds": 35,
+    "date": "2026-11-17"
+  },
+  "app-turbo-nest-postgres-prisma-react": {
+    "hash": "617a502b319ecee3",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 32
+  },
+  "app-turbo-nest-postgres-typeorm-next": {
+    "hash": "b16ec5171d224da3",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 33
+  },
+  "app-turbo-nest-postgres-typeorm-nuxt": {
+    "hash": "1d835c7deb468ef8",
+    "ok": true,
+    "seconds": 40,
+    "date": "2026-11-17"
+  },
+  "app-turbo-nest-postgres-typeorm-react": {
+    "hash": "634a741276f5d5e8",
+    "ok": true,
+    "date": "2026-11-17",
+    "seconds": 25
+  }
+}
