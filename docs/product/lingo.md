@@ -206,7 +206,17 @@ flowchart LR
 khoảng 500–800 token đầu ra, chưa tính thinking. Với giá $4 / $20 mỗi 1M token và giảm 50% của Batches,
 1.000 câu khoảng $5–8 đầu ra. Bài đọc IELTS (khoảng 900 từ + 13 câu) dài hơn nhiều.
 
-Audio và ảnh cần dịch vụ khác (Claude không có TTS, không sinh ảnh). File lưu ở bucket S3 của môi trường, phát qua URL ký tạm.
+Audio và ảnh cần dịch vụ khác: Claude API không có endpoint text-to-speech và không sinh ảnh.
+
+**Audio: Google Cloud Text-to-Speech** (đã chốt).
+
+- Claude sinh script, mỗi người nói một vai (`speaker`, `accent`). Worker map vai sang giọng Google, ghép bằng SSML
+  (`<break>` giữa các lượt), xuất `.mp3`.
+- Giọng: `en-US`, `en-GB`, `en-AU` cho TOEIC / IELTS; `cmn-CN` cho HSK. [Unverified] Chưa kiểm tra Google có giọng
+  `en-CA` và danh sách giọng / giá hiện tại; chọn giọng cụ thể khi làm giai đoạn 3.
+- Chỉ gọi TTS **một lần khi sinh nội dung** (trước khi duyệt), không gọi khi người học nghe. File lưu ở bucket S3
+  của môi trường, phát qua URL ký tạm. Audio phát âm thẻ từ vựng cũng sinh một lần như vậy.
+- Credential: service account JSON chỉ có trong `.env` server (`GOOGLE_TTS_CREDENTIALS`), không đưa vào repo.
 
 ## 6. Mô hình dữ liệu (Prisma, tiền tố `Lingo`)
 
@@ -300,15 +310,13 @@ Mỗi giai đoạn: PR vào `develop` → tự lên **dev**, rồi theo release 
 
 ## 10. Câu hỏi mở
 
-1. **TTS:** Google Cloud TTS, Azure Speech, Amazon Polly, ElevenLabs? Cần giọng Anh (Mỹ / Anh / Úc / Canada) và
-   tiếng Trung phổ thông (HSK). Mình chưa kiểm tra giá hiện tại.
-2. **Ảnh TOEIC Part 1:** AI sinh ảnh / ảnh stock miễn phí + Claude viết câu mô tả / tạm bỏ Part 1.
-3. **Anthropic API key và ngân sách tháng:** môi trường nào sinh đề?
-4. **Nội dung dùng chung giữa dev / stg / prod?** Mỗi môi trường DB riêng: cần lệnh export/import đề đã duyệt không?
-5. **Bảng quy đổi điểm:** chấp nhận bảng ước tính ở MVP, hiệu chỉnh sau?
+1. **Ảnh TOEIC Part 1:** AI sinh ảnh / ảnh stock miễn phí + Claude viết câu mô tả / tạm bỏ Part 1.
+2. **Anthropic API key và ngân sách tháng:** môi trường nào sinh đề?
+3. **Nội dung dùng chung giữa dev / stg / prod?** Mỗi môi trường DB riêng: cần lệnh export/import đề đã duyệt không?
+4. **Bảng quy đổi điểm:** chấp nhận bảng ước tính ở MVP, hiệu chỉnh sau?
 
 ## 11. Quyết định cần ADR
 
 - `0012` Cấu trúc kỳ thi khai báo bằng code (`packages/exam-specs`), nội dung trong DB; mã kỳ thi / Part là chuỗi, không phải enum.
 - `0013` Sinh nội dung bằng Claude qua Batches API, bắt buộc admin duyệt trước khi xuất bản.
-- `0014` Text-to-speech (sau khi chốt câu hỏi mở 1).
+- `0014` Audio học bằng Google Cloud Text-to-Speech, sinh một lần lúc tạo nội dung, lưu S3.
