@@ -1,11 +1,16 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { apiFetch } from '@/lib/api'
 import { renderWithQuery } from '@/lib/test-utils'
 
 import { toFolders } from './file-preview'
 import { StudioConfigurator } from './studio-configurator'
+
+vi.mock('@/lib/api', () => ({
+  apiFetch: Object.assign(vi.fn(), { raw: vi.fn() }),
+}))
 
 const group = (name: string | RegExp) =>
   screen.getByRole('group', {
@@ -157,5 +162,44 @@ describe('toFolders', () => {
     ])
     expect(root.files.map((f) => f.name)).toEqual(['README.md'])
     expect(root.folders[0]!.folders.map((f) => f.name)).toEqual(['api', 'web'])
+  })
+})
+
+describe('StudioConfigurator download', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('posts the options to the api and saves the zip', async () => {
+    const raw = vi
+      .mocked(apiFetch.raw)
+      .mockResolvedValue(new Response(new Blob(['PK'])))
+    URL.createObjectURL = vi.fn(() => 'blob:zip')
+    const revoke = vi.fn()
+    URL.revokeObjectURL = revoke
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {})
+
+    renderWithQuery(<StudioConfigurator />)
+    await userEvent.click(
+      screen.getByRole('button', { name: /Download \.zip/ }),
+    )
+
+    expect(raw).toHaveBeenCalledWith('/studio/generate', {
+      method: 'POST',
+      body: expect.stringContaining('"name":"my-app"') as string,
+    })
+    expect(click).toHaveBeenCalled()
+    expect(revoke).toHaveBeenCalledWith('blob:zip')
+  })
+
+  it('is disabled while the options cannot be generated', async () => {
+    renderWithQuery(<StudioConfigurator />)
+    const name = screen.getByLabelText('Project name')
+    await userEvent.clear(name)
+    await userEvent.type(name, 'X')
+    expect(
+      screen.getByRole('button', { name: /Download \.zip/ }),
+    ).toBeDisabled()
+    expect(screen.getByText('Fix the options to download')).toBeInTheDocument()
   })
 })

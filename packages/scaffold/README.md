@@ -138,7 +138,7 @@ Supported combinations (from `supportedCombinations()`):
    - `POST /api/studio/preview`: returns `{ paths, files }` for the preview;
    - `POST /api/studio/generate`: a zip of `formatTree(generate(options))`, using `jszip@3.10.2`, which must be added to the catalog.
    - Signed-in users only, with the throttler.
-   - Then enable the Download .zip button of `/studio`.
+   - Done: `POST /api/studio/generate` (zip, signed-in, throttled) and the Download .zip button of `/studio`.
 2. **Tests:**
    - API e2e: options, 400 on an invalid combination, the zip contains the tree;
    - Playwright: pick options and download.
