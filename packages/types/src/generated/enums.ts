@@ -16,3 +16,39 @@ export const OAuthProvider = {
 } as const
 
 export type OAuthProvider = (typeof OAuthProvider)[keyof typeof OAuthProvider]
+
+/** Review state of learning content: only PUBLISHED reaches learners */
+export const LingoContentStatus = {
+  DRAFT: 'DRAFT',
+  NEEDS_REVIEW: 'NEEDS_REVIEW',
+  PUBLISHED: 'PUBLISHED',
+  REJECTED: 'REJECTED',
+} as const
+
+export type LingoContentStatus = (typeof LingoContentStatus)[keyof typeof LingoContentStatus]
+
+export const LingoDifficulty = {
+  EASY: 'EASY',
+  MEDIUM: 'MEDIUM',
+  HARD: 'HARD',
+} as const
+
+export type LingoDifficulty = (typeof LingoDifficulty)[keyof typeof LingoDifficulty]
+
+/** Where a batch of content came from */
+export const LingoBatchSource = {
+  MANUAL: 'MANUAL',
+  IMPORT: 'IMPORT',
+  AI: 'AI',
+} as const
+
+export type LingoBatchSource = (typeof LingoBatchSource)[keyof typeof LingoBatchSource]
+
+/** QUICK: a few questions of one part; PRACTICE: chosen parts of a test; FULL_TEST: scaled score */
+export const LingoAttemptMode = {
+  QUICK: 'QUICK',
+  PRACTICE: 'PRACTICE',
+  FULL_TEST: 'FULL_TEST',
+} as const
+
+export type LingoAttemptMode = (typeof LingoAttemptMode)[keyof typeof LingoAttemptMode]
