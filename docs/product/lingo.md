@@ -217,6 +217,9 @@ Audio và ảnh cần dịch vụ khác: Claude API không có endpoint text-to-
 - Chỉ gọi TTS **một lần khi sinh nội dung** (trước khi duyệt), không gọi khi người học nghe. File lưu ở bucket S3
   của môi trường, phát qua URL ký tạm. Audio phát âm thẻ từ vựng cũng sinh một lần như vậy.
 - Credential: service account JSON chỉ có trong `.env` server (`GOOGLE_TTS_CREDENTIALS`), không đưa vào repo.
+- Gọi qua interface `TtsProvider` (`synthesize(lines) → mp3`). Kỳ thi khai báo vai giọng (`us-male`, `cn-female`…),
+  mỗi provider có bảng map vai → giọng. Đổi sang ElevenLabs sau này chỉ cần thêm một provider và đặt
+  `TTS_PROVIDER=elevenlabs`, không đổi nội dung đề.
 
 ## 6. Mô hình dữ liệu (Prisma, tiền tố `Lingo`)
 
@@ -319,4 +322,4 @@ Mỗi giai đoạn: PR vào `develop` → tự lên **dev**, rồi theo release 
 
 - `0012` Cấu trúc kỳ thi khai báo bằng code (`packages/exam-specs`), nội dung trong DB; mã kỳ thi / Part là chuỗi, không phải enum.
 - `0013` Sinh nội dung bằng Claude qua Batches API, bắt buộc admin duyệt trước khi xuất bản.
-- `0014` Audio học bằng Google Cloud Text-to-Speech, sinh một lần lúc tạo nội dung, lưu S3.
+- `0014` Audio học bằng Google Cloud Text-to-Speech qua interface `TtsProvider` (thay được bằng ElevenLabs), sinh một lần lúc tạo nội dung, lưu S3.
