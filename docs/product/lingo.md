@@ -1,14 +1,17 @@
 ---
-title: Prep – app luyện thi (TOEIC trước, IELTS / HSK sau)
+title: Lingo – app học ngoại ngữ, luyện thi (TOEIC trước, IELTS / HSK sau)
 status: draft
 applies-to: api, web, db
 ---
 
-# Prep – app luyện thi chứng chỉ
+# Lingo – app học ngoại ngữ và luyện thi
 
-App thứ năm trong launcher (`/prep`), cạnh Hellos, Chat, Files và Studio. Một nền tảng luyện thi dùng
-chung cho nhiều kỳ thi. **TOEIC Listening & Reading** làm đầu tiên. Thiết kế phải thêm được **IELTS**,
+App thứ năm trong launcher (`/lingo`), cạnh Hellos, Chat, Files và Studio. App học ngoại ngữ và luyện thi
+chứng chỉ, dùng chung cho nhiều kỳ thi. **TOEIC Listening & Reading** làm đầu tiên. Thiết kế phải thêm được **IELTS**,
 **HSK** (và về sau TOPIK, JLPT…) mà không đổi schema hay viết lại màn làm bài.
+
+Tập thể dục (gym) là **app riêng** về sau (vd. `Fit`, `/fit`), không nằm trong Lingo. Phần có thể dùng chung
+(mục tiêu, streak, nhắc học mỗi ngày) chỉ tách thành package khi app thứ hai thật sự cần.
 
 > **Trạng thái:** bản thiết kế để duyệt. Các mục _Câu hỏi mở_ cần chốt trước khi code.
 
@@ -16,7 +19,7 @@ chung cho nhiều kỳ thi. **TOEIC Listening & Reading** làm đầu tiên. Thi
 
 Ghi chú từ các trang công khai của study4.com, đọc ngày 2026-11-18. Không xem được phần cần đăng nhập.
 
-| Study4 có                                                                                                               | Prep lấy gì                                                         |
+| Study4 có                                                                                                               | Lingo lấy gì                                                        |
 | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | Thư viện đề, lọc theo kỳ thi (IELTS, TOEIC, HSK 1–6, TOPIK, JLPT…), tìm kiếm, mỗi đề có số lượt làm và số bình luận     | Thư viện đề theo kỳ thi, có lọc và tìm kiếm (bình luận để sau)      |
 | Trang đề có 2 chế độ: **Luyện tập** (chọn Part và giới hạn thời gian) và **Full test** (chỉ chế độ này có điểm quy đổi) | Giữ nguyên 2 chế độ này                                             |
@@ -144,7 +147,7 @@ Giống study4: chỉ chế độ **Full test** mới có điểm quy đổi. Ch
 - Người học chọn kỳ thi đang ôn (có thể nhiều): mỗi kỳ có **mục tiêu** (TOEIC 650, IELTS 6.5, HSK 4 đạt) và **ngày thi** (tuỳ chọn).
 - Dashboard theo kỳ thi đang chọn: thẻ cần ôn hôm nay, điểm dự đoán gần nhất và mục tiêu, 3 dạng câu yếu nhất, streak.
 
-### 4.2 Thư viện đề (`/prep/[exam]/tests`)
+### 4.2 Thư viện đề (`/lingo/[exam]/tests`)
 
 - Danh sách đề: tên, thời gian, số Part, số câu, số lượt làm, tag; lọc theo Section, tìm theo tên.
 - Trang đề, 2 chế độ (như study4):
@@ -205,79 +208,79 @@ khoảng 500–800 token đầu ra, chưa tính thinking. Với giá $4 / $20 m�
 
 Audio và ảnh cần dịch vụ khác (Claude không có TTS, không sinh ảnh). File lưu ở bucket S3 của môi trường, phát qua URL ký tạm.
 
-## 6. Mô hình dữ liệu (Prisma, tiền tố `Prep`)
+## 6. Mô hình dữ liệu (Prisma, tiền tố `Lingo`)
 
 ```mermaid
 erDiagram
-  PrepTest ||--o{ PrepTestPart : "gồm"
-  PrepTestPart ||--o{ PrepTestItem : "xếp"
-  PrepItem ||--o{ PrepTestItem : "dùng trong"
-  PrepItem ||--o{ PrepQuestion : "có"
-  PrepItem }o--o| PrepGenerationJob : "sinh bởi"
-  PrepAttempt ||--o{ PrepAnswer : "gồm"
-  PrepQuestion ||--o{ PrepAnswer : "được trả lời"
-  User ||--o{ PrepAttempt : "làm"
-  User ||--o{ PrepGoal : "đặt"
-  PrepDeck ||--o{ PrepCard : "có"
-  PrepCard ||--o{ PrepCardState : "ôn bởi"
-  User ||--o{ PrepDeck : "sở hữu"
+  LingoTest ||--o{ LingoTestPart : "gồm"
+  LingoTestPart ||--o{ LingoTestItem : "xếp"
+  LingoItem ||--o{ LingoTestItem : "dùng trong"
+  LingoItem ||--o{ LingoQuestion : "có"
+  LingoItem }o--o| LingoGenerationJob : "sinh bởi"
+  LingoAttempt ||--o{ LingoAnswer : "gồm"
+  LingoQuestion ||--o{ LingoAnswer : "được trả lời"
+  User ||--o{ LingoAttempt : "làm"
+  User ||--o{ LingoGoal : "đặt"
+  LingoDeck ||--o{ LingoCard : "có"
+  LingoCard ||--o{ LingoCardState : "ôn bởi"
+  User ||--o{ LingoDeck : "sở hữu"
 ```
 
-| Model               | Trường chính                                                                                                                                                                                                    |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PrepItem`          | `exam`, `section`, `part` (mã trong spec), `difficulty`, `topic`, `content` (JSON: văn bản, transcript), `audioKey?`, `imageKey?`, `status` (DRAFT, NEEDS_REVIEW, PUBLISHED, REJECTED), `jobId?`, `contentHash` |
-| `PrepQuestion`      | `itemId`, `order`, `type` (`QuestionType`), `prompt` (JSON), `answer` (JSON), `explanationVi`, `skillTags[]`                                                                                                    |
-| `PrepTest`          | `exam`, `title`, `kind` (FULL, MINI), `status`, `attemptCount`                                                                                                                                                  |
-| `PrepTestPart`      | `testId`, `section`, `part`, `order`                                                                                                                                                                            |
-| `PrepTestItem`      | `testPartId`, `itemId`, `order`                                                                                                                                                                                 |
-| `PrepAttempt`       | `userId`, `exam`, `testId?`, `mode` (PRACTICE, FULL_TEST, QUICK), `parts[]`, `timeLimitSec?`, `startedAt`, `submittedAt?`, `scores` (JSON theo Section)                                                         |
-| `PrepAnswer`        | `attemptId`, `questionId`, `response` (JSON), `correct?`, `timeMs`, `flagged`                                                                                                                                   |
-| `PrepGoal`          | `userId`, `exam`, `target` (JSON: 650 / 6.5 / đạt), `examDate?`, `newCardsPerDay`                                                                                                                               |
-| `PrepDeck`          | `exam?`, `ownerId?` (null = hệ thống), `title`, `language` (en, zh…)                                                                                                                                            |
-| `PrepCard`          | `deckId`, `term`, `reading?` (IPA / pinyin), `meaningVi`, `example?`, `exampleVi?`, `audioKey?`, `extra` (JSON: Hán Việt…)                                                                                      |
-| `PrepCardState`     | `userId`, `cardId`, trạng thái FSRS (`due`, `stability`, `difficulty`, `reps`, `lapses`, `state`), `lastReview`                                                                                                 |
-| `PrepHighlight`     | `userId`, `attemptId`, `questionId?`, `text`, `cardId?`                                                                                                                                                         |
-| `PrepGenerationJob` | `exam`, `part`, `params` (JSON), `batchId`, `status`, `requested`, `succeeded`, `failed`, `usage`, `createdBy`                                                                                                  |
+| Model                | Trường chính                                                                                                                                                                                                    |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LingoItem`          | `exam`, `section`, `part` (mã trong spec), `difficulty`, `topic`, `content` (JSON: văn bản, transcript), `audioKey?`, `imageKey?`, `status` (DRAFT, NEEDS_REVIEW, PUBLISHED, REJECTED), `jobId?`, `contentHash` |
+| `LingoQuestion`      | `itemId`, `order`, `type` (`QuestionType`), `prompt` (JSON), `answer` (JSON), `explanationVi`, `skillTags[]`                                                                                                    |
+| `LingoTest`          | `exam`, `title`, `kind` (FULL, MINI), `status`, `attemptCount`                                                                                                                                                  |
+| `LingoTestPart`      | `testId`, `section`, `part`, `order`                                                                                                                                                                            |
+| `LingoTestItem`      | `testPartId`, `itemId`, `order`                                                                                                                                                                                 |
+| `LingoAttempt`       | `userId`, `exam`, `testId?`, `mode` (PRACTICE, FULL_TEST, QUICK), `parts[]`, `timeLimitSec?`, `startedAt`, `submittedAt?`, `scores` (JSON theo Section)                                                         |
+| `LingoAnswer`        | `attemptId`, `questionId`, `response` (JSON), `correct?`, `timeMs`, `flagged`                                                                                                                                   |
+| `LingoGoal`          | `userId`, `exam`, `target` (JSON: 650 / 6.5 / đạt), `examDate?`, `newCardsPerDay`                                                                                                                               |
+| `LingoDeck`          | `exam?`, `ownerId?` (null = hệ thống), `title`, `language` (en, zh…)                                                                                                                                            |
+| `LingoCard`          | `deckId`, `term`, `reading?` (IPA / pinyin), `meaningVi`, `example?`, `exampleVi?`, `audioKey?`, `extra` (JSON: Hán Việt…)                                                                                      |
+| `LingoCardState`     | `userId`, `cardId`, trạng thái FSRS (`due`, `stability`, `difficulty`, `reps`, `lapses`, `state`), `lastReview`                                                                                                 |
+| `LingoHighlight`     | `userId`, `attemptId`, `questionId?`, `text`, `cardId?`                                                                                                                                                         |
+| `LingoGenerationJob` | `exam`, `part`, `params` (JSON), `batchId`, `status`, `requested`, `succeeded`, `failed`, `usage`, `createdBy`                                                                                                  |
 
 - `exam`, `section`, `part` là chuỗi mã trong `exam-specs` (không phải enum Prisma), nên thêm kỳ thi không cần migration. Api kiểm tra mã hợp lệ bằng spec.
-- Sổ câu sai, thống kê dạng câu, streak tính từ `PrepAnswer` / `PrepCardState`.
+- Sổ câu sai, thống kê dạng câu, streak tính từ `LingoAnswer` / `LingoCardState`.
 
-## 7. API (`apps/api/src/prep`)
+## 7. API (`apps/api/src/lingo`)
 
 Mọi route cần đăng nhập. Route admin có `@Roles(Role.ADMIN)`. Controller có `ThrottlerGuard`. `:exam` là mã trong spec.
 
-| Method + path                                                | Việc                                                                         |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| `GET /prep/exams`                                            | Danh sách kỳ thi đang mở (từ spec)                                           |
-| `GET/PUT /prep/goals/:exam`                                  | Mục tiêu, ngày thi, cài đặt                                                  |
-| `GET /prep/:exam/dashboard`                                  | Thẻ cần ôn, điểm dự đoán, dạng câu yếu, streak                               |
-| `GET /prep/:exam/tests` · `GET /prep/tests/:id`              | Thư viện đề (`ListQueryDto`), chi tiết đề                                    |
-| `POST /prep/attempts`                                        | `{ exam, testId?, mode, parts?, timeLimitSec? }` → câu hỏi (không có đáp án) |
-| `PUT /prep/attempts/:id/answers/:questionId`                 | Tự lưu đáp án, đánh dấu                                                      |
-| `POST /prep/attempts/:id/submit`                             | Nộp → điểm, đúng/sai, giải thích                                             |
-| `GET /prep/attempts` · `GET /prep/attempts/:id`              | Lịch sử, xem lại                                                             |
-| `GET /prep/:exam/mistakes`                                   | Sổ câu sai                                                                   |
-| `POST /prep/highlights`                                      | Lưu highlight, tuỳ chọn tạo thẻ                                              |
-| `GET/POST /prep/decks` · `POST /prep/decks/:id/cards`        | Bộ thẻ, thêm thẻ                                                             |
-| `GET /prep/review` · `POST /prep/cards/:id/review`           | Hàng ôn hôm nay, chấm thẻ                                                    |
-| `POST /prep/questions/:id/report`                            | Báo câu sai                                                                  |
-| `/prep/admin/jobs`, `/prep/admin/items`, `/prep/admin/tests` | Sinh, duyệt, ghép đề                                                         |
+| Method + path                                                   | Việc                                                                         |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `GET /lingo/exams`                                              | Danh sách kỳ thi đang mở (từ spec)                                           |
+| `GET/PUT /lingo/goals/:exam`                                    | Mục tiêu, ngày thi, cài đặt                                                  |
+| `GET /lingo/:exam/dashboard`                                    | Thẻ cần ôn, điểm dự đoán, dạng câu yếu, streak                               |
+| `GET /lingo/:exam/tests` · `GET /lingo/tests/:id`               | Thư viện đề (`ListQueryDto`), chi tiết đề                                    |
+| `POST /lingo/attempts`                                          | `{ exam, testId?, mode, parts?, timeLimitSec? }` → câu hỏi (không có đáp án) |
+| `PUT /lingo/attempts/:id/answers/:questionId`                   | Tự lưu đáp án, đánh dấu                                                      |
+| `POST /lingo/attempts/:id/submit`                               | Nộp → điểm, đúng/sai, giải thích                                             |
+| `GET /lingo/attempts` · `GET /lingo/attempts/:id`               | Lịch sử, xem lại                                                             |
+| `GET /lingo/:exam/mistakes`                                     | Sổ câu sai                                                                   |
+| `POST /lingo/highlights`                                        | Lưu highlight, tuỳ chọn tạo thẻ                                              |
+| `GET/POST /lingo/decks` · `POST /lingo/decks/:id/cards`         | Bộ thẻ, thêm thẻ                                                             |
+| `GET /lingo/review` · `POST /lingo/cards/:id/review`            | Hàng ôn hôm nay, chấm thẻ                                                    |
+| `POST /lingo/questions/:id/report`                              | Báo câu sai                                                                  |
+| `/lingo/admin/jobs`, `/lingo/admin/items`, `/lingo/admin/tests` | Sinh, duyệt, ghép đề                                                         |
 
 Đáp án và giải thích không trả về trước khi câu đó được nộp.
 
-## 8. Màn hình web (`apps/web/app/(app)/prep`)
+## 8. Màn hình web (`apps/web/app/(app)/lingo`)
 
-| Route                          | Nội dung                                               |
-| ------------------------------ | ------------------------------------------------------ |
-| `/prep`                        | Chọn kỳ thi (TOEIC; IELTS, HSK hiện "Sắp có")          |
-| `/prep/[exam]`                 | Dashboard kỳ thi                                       |
-| `/prep/[exam]/tests`           | Thư viện đề                                            |
-| `/prep/tests/[id]`             | Trang đề: Luyện tập (chọn Part, thời gian) / Full test |
-| `/prep/attempts/[id]`          | Làm bài                                                |
-| `/prep/attempts/[id]/result`   | Kết quả, xem lại, highlight → flashcard                |
-| `/prep/[exam]/mistakes`        | Sổ câu sai                                             |
-| `/prep/decks` · `/prep/review` | Bộ thẻ, phiên ôn (Space lật, 1–4 chấm)                 |
-| `/prep/admin`                  | Lô sinh, duyệt, ghép đề (chỉ admin)                    |
+| Route                            | Nội dung                                               |
+| -------------------------------- | ------------------------------------------------------ |
+| `/lingo`                         | Chọn kỳ thi (TOEIC; IELTS, HSK hiện "Sắp có")          |
+| `/lingo/[exam]`                  | Dashboard kỳ thi                                       |
+| `/lingo/[exam]/tests`            | Thư viện đề                                            |
+| `/lingo/tests/[id]`              | Trang đề: Luyện tập (chọn Part, thời gian) / Full test |
+| `/lingo/attempts/[id]`           | Làm bài                                                |
+| `/lingo/attempts/[id]/result`    | Kết quả, xem lại, highlight → flashcard                |
+| `/lingo/[exam]/mistakes`         | Sổ câu sai                                             |
+| `/lingo/decks` · `/lingo/review` | Bộ thẻ, phiên ôn (Space lật, 1–4 chấm)                 |
+| `/lingo/admin`                   | Lô sinh, duyệt, ghép đề (chỉ admin)                    |
 
 Màn làm bài dựng từ spec + `type` của câu: mỗi `QuestionType` một component (`SingleChoice`, `GapFill`…).
 Thêm kỳ thi mới không cần màn mới. Giao diện theo skill `ui-ux-pro-max`, component `@repo/ui`, kiểm tra light và dark.
@@ -297,16 +300,15 @@ Mỗi giai đoạn: PR vào `develop` → tự lên **dev**, rồi theo release 
 
 ## 10. Câu hỏi mở
 
-1. **Tên app và route:** `Prep` / `/prep` được không?
-2. **TTS:** Google Cloud TTS, Azure Speech, Amazon Polly, ElevenLabs? Cần giọng Anh (Mỹ / Anh / Úc / Canada) và
+1. **TTS:** Google Cloud TTS, Azure Speech, Amazon Polly, ElevenLabs? Cần giọng Anh (Mỹ / Anh / Úc / Canada) và
    tiếng Trung phổ thông (HSK). Mình chưa kiểm tra giá hiện tại.
-3. **Ảnh TOEIC Part 1:** AI sinh ảnh / ảnh stock miễn phí + Claude viết câu mô tả / tạm bỏ Part 1.
-4. **Anthropic API key và ngân sách tháng:** môi trường nào sinh đề?
-5. **Nội dung dùng chung giữa dev / stg / prod?** Mỗi môi trường DB riêng: cần lệnh export/import đề đã duyệt không?
-6. **Bảng quy đổi điểm:** chấp nhận bảng ước tính ở MVP, hiệu chỉnh sau?
+2. **Ảnh TOEIC Part 1:** AI sinh ảnh / ảnh stock miễn phí + Claude viết câu mô tả / tạm bỏ Part 1.
+3. **Anthropic API key và ngân sách tháng:** môi trường nào sinh đề?
+4. **Nội dung dùng chung giữa dev / stg / prod?** Mỗi môi trường DB riêng: cần lệnh export/import đề đã duyệt không?
+5. **Bảng quy đổi điểm:** chấp nhận bảng ước tính ở MVP, hiệu chỉnh sau?
 
 ## 11. Quyết định cần ADR
 
 - `0012` Cấu trúc kỳ thi khai báo bằng code (`packages/exam-specs`), nội dung trong DB; mã kỳ thi / Part là chuỗi, không phải enum.
 - `0013` Sinh nội dung bằng Claude qua Batches API, bắt buộc admin duyệt trước khi xuất bản.
-- `0014` Text-to-speech (sau khi chốt câu hỏi mở 2).
+- `0014` Text-to-speech (sau khi chốt câu hỏi mở 1).
