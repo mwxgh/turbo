@@ -13,7 +13,7 @@ chứng chỉ, dùng chung cho nhiều kỳ thi. **TOEIC Listening & Reading** l
 Tập thể dục (gym) là **app riêng** về sau (vd. `Fit`, `/fit`), không nằm trong Lingo. Phần có thể dùng chung
 (mục tiêu, streak, nhắc học mỗi ngày) chỉ tách thành package khi app thứ hai thật sự cần.
 
-> **Trạng thái:** bản thiết kế để duyệt. Các mục _Câu hỏi mở_ cần chốt trước khi code.
+> **Trạng thái:** bản thiết kế đã chốt các câu hỏi (mục 10), chờ duyệt PR rồi làm giai đoạn 1.
 
 ## 1. Tham khảo study4.com
 
@@ -140,6 +140,9 @@ Mỗi Section khai báo hàm quy đổi trong spec. [Unverified] Các bảng sau
 | HSK       | theo cấp, có điểm đạt                      | điểm thô theo phần, tổng, đạt / chưa đạt   |
 
 Giống study4: chỉ chế độ **Full test** mới có điểm quy đổi. Chế độ luyện chỉ có số câu đúng.
+
+**Đã chốt:** MVP dùng bảng **ước tính** (số câu đúng → điểm, nội suy tuyến tính theo đoạn), khai báo trong
+`exam-specs` cạnh Section. Hiệu chỉnh bảng sau chỉ cần sửa spec; điểm đã lưu của các lần thi cũ giữ nguyên.
 
 ## 4. Tính năng
 
@@ -355,10 +358,16 @@ Thêm kỳ thi mới không cần màn mới. Giao diện theo skill `ui-ux-pro-
 
 Mỗi giai đoạn: PR vào `develop` → tự lên **dev**, rồi theo release lên stg và prod.
 
-## 10. Câu hỏi mở
+## 10. Đã chốt
 
-1. **Nội dung dùng chung giữa dev / stg / prod?** Mỗi môi trường DB riêng: cần lệnh export/import đề đã duyệt không?
-2. **Bảng quy đổi điểm:** chấp nhận bảng ước tính ở MVP, hiệu chỉnh sau?
+| Câu hỏi                      | Quyết định                                                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Tên app                      | Lingo, `/lingo`. Gym là app riêng về sau                                                                    |
+| Nguồn nội dung MVP           | Admin nhập (form, JSON, CSV), chưa dùng AI                                                                  |
+| Audio                        | Google Cloud TTS qua `TtsProvider`                                                                          |
+| Ảnh Part 1                   | OpenAI image generation qua `ImageProvider`                                                                 |
+| Nội dung giữa các môi trường | Không đồng bộ. Mỗi môi trường tự nhập. Repo có vài item mẫu (`packages/exam-specs/fixtures`) cho dev và e2e |
+| Quy đổi điểm                 | Bảng ước tính trong `exam-specs`, hiệu chỉnh sau                                                            |
 
 ## 11. Quyết định cần ADR
 
