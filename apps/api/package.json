@@ -28,11 +28,13 @@
     "@repo/db": "workspace:*",
     "@repo/nest-common": "workspace:*",
     "@repo/redis": "workspace:*",
+    "@repo/scaffold": "workspace:*",
     "@repo/types": "workspace:*",
     "@repo/utils": "workspace:*",
     "class-transformer": "catalog:",
     "class-validator": "catalog:",
     "helmet": "8.3.0",
+    "jszip": "catalog:",
     "reflect-metadata": "catalog:",
     "rxjs": "catalog:"
   },

@@ -37,7 +37,7 @@ cp apps/socket/.env.example apps/socket/.env
 cp apps/web/.env.example apps/web/.env.local
 cp apps/mobile/.env.example apps/mobile/.env
 
-pnpm infra:up       # start PostgreSQL + Redis (đợi healthy)
+pnpm infra:up       # start PostgreSQL + Redis + S3 local (RustFS, tự tạo bucket turbo-dev; đợi healthy)
 pnpm db:deploy      # apply migrations (pnpm build sẽ tự generate Prisma client)
 pnpm db:seed        # dữ liệu mẫu
 
@@ -47,6 +47,8 @@ pnpm dev:socket
 pnpm dev:web
 pnpm dev:mobile     # Expo dev server (quét QR bằng Expo Go, hoặc a / i cho emulator)
 ```
+
+Môi trường `dev` trên máy chỉ dùng service của `pnpm infra:up` (Postgres `127.0.0.1:5432`, Redis `:6379`, S3 `:9000`): `.env` local **không** trỏ lên server stg / prod.
 
 Scripts khác: `pnpm build`, `pnpm lint`, `pnpm check-types`, `pnpm test`, `pnpm format` / `format:check`, `pnpm start:api|start:socket|start:web`.
 
@@ -274,6 +276,7 @@ STORAGE_BUCKET=btp
 
 - Server `NAME` = `default` (không có thì server đầu); `PUBLIC_ENDPOINT` (URL trình duyệt upload tới) mặc định = `ENDPOINT`; `REGION` mặc định `us-east-1`. Thiếu / JSON sai → api không khởi động.
 - Bucket phải cho phép CORS `POST` từ origin của web (MinIO mặc định cho phép mọi origin).
+- Local: `pnpm infra:up` chạy RustFS ở `http://127.0.0.1:9000` (key `dev-access-key` / `dev-secret-key`, bucket `turbo-dev` + CORS do `storage-init` tạo) – giá trị mặc định trong `apps/api/.env.example`.
 - Giới hạn 50 MB: `MAX_UPLOAD_BYTES` (`apps/api/src/files/storage.ts`). Test không cần storage: `apps/api/test/storage-env.ts` (ký offline), Playwright giả lập S3.
 - Cần đăng nhập: `files` không có `@Public()` nên `AuthGuard` global chặn người chưa đăng nhập (ADR [0005](docs/decisions/0005-auth-cookie-web-bearer-mobile-mac-dinh-chan.md), [0007](docs/decisions/0007-upload-file-bang-presigned-post.md)).
 
@@ -486,11 +489,11 @@ TypeScript ghim **6.0.3** (bản 6.x mới nhất): TS 7.0 chỉ có binary `tsc
 
 ## Test
 
-| Lớp              | Lệnh                                                                        | Ở đâu                                                         | Cần gì                             |
-| ---------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------- |
-| Unit / component | `pnpm test` (`test:watch`, `test:cov`)                                      | `*.spec.ts(x)` / `*.test.ts` cạnh code                        | –                                  |
-| Backend e2e      | `pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis` | `apps/{api,socket}/test/*.e2e-spec.ts`, `packages/redis/test` | Postgres + Redis (`pnpm infra:up`) |
-| Browser e2e      | `pnpm turbo run test:e2e --filter=e2e`                                      | `apps/e2e/tests/*.spec.ts` (Playwright)                       | Postgres + browser                 |
+| Lớp              | Lệnh                                   | Ở đâu                                                         | Cần gì                             |
+| ---------------- | -------------------------------------- | ------------------------------------------------------------- | ---------------------------------- |
+| Unit / component | `pnpm test` (`test:watch`, `test:cov`) | `*.spec.ts(x)` / `*.test.ts` cạnh code                        | –                                  |
+| Backend e2e      | `pnpm test:e2e`                        | `apps/{api,socket}/test/*.e2e-spec.ts`, `packages/redis/test` | Postgres + Redis (`pnpm infra:up`) |
+| Browser e2e      | `pnpm test:e2e:browser`                | `apps/e2e/tests/*.spec.ts` (Playwright)                       | Postgres + browser                 |
 
 - Runner: **Vitest** cho mọi package, preset dùng chung trong `@repo/vitest-config` (`base`, `nest` – SWC để giữ decorator metadata cho DI, `react` – jsdom). Playwright cho trình duyệt.
 - Nest unit test dùng `Test.createTestingModule` + mock provider; e2e khởi động app thật bằng `configureApp()` (`src/app.setup.ts`) – cùng cấu hình với `main.ts`.

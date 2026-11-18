@@ -108,7 +108,9 @@ sequenceDiagram
 - `GET /auth/methods` → `{ providers, registration }`: màn đăng nhập chỉ hiện nút của provider đã bật và tab Đăng ký khi `AUTH_REGISTRATION=open`.
 - **Liên kết tài khoản** (`OAuthService.userFor`), theo thứ tự:
   1. Đã có `UserIdentity (provider, subject)` → đăng nhập user đó. `subject` là id cố định của provider, **không** phải email.
-  2. Có user cùng email → **chỉ** liên kết khi provider xác nhận email (Google `email_verified`, GitHub email primary + verified). Facebook không có cờ này nên **không bao giờ** tự liên kết theo email Facebook. Không xác nhận → lỗi `email_not_verified`.
+  2. Có user cùng email → **chỉ** liên kết khi provider xác nhận email (Google `email_verified`, GitHub email primary + verified). Facebook không có cờ này nên **không bao giờ** tự liên kết theo email Facebook. Không xác nhận:
+     - Web: **liên kết chờ** (`PendingLinks`, `apps/api/src/auth/pending-links.ts`): api lưu tài khoản provider trong Redis 10 phút, đặt cookie `oauth_link` (httpOnly, host-only của api) và trả `link_required`. Khi **cùng trình duyệt đó** đăng nhập thành công vào **đúng** user đó (`POST /auth/login` hoặc provider đã xác nhận email) → tạo `UserIdentity`, xoá cookie. Đăng nhập user khác / trình duyệt khác → không liên kết. Cookie gắn với trình duyệt nên kẻ gian không gửi được liên kết cho nạn nhân bấm.
+     - Mobile: lỗi `email_not_verified` (không có cookie trình duyệt để gắn).
   3. Chưa có → tạo user mới (lỗi `registration_closed` nếu `AUTH_REGISTRATION=closed`). Email chưa xác nhận **không** được gán vào user mới (tránh chiếm email của người khác).
 - Lỗi trả về client dạng `?error=<code>` (`OAuthErrorCode`); câu chữ hiển thị: `oauthErrorMessage` trong `@repo/utils`.
 - Chống login CSRF: `state` ngẫu nhiên, dùng 1 lần (`GETDEL` trong Redis), và phải khớp cookie `oauth_state` (httpOnly, host-only) của trình duyệt đã bắt đầu luồng.
@@ -140,7 +142,7 @@ Mỗi môi trường một client (ít nhất tách prod): secret của local n�
 ## Test
 
 - `@repo/auth`: unit test (argon2id kể cả vector chuẩn, JWT, `RevokedSessions`, guard, socket middleware).
-- api: `test/auth.e2e-spec.ts` (cookie / token mode, xoay token, phát hiện dùng lại, đăng xuất, đổi mật khẩu; access token bị từ chối ngay sau khi session kết thúc). `test/oauth.e2e-spec.ts`: luồng provider với Google / GitHub giả (stub `fetch`): PKCE, state dùng 1 lần, cookie `oauth_state`, `next` ngoài site, quy tắc liên kết, registration closed, luồng mobile + exchange. socket: `test/chat.e2e-spec.ts` từ chối token của session đã thu hồi. Route khác trong e2e dùng `bearer(app)` từ `test/create-app.ts`.
+- api: `test/auth.e2e-spec.ts` (cookie / token mode, xoay token, phát hiện dùng lại, đăng xuất, đổi mật khẩu; access token bị từ chối ngay sau khi session kết thúc). `test/oauth.e2e-spec.ts`: luồng provider với Google / GitHub giả (stub `fetch`): PKCE, state dùng 1 lần, cookie `oauth_state`, `next` ngoài site, quy tắc liên kết, liên kết chờ (`oauth_link`), registration closed, luồng mobile + exchange. socket: `test/chat.e2e-spec.ts` từ chối token của session đã thu hồi. Route khác trong e2e dùng `bearer(app)` từ `test/create-app.ts`.
 - Controller có guard trong unit test: `overrideGuard(...)` nếu cần.
 - Playwright: project `setup` (`tests/auth.setup.ts`) đăng ký + đăng nhập qua UI một lần, lưu cookie vào `.auth/user.json`; test khác dùng lại. Test đăng xuất **PHẢI** tự đăng nhập session riêng: đăng xuất session dùng chung làm các test chạy song song nhận 401. `tests/auth.spec.ts`: chuyển hướng login, sai mật khẩu, tab đăng ký + tạo tài khoản, thông báo lỗi provider, refresh trước khi render, đăng xuất. Playwright nâng `AUTH_RATE_LIMIT` (nhiều test đăng nhập trong 1 phút). Không có test với provider thật.
 - mobile: `src/lib/oauth.spec.ts` (PKCE, đổi mã, huỷ, lỗi), `session.spec.ts` (đăng ký).

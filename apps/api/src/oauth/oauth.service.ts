@@ -11,6 +11,7 @@ import {
   type ClientMeta,
   type IssuedSession,
 } from '../auth/auth.service'
+import type { PendingLink } from '../auth/pending-links'
 import { AuthRegistration, env } from '../env'
 import {
   PROVIDERS,
@@ -30,6 +31,8 @@ export const OAuthErrorCode = {
   ProviderError: 'provider_error',
   /** An account with this email exists, but the provider does not vouch for the email. */
   EmailNotVerified: 'email_not_verified',
+  /** Web variant of `EmailNotVerified`: signing in to that account links the provider. */
+  LinkRequired: 'link_required',
   /** No account yet and `AUTH_REGISTRATION=closed`. */
   RegistrationClosed: 'registration_closed',
   AccountDisabled: 'account_disabled',
@@ -38,7 +41,11 @@ export type OAuthErrorCode =
   (typeof OAuthErrorCode)[keyof typeof OAuthErrorCode]
 
 export class OAuthError extends Error {
-  constructor(readonly code: OAuthErrorCode) {
+  constructor(
+    readonly code: OAuthErrorCode,
+    /** `EmailNotVerified`: the provider account and the account it may be linked to. */
+    readonly link?: PendingLink,
+  ) {
     super(code)
   }
 }
@@ -77,8 +84,9 @@ const exchangeKey = (code: string) => `auth:oauth-exchange:${sha256(code)}`
  * bound to the browser by a cookie (`OAuthController`).
  *
  * Linking: a known provider account signs in as its user; otherwise an account with the same
- * email is linked only when the provider verified that email; otherwise a new account is created
- * (when registration is open).
+ * email is linked only when the provider verified that email (unverified: the web client gets a
+ * `PendingLinks` entry, linked once the browser signs in to that account); otherwise a new account
+ * is created (when registration is open).
  */
 @Injectable()
 export class OAuthService {
@@ -259,7 +267,11 @@ export class OAuthService {
       // Linking by an email the provider does not vouch for would hand the account to whoever
       // typed that address at the provider
       if (!profile.emailVerified)
-        throw new OAuthError(OAuthErrorCode.EmailNotVerified)
+        throw new OAuthError(OAuthErrorCode.EmailNotVerified, {
+          ...identityData,
+          email: identityData.email ?? null,
+          userId: existing.id,
+        })
       if (existing.disabledAt)
         throw new OAuthError(OAuthErrorCode.AccountDisabled)
       await this.prisma.userIdentity.create({

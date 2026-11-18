@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "lib": ["es2023", "DOM"]
+  },
+  "exclude": ["node_modules", "dist"],
+  "extends": "@repo/typescript-config/node-library.json",
+  "include": ["src", "scripts", "vitest.config.ts"]
+}

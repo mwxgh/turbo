@@ -16,7 +16,7 @@ async function chooseRowAction(page: Page, message: string, name: string) {
 test.describe('Hellos', () => {
   test('is linked from the home page', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('link', { name: /Hellos CRUD/ }).click()
+    await page.getByRole('link', { name: /Hellos/ }).click()
     await expect(page).toHaveURL(/\/hellos$/)
     await expect(page.getByRole('heading', { name: /Hellos/ })).toBeVisible()
   })

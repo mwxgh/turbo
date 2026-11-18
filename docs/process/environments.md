@@ -18,8 +18,9 @@ Dự án có **3 môi trường**, tên viết tắt dùng thống nhất trong 
 |                         | `dev`                       | `stg`                                    | `prod`                                          |
 | ----------------------- | --------------------------- | ---------------------------------------- | ----------------------------------------------- |
 | Mục đích                | Tích hợp hằng ngày, máy dev | QA / UAT trước khi phát hành             | Người dùng thật                                 |
+| Domain                  | `dev.turbo-dev.site`        | `stg.turbo-dev.site`                     | `turbo-dev.site`                                |
 | Nguồn code              | `develop` (và máy local)    | `release/X.Y.Z`, `hotfix/X.Y.Z`          | tag `vX.Y.Z` trên `main`                        |
-| Build image             | tự động khi push `develop`  | tự động khi push `release/*`, `hotfix/*` | **duyệt tay** khi tạo tag                       |
+| Build + deploy          | tự động khi push `develop`  | tự động khi push `release/*`, `hotfix/*` | khi tạo tag (duyệt tay nếu bật reviewers)       |
 | Tag image               | `:dev`, `:dev-sha-<sha>`    | `:stg`, `:stg-sha-<sha>`                 | `:prod`, `:X.Y.Z`, `:latest`, `:prod-sha-<sha>` |
 | CI environment          | `dev`                       | `stg`                                    | `prod` (GitHub: _Required reviewers_)           |
 | Swagger `/api/docs`     | bật                         | bật                                      | **tắt**                                         |

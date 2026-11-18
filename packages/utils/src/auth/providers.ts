@@ -72,6 +72,8 @@ export function oauthErrorMessage(code: string): string {
       return 'Sign-in was cancelled.'
     case 'invalid_state':
       return 'The sign-in link expired or was opened in another browser. Please try again.'
+    case 'link_required':
+      return 'An account with this email already exists. Sign in to it below (password or another provider) to link this sign-in to it.'
     case 'email_not_verified':
       return 'An account with this email already exists. Sign in with your password, or verify the email with the provider first.'
     case 'registration_closed':

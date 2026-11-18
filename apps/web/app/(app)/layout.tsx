@@ -1,9 +1,8 @@
 import { cookies } from 'next/headers'
 
 import type { User } from '@repo/types'
-import { ModeToggle } from '@repo/ui/components/mode-toggle'
 
-import { UserMenu } from '@/components/user-menu'
+import { AppHeader } from '@/components/app-header'
 import { apiFetch } from '@/lib/api'
 import { authCookies } from '@/lib/env'
 
@@ -22,10 +21,7 @@ export default async function AppLayout({
   const user = await currentUser()
   return (
     <>
-      <header className="flex items-center justify-end gap-4 px-4 pt-4">
-        {user && <UserMenu user={user} />}
-        <ModeToggle />
-      </header>
+      <AppHeader user={user} />
       {children}
     </>
   )

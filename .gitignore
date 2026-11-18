@@ -38,3 +38,5 @@ yarn-error.log*
 *.pem
 
 .claude
+# graphify (local knowledge graph)
+graphify-out/

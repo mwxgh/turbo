@@ -25,7 +25,7 @@ test('uploads files to storage from the dialog', async ({ page }) => {
     return route.fulfill({ status: 204 })
   })
 
-  await page.goto('/', { waitUntil: 'networkidle' })
+  await page.goto('/files', { waitUntil: 'networkidle' })
   await page.getByRole('button', { name: 'Upload files' }).click()
   const dialog = page.getByRole('dialog', { name: 'Upload files' })
   await expect(

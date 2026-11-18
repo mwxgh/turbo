@@ -17,6 +17,7 @@ import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
 import { HellosModule } from './hellos/hellos.module'
 import { OAuthModule } from './oauth/oauth.module'
+import { StudioModule } from './studio/studio.module'
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { OAuthModule } from './oauth/oauth.module'
     HealthModule,
     HellosModule,
     FilesModule,
+    StudioModule,
   ],
 })
 export class AppModule {}
