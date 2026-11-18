@@ -1,0 +1,641 @@
+'use client'
+
+import { useState } from 'react'
+
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  Check,
+  Database,
+  FileJson,
+  FileSpreadsheet,
+  Loader2,
+  X,
+} from 'lucide-react'
+
+import { Badge } from '@repo/ui/components/badge'
+import { Button } from '@repo/ui/components/button'
+import { Input } from '@repo/ui/components/input'
+import { Label } from '@repo/ui/components/label'
+import { toast } from '@repo/ui/components/sonner'
+import { cn } from '@repo/ui/lib/utils'
+import { formatDateTime } from '@repo/utils'
+
+import { LETTERS } from '@/lib/lingo'
+import {
+  createDeck,
+  importCards,
+  importItems,
+  loadSamples,
+  setItemStatus,
+} from '@/lib/lingo-actions'
+import {
+  type AdminItem,
+  type ImportResult,
+  adminItemsQueryOptions,
+  batchesQueryOptions,
+  decksQueryOptions,
+  examQueryOptions,
+  lingoKeys,
+} from '@/lib/queries/lingo'
+
+const ITEM_EXAMPLE = `[
+  {
+    "difficulty": "MEDIUM",
+    "topic": "Office",
+    "questions": [
+      {
+        "text": "Ms. Tanaka ------- the report every March.",
+        "options": ["present", "presents", "presenting", "to present"],
+        "answer": 1,
+        "explanationVi": "Chủ ngữ số ít, thói quen → hiện tại đơn: presents.",
+        "translationVi": "Cô Tanaka trình bày báo cáo vào tháng Ba hằng năm.",
+        "skillTags": ["grammar.verb-tense"]
+      }
+    ]
+  }
+]`
+
+const CSV_EXAMPLE = `term,pos,reading,meaningVi,example,exampleVi,topic
+deadline,n,/ˈdedlaɪn/,hạn chót,The deadline is May 1.,Hạn chót là ngày 1/5.,Office`
+
+const selectClass = `h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm
+  outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50
+  dark:bg-input/30`
+
+function Panel({
+  icon: Icon,
+  title,
+  description,
+  children,
+}: {
+  icon: typeof Database
+  title: string
+  description: string
+  children: React.ReactNode
+}) {
+  const id = title.replace(/\s+/g, '-').toLowerCase()
+  return (
+    <section
+      aria-labelledby={id}
+      className="flex flex-col gap-4 rounded-xl border bg-card p-5"
+    >
+      <div className="flex items-start gap-3">
+        <Icon
+          aria-hidden="true"
+          className="mt-0.5 size-5 text-muted-foreground"
+        />
+        <div className="flex flex-col gap-1">
+          <h2 id={id} className="font-semibold">
+            {title}
+          </h2>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function ResultSummary({ result }: { result: ImportResult }) {
+  return (
+    <div
+      role="status"
+      className="flex flex-col gap-2 rounded-lg bg-muted/40 p-3 text-sm"
+    >
+      <p>
+        Thêm <strong>{result.succeeded}</strong> · trùng bỏ qua{' '}
+        {result.duplicates} · lỗi{' '}
+        <strong className={cn(result.failed && 'text-destructive')}>
+          {result.failed}
+        </strong>
+      </p>
+      {result.errors.length > 0 && (
+        <ul className="max-h-48 list-disc overflow-y-auto pl-5 text-destructive">
+          {result.errors.map((e) => (
+            <li key={e.line}>
+              Dòng {e.line}: {e.issues.join('; ')}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function SamplesPanel() {
+  const queryClient = useQueryClient()
+  const [busy, setBusy] = useState(false)
+  async function run() {
+    setBusy(true)
+    try {
+      const res = await loadSamples()
+      if (res.data) {
+        toast.success('Đã nạp dữ liệu mẫu', {
+          description: `${res.data.items.succeeded} câu, ${res.data.cards.succeeded} thẻ mới`,
+        })
+        await queryClient.invalidateQueries({ queryKey: lingoKeys.all })
+      } else
+        toast.error('Không nạp được', { description: res.errors?.join(' · ') })
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <Panel
+      icon={Database}
+      title="Dữ liệu mẫu"
+      description="12 câu Part 5 (đã xuất bản) và bộ 30 từ TOEIC cơ bản. Chạy lại không tạo trùng."
+    >
+      <Button
+        variant="outline"
+        className="self-start"
+        onClick={() => void run()}
+        disabled={busy}
+      >
+        {busy && (
+          <Loader2
+            aria-hidden="true"
+            className="animate-spin motion-reduce:animate-none"
+          />
+        )}
+        Nạp dữ liệu mẫu
+      </Button>
+    </Panel>
+  )
+}
+
+function ImportItemsPanel({ exam }: { exam: string }) {
+  const queryClient = useQueryClient()
+  const { data: spec } = useQuery(examQueryOptions(exam))
+  const parts = spec?.sections.flatMap((s) => s.parts) ?? []
+  const [part, setPart] = useState('P5')
+  const [text, setText] = useState('')
+  const [fileName, setFileName] = useState<string>()
+  const [result, setResult] = useState<ImportResult>()
+  const [busy, setBusy] = useState(false)
+
+  async function onFile(file: File | undefined) {
+    if (!file) return
+    setFileName(file.name)
+    setText(await file.text())
+  }
+
+  async function submit() {
+    let items: unknown
+    try {
+      items = JSON.parse(text)
+    } catch {
+      toast.error('JSON không hợp lệ')
+      return
+    }
+    if (!Array.isArray(items) || !items.length) {
+      toast.error('File phải là một mảng item')
+      return
+    }
+    setBusy(true)
+    try {
+      const res = await importItems({ exam, part, items, fileName })
+      if (res.data) {
+        setResult(res.data)
+        toast.success(`Đã nhập ${res.data.succeeded} item vào hàng chờ duyệt`)
+        await queryClient.invalidateQueries({ queryKey: lingoKeys.all })
+      } else
+        toast.error('Không nhập được', { description: res.errors?.join(' · ') })
+    } catch {
+      toast.error('Không gửi được (file quá 100 KB?)')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Panel
+      icon={FileJson}
+      title="Nhập câu hỏi (JSON)"
+      description="Mảng item theo định dạng bên dưới. Item hợp lệ vào hàng chờ duyệt, item lỗi được liệt kê theo dòng. Tối đa 100 KB mỗi lần."
+    >
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="import-part">Part</Label>
+          <select
+            id="import-part"
+            className={selectClass}
+            value={part}
+            onChange={(e) => setPart(e.target.value)}
+          >
+            {parts.map((p) => (
+              <option key={p.code} value={p.code}>
+                {p.code} · {p.nameVi}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="import-file">File .json</Label>
+          <Input
+            id="import-file"
+            type="file"
+            accept=".json,application/json"
+            onChange={(e) => void onFile(e.target.files?.[0])}
+          />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="import-text">Hoặc dán JSON</Label>
+        <textarea
+          id="import-text"
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value)
+            setFileName(undefined)
+          }}
+          placeholder={ITEM_EXAMPLE}
+          rows={10}
+          spellCheck={false}
+          className="rounded-lg border border-input bg-transparent p-3 font-mono
+            text-xs outline-none focus-visible:border-ring focus-visible:ring-3
+            focus-visible:ring-ring/50 dark:bg-input/30"
+        />
+        <p className="text-xs text-muted-foreground">
+          Tag kỹ năng hợp lệ: {Object.keys(spec?.skillTags ?? {}).join(', ')}
+        </p>
+      </div>
+      <Button
+        className="self-start"
+        onClick={() => void submit()}
+        disabled={!text.trim() || busy}
+      >
+        {busy && (
+          <Loader2
+            aria-hidden="true"
+            className="animate-spin motion-reduce:animate-none"
+          />
+        )}
+        Nhập
+      </Button>
+      {result && <ResultSummary result={result} />}
+    </Panel>
+  )
+}
+
+function ImportCardsPanel({ exam }: { exam: string }) {
+  const queryClient = useQueryClient()
+  const { data: decks = [] } = useQuery(decksQueryOptions(exam))
+  const systemDecks = decks.filter((d) => d.ownerId === null)
+  const [deckId, setDeckId] = useState('')
+  const [newTitle, setNewTitle] = useState('')
+  const [csv, setCsv] = useState('')
+  const [fileName, setFileName] = useState<string>()
+  const [result, setResult] = useState<ImportResult>()
+  const [busy, setBusy] = useState(false)
+
+  async function submit() {
+    setBusy(true)
+    try {
+      let target = deckId
+      if (!target) {
+        const created = await createDeck({
+          exam,
+          title: newTitle.trim(),
+          language: 'en',
+        })
+        if (!created.data) {
+          toast.error('Không tạo được bộ thẻ', {
+            description: created.errors?.join(' · '),
+          })
+          return
+        }
+        target = created.data.id
+        setDeckId(target)
+        setNewTitle('')
+      }
+      const res = await importCards(target, csv, fileName)
+      if (res.data) {
+        setResult(res.data)
+        toast.success(`Đã thêm ${res.data.succeeded} thẻ`)
+        await queryClient.invalidateQueries({ queryKey: lingoKeys.all })
+      } else
+        toast.error('Không nhập được', { description: res.errors?.join(' · ') })
+    } catch {
+      toast.error('Không gửi được (file quá 90 KB?)')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Panel
+      icon={FileSpreadsheet}
+      title="Nhập từ vựng (CSV)"
+      description="Dòng đầu là tiêu đề cột. Từ đã có trong bộ thẻ được bỏ qua."
+    >
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="deck">Bộ thẻ</Label>
+          <select
+            id="deck"
+            className={selectClass}
+            value={deckId}
+            onChange={(e) => setDeckId(e.target.value)}
+          >
+            <option value="">+ Bộ thẻ mới…</option>
+            {systemDecks.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.title} ({d.cards})
+              </option>
+            ))}
+          </select>
+        </div>
+        {!deckId && (
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="deck-title">Tên bộ thẻ mới</Label>
+            <Input
+              id="deck-title"
+              value={newTitle}
+              maxLength={100}
+              onChange={(e) => setNewTitle(e.target.value)}
+            />
+          </div>
+        )}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="csv-file">File .csv</Label>
+          <Input
+            id="csv-file"
+            type="file"
+            accept=".csv,text/csv"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              setFileName(file.name)
+              void file.text().then(setCsv)
+            }}
+          />
+        </div>
+      </div>
+      <pre className="overflow-x-auto rounded-lg bg-muted/40 p-3 text-xs">
+        {CSV_EXAMPLE}
+      </pre>
+      <Button
+        className="self-start"
+        onClick={() => void submit()}
+        disabled={!csv.trim() || busy || (!deckId && !newTitle.trim())}
+      >
+        {busy && (
+          <Loader2
+            aria-hidden="true"
+            className="animate-spin motion-reduce:animate-none"
+          />
+        )}
+        Nhập {fileName ? `“${fileName}”` : ''}
+      </Button>
+      {result && <ResultSummary result={result} />}
+    </Panel>
+  )
+}
+
+function ItemCard({
+  item,
+  selected,
+  onSelect,
+}: {
+  item: AdminItem
+  selected: boolean
+  onSelect: (checked: boolean) => void
+}) {
+  return (
+    <li
+      className={cn(
+        'flex gap-3 rounded-xl border p-4',
+        selected && 'border-primary bg-primary/5',
+      )}
+    >
+      <input
+        type="checkbox"
+        aria-label={`Chọn item ${item.topic ?? item.id}`}
+        checked={selected}
+        onChange={(e) => onSelect(e.target.checked)}
+        className="mt-1 size-4 cursor-pointer accent-primary"
+      />
+      <div className="flex flex-1 flex-col gap-3">
+        <div className="flex flex-wrap gap-1.5">
+          <Badge variant="outline">{item.part}</Badge>
+          <Badge variant="outline">{item.difficulty}</Badge>
+          {item.topic && <Badge variant="secondary">{item.topic}</Badge>}
+          <Badge
+            variant={item.status === 'NEEDS_REVIEW' ? 'destructive' : 'outline'}
+          >
+            {item.status}
+          </Badge>
+        </div>
+        {item.questions.map((q) => {
+          const prompt = q.prompt as { text?: string; options: string[] }
+          const answer = (q.answer as { choice: number }).choice
+          return (
+            <div key={q.id} className="flex flex-col gap-1.5 text-sm">
+              {prompt.text && <p className="font-medium">{prompt.text}</p>}
+              <ul className="grid gap-1 sm:grid-cols-2">
+                {prompt.options.map((o, i) => (
+                  <li
+                    key={i}
+                    className={cn(
+                      i === answer &&
+                        'font-medium text-emerald-700 dark:text-emerald-300',
+                    )}
+                  >
+                    {LETTERS[i]}. {o}{' '}
+                    {i === answer && (
+                      <Check aria-label="đáp án" className="inline size-3.5" />
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {q.explanationVi && (
+                <p className="text-muted-foreground">{q.explanationVi}</p>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </li>
+  )
+}
+
+function ReviewQueuePanel({ exam }: { exam: string }) {
+  const queryClient = useQueryClient()
+  const [status, setStatus] = useState('DRAFT')
+  const query = { page: 1, pageSize: 50, filter: { exam, status } }
+  const { data, isFetching } = useQuery(adminItemsQueryOptions(query))
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const items = data?.items ?? []
+
+  async function apply(next: string) {
+    const ids = [...selected]
+    const res = await setItemStatus(ids, next)
+    if (res.data) {
+      toast.success(`Đã cập nhật ${res.data.updated} item`)
+      setSelected(new Set())
+      await queryClient.invalidateQueries({ queryKey: lingoKeys.all })
+    } else
+      toast.error('Không cập nhật được', {
+        description: res.errors?.join(' · '),
+      })
+  }
+
+  return (
+    <section aria-labelledby="queue-heading" className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 id="queue-heading" className="text-lg font-semibold">
+            Duyệt nội dung
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {data ? `${data.total} item` : '…'}
+            {isFetching && ' · đang tải'}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-end gap-2">
+          <Label htmlFor="status" className="sr-only">
+            Trạng thái
+          </Label>
+          <select
+            id="status"
+            className={selectClass}
+            value={status}
+            onChange={(e) => {
+              setStatus(e.target.value)
+              setSelected(new Set())
+            }}
+          >
+            <option value="DRAFT">Chờ duyệt</option>
+            <option value="NEEDS_REVIEW">Cần xem lại</option>
+            <option value="PUBLISHED">Đã xuất bản</option>
+            <option value="REJECTED">Đã loại</option>
+          </select>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setSelected(
+                selected.size === items.length
+                  ? new Set()
+                  : new Set(items.map((i) => i.id)),
+              )
+            }
+            disabled={!items.length}
+          >
+            {selected.size === items.length && items.length
+              ? 'Bỏ chọn'
+              : 'Chọn tất cả'}
+          </Button>
+          {status !== 'PUBLISHED' && (
+            <Button
+              size="sm"
+              disabled={!selected.size}
+              onClick={() => void apply('PUBLISHED')}
+            >
+              <Check aria-hidden="true" />
+              Xuất bản ({selected.size})
+            </Button>
+          )}
+          {status !== 'REJECTED' && (
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={!selected.size}
+              onClick={() => void apply('REJECTED')}
+            >
+              <X aria-hidden="true" />
+              Loại ({selected.size})
+            </Button>
+          )}
+        </div>
+      </div>
+      {items.length ? (
+        <ul className="flex flex-col gap-3">
+          {items.map((item) => (
+            <ItemCard
+              key={item.id}
+              item={item}
+              selected={selected.has(item.id)}
+              onSelect={(checked) =>
+                setSelected((prev) => {
+                  const next = new Set(prev)
+                  if (checked) next.add(item.id)
+                  else next.delete(item.id)
+                  return next
+                })
+              }
+            />
+          ))}
+        </ul>
+      ) : (
+        <p
+          className="rounded-xl border border-dashed p-6 text-center text-sm
+            text-muted-foreground"
+        >
+          Không có item nào ở trạng thái này.
+        </p>
+      )}
+    </section>
+  )
+}
+
+function BatchesPanel() {
+  const { data: batches = [] } = useQuery(batchesQueryOptions())
+  if (!batches.length) return null
+  return (
+    <section aria-labelledby="batches-heading" className="flex flex-col gap-3">
+      <h2 id="batches-heading" className="text-lg font-semibold">
+        Lịch sử nhập
+      </h2>
+      <div className="overflow-x-auto rounded-xl border">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50 text-left text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2 font-medium">Thời gian</th>
+              <th className="px-3 py-2 font-medium">Nguồn</th>
+              <th className="px-3 py-2 font-medium">Part</th>
+              <th className="px-3 py-2 font-medium">File</th>
+              <th className="px-3 py-2 text-right font-medium">Thành công</th>
+              <th className="px-3 py-2 text-right font-medium">Lỗi</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {batches.map((b) => (
+              <tr key={b.id}>
+                <td className="px-3 py-2 whitespace-nowrap">
+                  {formatDateTime(b.createdAt)}
+                </td>
+                <td className="px-3 py-2">{b.source}</td>
+                <td className="px-3 py-2">{b.part ?? '–'}</td>
+                <td className="px-3 py-2">{b.fileName ?? '–'}</td>
+                <td className="px-3 py-2 text-right tabular-nums">
+                  {b.succeeded}
+                </td>
+                <td className="px-3 py-2 text-right tabular-nums">
+                  {b.failed}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
+}
+
+export function AdminPanel({ exam }: { exam: string }) {
+  return (
+    <>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ImportItemsPanel exam={exam} />
+        <div className="flex flex-col gap-6">
+          <SamplesPanel />
+          <ImportCardsPanel exam={exam} />
+        </div>
+      </div>
+      <ReviewQueuePanel exam={exam} />
+      <BatchesPanel />
+    </>
+  )
+}
