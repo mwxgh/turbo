@@ -1,5 +1,6 @@
 import {
   FolderUp,
+  Languages,
   LayoutTemplate,
   ListTodo,
   type LucideIcon,
@@ -61,6 +62,16 @@ export const APPS: AppEntry[] = [
     tone: 'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300',
     status: 'ready',
     href: '/studio',
+  },
+  {
+    id: 'lingo',
+    name: 'Lingo',
+    description:
+      'Learn languages and prepare for exams: TOEIC practice, vocabulary with spaced repetition.',
+    icon: Languages,
+    tone: 'bg-rose-500/10 text-rose-700 dark:bg-rose-400/15 dark:text-rose-300',
+    status: 'ready',
+    href: '/lingo',
   },
 ]
 
