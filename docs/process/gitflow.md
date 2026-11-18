@@ -143,15 +143,15 @@ chore(deps): update nestjs to 12.3.0
 
 ## CI/CD theo nhánh
 
-| Sự kiện                              | Chạy                        | Image (môi trường)                  |
-| ------------------------------------ | --------------------------- | ----------------------------------- |
-| MR / PR                              | `gitflow` + `check`         | –                                   |
-| push `develop`                       | `check` → images            | `:dev` (dev)                        |
-| push `release/X.Y.Z`, `hotfix/X.Y.Z` | `check` → images            | `:stg` (stg)                        |
-| push `main`                          | `check`                     | –                                   |
-| tag `vX.Y.Z` trên `main`             | `check` → images, duyệt tay | `:prod`, `:X.Y.Z`, `:latest` (prod) |
+| Sự kiện                              | Chạy                      | Image (môi trường)                  |
+| ------------------------------------ | ------------------------- | ----------------------------------- |
+| MR / PR                              | `gitflow` + `check`       | –                                   |
+| push `develop`                       | `check` → images → deploy | `:dev` (dev)                        |
+| push `release/X.Y.Z`, `hotfix/X.Y.Z` | `check` → images → deploy | `:stg` (stg)                        |
+| push `main`                          | `check`                   | –                                   |
+| tag `vX.Y.Z` trên `main`             | `check` → images → deploy | `:prod`, `:X.Y.Z`, `:latest` (prod) |
 
-`check` = format, build, lint, type-check, test, migration apply + khớp `schema.prisma`. Chi tiết: README mục _CI/CD_.
+`check` = format, build, lint, type-check, test, migration apply + khớp `schema.prisma`. Chi tiết: README mục _CI/CD_. Deploy: [deploy.md](deploy.md).
 
 ## Bảo vệ nhánh
 
