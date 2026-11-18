@@ -67,6 +67,24 @@ describe('createApiFetch', () => {
     )
   })
 
+  it('raw returns the Response untouched, ApiError on failure', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response('PK', {
+        status: 200,
+        headers: { 'content-type': 'application/zip' },
+      }),
+    )
+    const res = await apiFetch.raw('/studio/generate', { method: 'POST' })
+    expect(res.headers.get('content-type')).toBe('application/zip')
+    await expect(res.text()).resolves.toBe('PK')
+
+    respond(400, { message: ['Name: too short'] })
+    await expect(apiFetch.raw('/studio/generate')).rejects.toMatchObject({
+      status: 400,
+      message: 'Name: too short',
+    })
+  })
+
   it('adds headers and credentials from the options', async () => {
     const fetchMock = respond(200, {})
     const authed = createApiFetch(() => BASE, {

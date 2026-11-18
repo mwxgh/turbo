@@ -55,10 +55,8 @@ export function createApiFetch(
     })
   }
 
-  return async function apiFetch<T>(
-    path: string,
-    init?: RequestInit,
-  ): Promise<T> {
+  /** The `Response` itself (files, streams): same auth and retry, `ApiError` on failure. */
+  async function raw(path: string, init?: RequestInit): Promise<Response> {
     let res = await send(path, init)
     if (
       res.status === 401 &&
@@ -66,9 +64,15 @@ export function createApiFetch(
       (await refreshOnce(path))
     )
       res = await send(path, init)
-    const body: unknown =
-      res.status === 204 ? null : await res.json().catch(() => null)
-    if (!res.ok) throw new ApiError(res.status, body)
-    return body as T
+    if (!res.ok)
+      throw new ApiError(res.status, await res.json().catch(() => null))
+    return res
   }
+
+  async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+    const res = await raw(path, init)
+    return (res.status === 204 ? null : await res.json().catch(() => null)) as T
+  }
+
+  return Object.assign(apiFetch, { raw })
 }
