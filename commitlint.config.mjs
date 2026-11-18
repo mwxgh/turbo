@@ -25,6 +25,7 @@ export default {
         'utils',
         'scaffold',
         'socket-events',
+        'lingo',
         'e2e',
         'tooling',
         'deploy',

@@ -14,6 +14,9 @@ catalog:
   'prettier-plugin-sort-json': 4.2.0
   # Studio downloads (api zips @repo/scaffold trees)
   'jszip': 3.10.2
+  # Lingo (api): item / CSV validation and spaced repetition
+  'zod': 4.6.7
+  'ts-fsrs': 5.4.2
   '@types/node': 26.4.1
   'tsx': 4.23.15
   'vitest': 5.0.5

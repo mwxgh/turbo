@@ -16,6 +16,7 @@ import { env } from './env'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
 import { HellosModule } from './hellos/hellos.module'
+import { LingoModule } from './lingo/lingo.module'
 import { OAuthModule } from './oauth/oauth.module'
 import { StudioModule } from './studio/studio.module'
 
@@ -53,6 +54,7 @@ import { StudioModule } from './studio/studio.module'
     HellosModule,
     FilesModule,
     StudioModule,
+    LingoModule,
   ],
 })
 export class AppModule {}
