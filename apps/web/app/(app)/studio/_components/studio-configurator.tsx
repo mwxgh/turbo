@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { Download } from 'lucide-react'
+import { Download, Loader2 } from 'lucide-react'
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
 
 import {
@@ -35,6 +35,9 @@ import {
   FieldLabel,
 } from '@repo/ui/components/field'
 import { Input } from '@repo/ui/components/input'
+import { toast } from '@repo/ui/components/sonner'
+
+import { apiFetch } from '@/lib/api'
 
 import { FilePreview } from './file-preview'
 import { type OptionChoice, OptionGroup } from './option-group'
@@ -91,7 +94,7 @@ const LAYOUTS: OptionChoice<'monorepo' | 'single'>[] = [
 /**
  * Studio: one step at a time (database, backend, ORM, frontend, repository). A picked step is
  * recorded and collapses, the next one opens; Change reopens a step. The preview follows every
- * choice. Pure client side: `@repo/scaffold` only builds strings.
+ * choice, client side (`@repo/scaffold` only builds strings); the zip comes from the api.
  */
 export function StudioConfigurator() {
   const [query, setQuery] = useQueryStates(parsers)
@@ -227,6 +230,31 @@ export function StudioConfigurator() {
     ],
   )
   const file = tree && selected in tree ? selected : 'README.md'
+
+  const [downloading, setDownloading] = useState(false)
+  /** The api builds the zip (formatted like `pnpm format`); the browser saves it. */
+  async function download() {
+    setDownloading(true)
+    try {
+      const res = await apiFetch.raw('/studio/generate', {
+        method: 'POST',
+        body: JSON.stringify(options),
+      })
+      const url = URL.createObjectURL(await res.blob())
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${options.name}.zip`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      toast.error('Could not download the project', {
+        description:
+          error instanceof Error ? error.message : 'Could not reach the server',
+      })
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   const dbLabel = labelOf(DATABASES, database)
   const backendLabel = labelOf(BACKENDS, backend)
@@ -471,12 +499,23 @@ export function StudioConfigurator() {
             )}
           </div>
           <div className="flex flex-col items-end gap-1">
-            <Button disabled aria-describedby="download-help">
-              <Download aria-hidden="true" />
-              Download .zip
+            <Button
+              type="button"
+              onClick={() => void download()}
+              disabled={!tree || downloading}
+              aria-describedby="download-help"
+            >
+              {downloading ? (
+                <Loader2 aria-hidden="true" className="animate-spin" />
+              ) : (
+                <Download aria-hidden="true" />
+              )}
+              {downloading ? 'Preparing…' : 'Download .zip'}
             </Button>
             <p id="download-help" className="text-xs text-muted-foreground">
-              Arrives with the Studio API.
+              {tree
+                ? `${options.name}.zip, ready to run`
+                : 'Fix the options to download'}
             </p>
           </div>
         </div>
