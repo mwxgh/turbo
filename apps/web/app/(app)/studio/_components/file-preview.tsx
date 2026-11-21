@@ -4,8 +4,9 @@ import { useState } from 'react'
 
 import { Check, Copy, FileText, Folder } from 'lucide-react'
 
-import type { FileTree } from '@repo/scaffold'
 import { Button } from '@repo/ui/components/button'
+
+import type { FileTree } from '@/lib/queries/studio'
 
 interface FolderNode {
   name: string
