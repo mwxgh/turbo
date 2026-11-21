@@ -11,6 +11,7 @@ const LINKS = [
   { href: `/lingo/${DEFAULT_EXAM}`, label: 'Tổng quan' },
   { href: '/lingo/review', label: 'Ôn từ vựng' },
   { href: `/lingo/${DEFAULT_EXAM}/mistakes`, label: 'Sổ câu sai' },
+  { href: '/lingo/chat', label: 'Hỏi AI' },
 ]
 
 /** Sections of Lingo; the admin link only for admins. */

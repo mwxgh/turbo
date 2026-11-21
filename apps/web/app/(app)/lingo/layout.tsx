@@ -4,6 +4,7 @@ import { appById } from '@/lib/apps'
 import { currentUser } from '@/lib/lingo'
 
 import { LingoNav } from './_components/lingo-nav'
+import { TutorBubble } from './_components/tutor-bubble'
 
 export const metadata: Metadata = { title: appById('lingo').name }
 
@@ -13,6 +14,7 @@ export default async function LingoLayout({ children }: LayoutProps<'/lingo'>) {
     <div className="flex flex-col">
       <LingoNav isAdmin={user?.role === 'ADMIN'} />
       {children}
+      <TutorBubble />
     </div>
   )
 }

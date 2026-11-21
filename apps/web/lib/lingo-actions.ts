@@ -1,7 +1,7 @@
 'use server'
 
 // Writes of Lingo. Callers toast the outcome and invalidate `lingoKeys` (see use-lingo-actions).
-import type { ApiErrorBody } from '@repo/types'
+import type { ApiErrorBody, LingoChat } from '@repo/types'
 
 import type { ActionState } from '@/lib/action-toast'
 import { ApiError, apiFetch } from '@/lib/api'
@@ -119,5 +119,17 @@ export async function importCards(
 export async function loadSamples() {
   return run(() =>
     post<{ items: ImportResult; cards: ImportResult }>('/lingo/admin/samples'),
+  )
+}
+
+// ─── AI tutor chat (questions stream from the browser: lib/lingo-chat.ts) ───
+
+export async function createChat() {
+  return run(() => post<LingoChat>('/lingo/chats'))
+}
+
+export async function deleteChat(id: string) {
+  return run(() =>
+    post<null>(`/lingo/chats/${encodeURIComponent(id)}`, undefined, 'DELETE'),
   )
 }

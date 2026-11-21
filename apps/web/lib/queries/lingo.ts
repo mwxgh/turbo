@@ -3,6 +3,8 @@ import { queryOptions } from '@tanstack/react-query'
 import type {
   LingoBatch,
   LingoCard,
+  LingoChat,
+  LingoChatMessage,
   LingoDeck,
   LingoItem,
   LingoQuestion,
@@ -139,6 +141,8 @@ export const lingoKeys = {
   adminItems: (query: ListQuery) =>
     [...lingoKeys.all, 'admin', 'items', query] as const,
   batches: () => [...lingoKeys.all, 'admin', 'batches'] as const,
+  chats: () => [...lingoKeys.all, 'chats'] as const,
+  chat: (id: string) => [...lingoKeys.all, 'chats', id] as const,
 }
 
 const get = <T>(path: string) => apiFetch<T>(path, { cache: 'no-store' })
@@ -209,4 +213,24 @@ export const batchesQueryOptions = () =>
           createdBy: { name: string | null; email: string | null }
         })[]
       >('/lingo/admin/batches'),
+  })
+
+// ─── AI tutor chat ──────────────────────────────────────────────────────────
+
+export type ChatDetail = LingoChat & { messages: LingoChatMessage[] }
+
+/** Newest conversations first (the API default sort). */
+export const chatsQueryOptions = () =>
+  queryOptions({
+    queryKey: lingoKeys.chats(),
+    queryFn: () =>
+      get<Paginated<LingoChat>>(
+        `/lingo/chats?${listQueryToSearchParams({ pageSize: 50 }).toString()}`,
+      ),
+  })
+
+export const chatQueryOptions = (id: string) =>
+  queryOptions({
+    queryKey: lingoKeys.chat(id),
+    queryFn: () => get<ChatDetail>(`/lingo/chats/${encodeURIComponent(id)}`),
   })
