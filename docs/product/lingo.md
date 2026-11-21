@@ -184,6 +184,13 @@ Giống study4: chỉ chế độ **Full test** mới có điểm quy đổi. Ch
 - **Duyệt:** xem, sửa, nghe audio, Duyệt / Loại. Chỉ nội dung đã duyệt mới hiện cho người học.
 - **Ghép đề:** chọn các Item đã duyệt theo cấu trúc spec thành một Test (có nút "ghép tự động đủ cấu trúc"), xuất bản.
 
+### 4.7 Hỏi AI (`/lingo/chat`)
+
+- Chat với gia sư AI về tiếng Anh / TOEIC: ngữ pháp, từ vựng, sửa câu, giải thích đáp án. Trả lời hiện dần (stream).
+- Bong bóng nổi góc phải dưới trên mọi trang Lingo (trừ `/lingo/chat`): mở khung chat nhỏ, đóng vẫn trả lời tiếp, nút mở toàn trang.
+- Hội thoại lưu lại, mỗi người chỉ thấy của mình; xoá được. Tiêu đề = câu hỏi đầu.
+- Model: BytePlus ModelArk (`ARK_API_KEY`, `ARK_MODEL`), xem ADR `0016`. Thiếu cấu hình thì trang báo AI chưa bật.
+
 ## 5. Nhập nội dung
 
 MVP **không dùng AI để tạo nội dung**. Mọi nguồn đi qua cùng một đường: kiểm tra bằng schema Zod của
@@ -324,6 +331,8 @@ Mọi route cần đăng nhập. Route admin có `@Roles(Role.ADMIN)`. Controlle
 | `POST /lingo/questions/:id/report`                                 | Báo câu sai                                                                  |
 | `POST /lingo/admin/imports` · `POST /lingo/admin/decks/:id/import` | Nhập file JSON đề / CSV từ vựng → kết quả từng dòng                          |
 | `/lingo/admin/items`, `/lingo/admin/tests`                         | Tạo / sửa item, duyệt, ghép đề                                               |
+| `GET/POST /lingo/chats` · `GET/DELETE /lingo/chats/:id`            | Hội thoại với AI tutor (`ListQueryDto`)                                      |
+| `POST /lingo/chats/:id/messages`                                   | `{ text }` → câu trả lời stream `text/plain` (20 lần / phút)                 |
 
 Đáp án và giải thích không trả về trước khi câu đó được nộp.
 
@@ -340,6 +349,7 @@ Mọi route cần đăng nhập. Route admin có `@Roles(Role.ADMIN)`. Controlle
 | `/lingo/[exam]/mistakes`         | Sổ câu sai                                             |
 | `/lingo/decks` · `/lingo/review` | Bộ thẻ, phiên ôn (Space lật, 1–4 chấm)                 |
 | `/lingo/admin`                   | Nhập (form, JSON, CSV), duyệt, ghép đề (chỉ admin)     |
+| `/lingo/chat?c=<id>`             | Hỏi AI tutor, danh sách hội thoại                      |
 
 Màn làm bài dựng từ spec + `type` của câu: mỗi `QuestionType` một component (`SingleChoice`, `GapFill`…).
 Thêm kỳ thi mới không cần màn mới. Giao diện theo skill `ui-ux-pro-max`, component `@repo/ui`, kiểm tra light và dark.
@@ -374,4 +384,5 @@ Mỗi giai đoạn: PR vào `develop` → tự lên **dev**, rồi theo release 
 - `0012` Cấu trúc kỳ thi khai báo bằng code (`apps/api/src/lingo/specs`), nội dung trong DB; mã kỳ thi / Part là chuỗi, không phải enum.
 - `0013` Mọi nội dung học vào qua một đường nhập chung (kiểm tra schema `specs` → DRAFT → admin duyệt). MVP nhập tay / JSON / CSV, AI là nguồn thêm sau qua `LlmProvider`.
 - `0014` Audio học bằng Google Cloud Text-to-Speech qua interface `TtsProvider` (thay được bằng ElevenLabs), sinh một lần lúc tạo nội dung, lưu S3.
+- `0016` AI tutor chat gọi BytePlus ModelArk từ api, trả lời stream `text/plain`, hội thoại lưu DB.
 - `0015` Ảnh học bằng OpenAI image generation qua interface `ImageProvider`, câu hỏi viết sau khi xem ảnh thật.

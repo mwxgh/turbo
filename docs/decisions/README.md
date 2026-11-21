@@ -22,6 +22,7 @@ Mỗi file ghi một quyết định: bối cảnh → quyết định → hệ 
 | 0011 | [Đăng nhập bằng Google / Facebook / GitHub do api xử lý](0011-dang-nhap-bang-provider-qua-api.md)                       | accepted   | 2026-11-12 |
 | 0012 | [Cấu trúc kỳ thi Lingo khai báo bằng code trong api](0012-cau-truc-ky-thi-khai-bao-trong-api.md)                        | accepted   | 2026-11-18 |
 | 0013 | [Nội dung Lingo qua một đường nhập chung, admin duyệt](0013-noi-dung-lingo-qua-mot-duong-nhap-co-duyet.md)              | accepted   | 2026-11-18 |
+| 0016 | [AI tutor chat của Lingo qua BytePlus ModelArk, trả lời stream](0016-ai-tutor-chat-qua-byteplus-modelark.md)            | accepted   | 2026-11-21 |
 | 0018 | [Bộ sinh project của Studio nằm trong api, web chỉ đọc danh mục lựa chọn](0018-studio-scaffold-nam-trong-api.md)        | accepted   | 2026-11-21 |
 
 `Ngày` của 0002–0007 = ngày commit đưa quyết định vào code (ADR viết lại sau, ngày 2026-11-11). `UNKNOWN` trong ADR = không có tài liệu về lý do; ai biết thì bổ sung.
