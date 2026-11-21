@@ -9,6 +9,7 @@ import { DEFAULT_EXAM } from '@/lib/lingo'
 
 const LINKS = [
   { href: `/lingo/${DEFAULT_EXAM}`, label: 'Tổng quan' },
+  { href: `/lingo/${DEFAULT_EXAM}/tests`, label: 'Đề thi' },
   { href: '/lingo/review', label: 'Ôn từ vựng' },
   { href: `/lingo/${DEFAULT_EXAM}/mistakes`, label: 'Sổ câu sai' },
   { href: '/lingo/chat', label: 'Hỏi AI' },

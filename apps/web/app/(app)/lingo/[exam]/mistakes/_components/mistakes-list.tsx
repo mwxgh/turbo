@@ -11,6 +11,11 @@ import { Button } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'
 import { formatDate } from '@repo/utils'
 
+import {
+  Passage,
+  QuestionImage,
+  Transcript,
+} from '@/app/(app)/lingo/_components/question-media'
 import { LETTERS } from '@/lib/lingo'
 import { startAttempt } from '@/lib/lingo-actions'
 import { mistakesQueryOptions } from '@/lib/queries/lingo'
@@ -90,6 +95,14 @@ export function MistakesList({ exam }: { exam: string }) {
                 <span>{m.part.replace('P', 'Part ')}</span>
                 <span>{formatDate(m.answeredAt)}</span>
               </div>
+              {m.imageUrl && <QuestionImage url={m.imageUrl} />}
+              {m.transcript && <Transcript lines={m.transcript} />}
+              {m.passage && (
+                <Passage
+                  text={m.passage}
+                  className="max-h-64 overflow-y-auto text-sm"
+                />
+              )}
               {m.text && <p className="leading-relaxed">{m.text}</p>}
               <p className="text-sm">
                 <span className="text-destructive">

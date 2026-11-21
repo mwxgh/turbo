@@ -3,30 +3,55 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, Flag, Loader2, Send } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Flag,
+  Loader2,
+  Send,
+  Timer,
+} from 'lucide-react'
 
 import { Button } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'
 import { cn } from '@repo/ui/lib/utils'
 
+import {
+  ListeningPlayer,
+  Passage,
+  QuestionImage,
+} from '@/app/(app)/lingo/_components/question-media'
 import { LETTERS } from '@/lib/lingo'
 import { saveAnswer, submitAttempt } from '@/lib/lingo-actions'
-import { type Attempt, lingoKeys } from '@/lib/queries/lingo'
+import {
+  type Attempt,
+  type ExamDetail,
+  type PartInfo,
+  lingoKeys,
+} from '@/lib/queries/lingo'
+import { scriptOf } from '@/lib/speech'
 
 const clock = (ms: number) => {
-  const s = Math.floor(ms / 1000)
-  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+  const s = Math.max(0, Math.floor(ms / 1000))
+  const h = Math.floor(s / 3600)
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0')
+  const ss = String(s % 60).padStart(2, '0')
+  return h ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
 }
 
 /**
  * One question at a time. Keys: A–D or 1–4 choose, ← → move, F flags. Every choice is saved right
- * away, so a closed tab resumes where it stopped.
+ * away, so a closed tab resumes where it stopped. With a time limit the clock counts down and the
+ * attempt is submitted when it runs out. Listening is read by the browser; in a full test each
+ * recording plays once.
  */
 export function AttemptRunner({
   attempt,
+  exam,
   onSubmitted,
 }: {
   attempt: Attempt
+  exam: ExamDetail
   onSubmitted: (attempt: Attempt) => void
 }) {
   const queryClient = useQueryClient()
@@ -42,25 +67,31 @@ export function AttemptRunner({
   )
   const [flags, setFlags] = useState(() => questions.map((q) => q.flagged))
   const [submitting, setSubmitting] = useState(false)
-  const [elapsed, setElapsed] = useState(
-    () => Date.now() - Date.parse(attempt.startedAt),
-  )
+  const [now, setNow] = useState(() => Date.now())
+  /** Items whose recording was played (full test: once each) */
+  const [played, setPlayed] = useState<ReadonlySet<string>>(new Set())
   const shownAt = useRef(0)
+  const autoSubmitted = useRef(false)
+  const deadline = attempt.deadline ? Date.parse(attempt.deadline) : null
+  const parts = new Map<string, PartInfo>(
+    exam.sections.flatMap((s) => s.parts.map((p) => [p.code, p])),
+  )
 
   useEffect(() => {
-    const timer = setInterval(
-      () => setElapsed(Date.now() - Date.parse(attempt.startedAt)),
-      1000,
-    )
+    const timer = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(timer)
-  }, [attempt.startedAt])
+  }, [])
 
   useEffect(() => {
     shownAt.current = Date.now()
   }, [index])
 
   const question = questions[index]!
+  const part = parts.get(question.part)
+  const spoken = part?.spokenOptions ?? false
+  const script = scriptOf(question, spoken)
   const answered = choices.filter((c) => c !== null).length
+  const remaining = deadline === null ? null : deadline - now
 
   const choose = useCallback(
     (choice: number) => {
@@ -91,9 +122,10 @@ export function AttemptRunner({
     [questions.length],
   )
 
-  async function submit() {
+  async function submit(timeUp = false) {
     const missing = questions.length - answered
     if (
+      !timeUp &&
       missing &&
       !window.confirm(`Còn ${missing} câu chưa làm (tính là sai). Vẫn nộp bài?`)
     )
@@ -115,6 +147,14 @@ export function AttemptRunner({
       setSubmitting(false)
     }
   }
+
+  // Time is up: submit what was answered
+  useEffect(() => {
+    if (remaining === null || remaining > 0 || autoSubmitted.current) return
+    autoSubmitted.current = true
+    toast.info('Hết giờ, bài đã được nộp')
+    void submit(true)
+  })
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -144,7 +184,9 @@ export function AttemptRunner({
       <div className="flex items-center justify-between gap-4">
         <div className="flex flex-col">
           <span className="text-sm text-muted-foreground">
+            {attempt.test && `${attempt.test.title} · `}
             {question.part.replace('P', 'Part ')}
+            {part && ` · ${part.nameVi}`}
           </span>
           <h1 className="text-xl font-semibold">
             Câu {index + 1}
@@ -152,12 +194,25 @@ export function AttemptRunner({
           </h1>
         </div>
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <span
-            aria-label="Thời gian đã làm"
-            className="font-mono tabular-nums"
-          >
-            {clock(elapsed)}
-          </span>
+          {remaining === null ? (
+            <span
+              aria-label="Thời gian đã làm"
+              className="font-mono tabular-nums"
+            >
+              {clock(now - Date.parse(attempt.startedAt))}
+            </span>
+          ) : (
+            <span
+              aria-label="Thời gian còn lại"
+              className={cn(
+                'flex items-center gap-1 font-mono tabular-nums',
+                remaining < 5 * 60_000 && 'font-semibold text-destructive',
+              )}
+            >
+              <Timer aria-hidden className="size-4" />
+              {clock(remaining)}
+            </span>
+          )}
           <span className="tabular-nums">
             {answered}/{questions.length} đã chọn
           </span>
@@ -180,16 +235,31 @@ export function AttemptRunner({
       </div>
 
       <section aria-label={`Câu ${index + 1}`} className="flex flex-col gap-5">
-        {question.passage && (
-          <div
-            className="max-h-80 overflow-y-auto rounded-xl border bg-muted/30
-              p-4 leading-relaxed whitespace-pre-line"
-          >
-            {question.passage}
-          </div>
+        {question.imageUrl && <QuestionImage url={question.imageUrl} />}
+        {script.length > 0 && (
+          <ListeningPlayer
+            key={question.itemId}
+            lines={script}
+            locked={attempt.mode === 'FULL_TEST' && played.has(question.itemId)}
+            onPlayed={() =>
+              setPlayed((prev) => new Set(prev).add(question.itemId))
+            }
+          />
         )}
-        {question.text && (
+        {question.passage && (
+          <Passage
+            text={question.passage}
+            className="max-h-[28rem] overflow-y-auto"
+          />
+        )}
+        {question.text && !spoken && (
           <p className="text-lg leading-relaxed">{question.text}</p>
+        )}
+        {spoken && (
+          <p className="text-sm text-muted-foreground">
+            Nghe {question.text ? 'câu hỏi và ' : ''}các lựa chọn rồi chọn đáp
+            án đúng.
+          </p>
         )}
         <div
           role="radiogroup"
@@ -225,7 +295,7 @@ export function AttemptRunner({
                 >
                   {LETTERS[i]}
                 </span>
-                <span>{option}</span>
+                {!spoken && <span>{option}</span>}
               </button>
             )
           })}

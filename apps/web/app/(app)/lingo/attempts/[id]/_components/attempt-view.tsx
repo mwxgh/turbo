@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-import type { Attempt } from '@/lib/queries/lingo'
+import type { Attempt, ExamDetail } from '@/lib/queries/lingo'
 
 import { AttemptResult } from './attempt-result'
 import { AttemptRunner } from './attempt-runner'
@@ -10,15 +10,15 @@ import { AttemptRunner } from './attempt-runner'
 /** Runner while the attempt is open, result once submitted (same URL). */
 export function AttemptView({
   initial,
-  skillTags,
+  exam,
 }: {
   initial: Attempt
-  skillTags: Record<string, string>
+  exam: ExamDetail
 }) {
   const [attempt, setAttempt] = useState(initial)
   return attempt.submittedAt ? (
-    <AttemptResult attempt={attempt} skillTags={skillTags} />
+    <AttemptResult attempt={attempt} exam={exam} />
   ) : (
-    <AttemptRunner attempt={attempt} onSubmitted={setAttempt} />
+    <AttemptRunner attempt={attempt} exam={exam} onSubmitted={setAttempt} />
   )
 }

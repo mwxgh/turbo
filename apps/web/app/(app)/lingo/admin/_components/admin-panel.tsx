@@ -8,35 +8,50 @@ import {
   Database,
   FileJson,
   FileSpreadsheet,
+  ImageUp,
   Loader2,
   X,
 } from 'lucide-react'
 
 import { Badge } from '@repo/ui/components/badge'
 import { Button } from '@repo/ui/components/button'
+import { FileUploadDialog } from '@repo/ui/components/file-upload'
 import { Input } from '@repo/ui/components/input'
 import { Label } from '@repo/ui/components/label'
 import { toast } from '@repo/ui/components/sonner'
 import { cn } from '@repo/ui/lib/utils'
-import { formatDateTime } from '@repo/utils'
+import { MAX_UPLOAD_BYTES, formatDateTime } from '@repo/utils'
 
+import { Transcript } from '@/app/(app)/lingo/_components/question-media'
+import { withToast } from '@/lib/action-toast'
 import { LETTERS } from '@/lib/lingo'
 import {
   createDeck,
   importCards,
   importItems,
   loadSamples,
+  setItemImage,
   setItemStatus,
 } from '@/lib/lingo-actions'
 import {
   type AdminItem,
   type ImportResult,
+  type ScriptLine,
   adminItemsQueryOptions,
   batchesQueryOptions,
   decksQueryOptions,
   examQueryOptions,
   lingoKeys,
 } from '@/lib/queries/lingo'
+import { deleteFromStorage, uploadToStorage } from '@/lib/storage'
+
+import {
+  GenerateCardsPanel,
+  GenerateItemsPanel,
+  GenerateTestPanel,
+} from './ai-panels'
+import { Panel, ResultSummary, selectClass } from './panel'
+import { AssembleTestPanel, TestsListPanel } from './tests-panel'
 
 const ITEM_EXAMPLE = `[
   {
@@ -57,70 +72,6 @@ const ITEM_EXAMPLE = `[
 
 const CSV_EXAMPLE = `term,pos,reading,meaningVi,example,exampleVi,topic
 deadline,n,/ˈdedlaɪn/,hạn chót,The deadline is May 1.,Hạn chót là ngày 1/5.,Office`
-
-const selectClass = `h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm
-  outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50
-  dark:bg-input/30`
-
-function Panel({
-  icon: Icon,
-  title,
-  description,
-  children,
-}: {
-  icon: typeof Database
-  title: string
-  description: string
-  children: React.ReactNode
-}) {
-  const id = title.replace(/\s+/g, '-').toLowerCase()
-  return (
-    <section
-      aria-labelledby={id}
-      className="flex flex-col gap-4 rounded-xl border bg-card p-5"
-    >
-      <div className="flex items-start gap-3">
-        <Icon
-          aria-hidden="true"
-          className="mt-0.5 size-5 text-muted-foreground"
-        />
-        <div className="flex flex-col gap-1">
-          <h2 id={id} className="font-semibold">
-            {title}
-          </h2>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
-      </div>
-      {children}
-    </section>
-  )
-}
-
-function ResultSummary({ result }: { result: ImportResult }) {
-  return (
-    <div
-      role="status"
-      className="flex flex-col gap-2 rounded-lg bg-muted/40 p-3 text-sm"
-    >
-      <p>
-        Thêm <strong>{result.succeeded}</strong> · trùng bỏ qua{' '}
-        {result.duplicates} · lỗi{' '}
-        <strong className={cn(result.failed && 'text-destructive')}>
-          {result.failed}
-        </strong>
-      </p>
-      {result.errors.length > 0 && (
-        <ul className="max-h-48 list-disc overflow-y-auto pl-5 text-destructive">
-          {result.errors.map((e) => (
-            <li key={e.line}>
-              Dòng {e.line}: {e.issues.join('; ')}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  )
-}
 
 function SamplesPanel() {
   const queryClient = useQueryClient()
@@ -256,6 +207,14 @@ function ImportItemsPanel({ exam }: { exam: string }) {
             text-xs outline-none focus-visible:border-ring focus-visible:ring-3
             focus-visible:ring-ring/50 dark:bg-input/30"
         />
+        <p className="text-xs text-muted-foreground">
+          Theo Part: P1 có <code>scene</code> (mô tả ảnh), không có{' '}
+          <code>text</code>; P2 có <code>text</code> + 3 lựa chọn,{' '}
+          <code>accent</code>; P3/P4 có <code>transcript</code> (
+          <code>{'[{ speaker: M|W|M2|W2|N, accent: US|GB|AU|CA, text }]'}</code>
+          ) + 3 câu; P6/P7 có <code>passage</code> (P6 đánh dấu chỗ trống [1]…
+          [4], P7 nhiều văn bản ngăn bằng dòng <code>---</code>).
+        </p>
         <p className="text-xs text-muted-foreground">
           Tag kỹ năng hợp lệ: {Object.keys(spec?.skillTags ?? {}).join(', ')}
         </p>
@@ -393,6 +352,43 @@ function ImportCardsPanel({ exam }: { exam: string }) {
   )
 }
 
+/** Part 1: upload the photo the scene describes (required before publishing). */
+function PhotoUpload({ item }: { item: AdminItem }) {
+  const queryClient = useQueryClient()
+  return (
+    <FileUploadDialog
+      trigger={
+        <Button size="sm" variant="outline" className="self-start">
+          <ImageUp aria-hidden />
+          {item.imageKey ? 'Đổi ảnh' : 'Tải ảnh lên'}
+        </Button>
+      }
+      title="Ảnh cho câu Part 1"
+      description="Ảnh phải khớp mô tả cảnh: chỉ một lựa chọn mô tả đúng."
+      accept={{
+        'image/jpeg': ['.jpeg', '.jpg'],
+        'image/png': ['.png'],
+        'image/webp': ['.webp'],
+      }}
+      maxSize={MAX_UPLOAD_BYTES}
+      maxFiles={1}
+      upload={uploadToStorage}
+      onRemove={({ key }) => deleteFromStorage(key)}
+      confirmLabel="Gắn ảnh"
+      onConfirm={async (files) => {
+        const key = files[0]?.result.key
+        if (!key) return
+        const res = await withToast(setItemImage(item.id, key), {
+          success: 'Đã gắn ảnh',
+          error: 'Không gắn được ảnh',
+        })
+        if (res.errors) throw new Error(res.errors.join(' · '))
+        await queryClient.invalidateQueries({ queryKey: lingoKeys.all })
+      }}
+    />
+  )
+}
+
 function ItemCard({
   item,
   selected,
@@ -402,6 +398,11 @@ function ItemCard({
   selected: boolean
   onSelect: (checked: boolean) => void
 }) {
+  const content = (item.content ?? {}) as {
+    passage?: string
+    transcript?: ScriptLine[]
+    scene?: string
+  }
   return (
     <li
       className={cn(
@@ -427,6 +428,29 @@ function ItemCard({
             {item.status}
           </Badge>
         </div>
+        {content.scene && (
+          <div className="flex flex-col gap-2 text-sm">
+            <p>
+              <span className="font-medium">Cảnh: </span>
+              {content.scene}
+            </p>
+            <p className="text-muted-foreground">
+              {item.imageKey
+                ? `Ảnh: ${item.imageKey.split('/').pop()}`
+                : 'Chưa có ảnh'}
+            </p>
+            <PhotoUpload item={item} />
+          </div>
+        )}
+        {content.transcript && <Transcript lines={content.transcript} />}
+        {content.passage && (
+          <p
+            className="max-h-48 overflow-y-auto rounded-lg bg-muted/40 p-3
+              text-sm whitespace-pre-line"
+          >
+            {content.passage}
+          </p>
+        )}
         {item.questions.map((q) => {
           const prompt = q.prompt as { text?: string; options: string[] }
           const answer = (q.answer as { choice: number }).choice
@@ -462,8 +486,15 @@ function ItemCard({
 
 function ReviewQueuePanel({ exam }: { exam: string }) {
   const queryClient = useQueryClient()
+  const { data: spec } = useQuery(examQueryOptions(exam))
+  const parts = spec?.sections.flatMap((s) => s.parts) ?? []
   const [status, setStatus] = useState('DRAFT')
-  const query = { page: 1, pageSize: 50, filter: { exam, status } }
+  const [part, setPart] = useState('')
+  const query = {
+    page: 1,
+    pageSize: 50,
+    filter: { exam, status, ...(part && { part }) },
+  }
   const { data, isFetching } = useQuery(adminItemsQueryOptions(query))
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const items = data?.items ?? []
@@ -494,6 +525,25 @@ function ReviewQueuePanel({ exam }: { exam: string }) {
           </p>
         </div>
         <div className="flex flex-wrap items-end gap-2">
+          <Label htmlFor="queue-part" className="sr-only">
+            Part
+          </Label>
+          <select
+            id="queue-part"
+            className={selectClass}
+            value={part}
+            onChange={(e) => {
+              setPart(e.target.value)
+              setSelected(new Set())
+            }}
+          >
+            <option value="">Mọi Part</option>
+            {parts.map((p) => (
+              <option key={p.code} value={p.code}>
+                {p.code}
+              </option>
+            ))}
+          </select>
           <Label htmlFor="status" className="sr-only">
             Trạng thái
           </Label>
@@ -580,8 +630,19 @@ function ReviewQueuePanel({ exam }: { exam: string }) {
   )
 }
 
+const BATCH_STATUS: Record<string, string> = {
+  RUNNING: 'Đang chạy',
+  DONE: 'Xong',
+  FAILED: 'Lỗi',
+}
+
 function BatchesPanel() {
-  const { data: batches = [] } = useQuery(batchesQueryOptions())
+  const { data: batches = [] } = useQuery({
+    ...batchesQueryOptions(),
+    // AI runs report progress here: poll while one is running
+    refetchInterval: (query) =>
+      query.state.data?.some((b) => b.status === 'RUNNING') ? 3000 : false,
+  })
   if (!batches.length) return null
   return (
     <section aria-labelledby="batches-heading" className="flex flex-col gap-3">
@@ -594,6 +655,7 @@ function BatchesPanel() {
             <tr>
               <th className="px-3 py-2 font-medium">Thời gian</th>
               <th className="px-3 py-2 font-medium">Nguồn</th>
+              <th className="px-3 py-2 font-medium">Trạng thái</th>
               <th className="px-3 py-2 font-medium">Part</th>
               <th className="px-3 py-2 font-medium">File</th>
               <th className="px-3 py-2 text-right font-medium">Thành công</th>
@@ -607,6 +669,23 @@ function BatchesPanel() {
                   {formatDateTime(b.createdAt)}
                 </td>
                 <td className="px-3 py-2">{b.source}</td>
+                <td className="px-3 py-2" title={b.message ?? undefined}>
+                  <span className="flex items-center gap-1.5">
+                    {b.status === 'RUNNING' && (
+                      <Loader2
+                        aria-hidden
+                        className="size-3.5 animate-spin
+                          motion-reduce:animate-none"
+                      />
+                    )}
+                    {BATCH_STATUS[b.status] ?? b.status}
+                    {b.message && (
+                      <span className="text-xs text-destructive">
+                        {b.message.slice(0, 60)}
+                      </span>
+                    )}
+                  </span>
+                </td>
                 <td className="px-3 py-2">{b.part ?? '–'}</td>
                 <td className="px-3 py-2">{b.fileName ?? '–'}</td>
                 <td className="px-3 py-2 text-right tabular-nums">
@@ -634,6 +713,15 @@ export function AdminPanel({ exam }: { exam: string }) {
           <ImportCardsPanel exam={exam} />
         </div>
       </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <GenerateItemsPanel exam={exam} />
+        <div className="flex flex-col gap-6">
+          <GenerateTestPanel exam={exam} />
+          <GenerateCardsPanel exam={exam} />
+        </div>
+      </div>
+      <AssembleTestPanel exam={exam} />
+      <TestsListPanel />
       <ReviewQueuePanel exam={exam} />
       <BatchesPanel />
     </>

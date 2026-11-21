@@ -8,6 +8,7 @@ import type {
   LingoDeck,
   LingoItem,
   LingoQuestion,
+  LingoTest,
 } from '@repo/types'
 import {
   type ListQuery,
@@ -31,6 +32,10 @@ export interface PartInfo {
   nameVi: string
   count: number
   options: number
+  media: ('text' | 'audio' | 'image')[]
+  /** Question and options are heard, not printed (TOEIC Part 1, 2) */
+  spokenOptions: boolean
+  questionsPerItem: [number, number]
   available: boolean
   published: number
 }
@@ -75,12 +80,25 @@ export interface Dashboard {
   }[]
 }
 
+/** One line of a listening script. */
+export interface ScriptLine {
+  speaker: 'M' | 'W' | 'M2' | 'W2' | 'N'
+  accent?: 'US' | 'GB' | 'AU' | 'CA'
+  text: string
+}
+
 export interface AttemptQuestion {
   id: string
   order: number
   type: string
+  itemId: string
+  section: string
   part: string
   passage: string | null
+  /** Read aloud by the browser; shown only on the result page */
+  transcript: ScriptLine[] | null
+  accent: ScriptLine['accent'] | null
+  imageUrl: string | null
   text: string | null
   options: string[]
   response: { choice: number } | null
@@ -93,12 +111,17 @@ export interface AttemptQuestion {
   skillTags?: string[]
   difficulty?: string
   topic?: string | null
+  scene?: string | null
 }
 
 export interface Attempt {
   id: string
   exam: string
-  mode: string
+  mode: 'QUICK' | 'PRACTICE' | 'FULL_TEST'
+  test: { id: string; title: string; kind: 'FULL' | 'MINI' } | null
+  timeLimitSec: number | null
+  /** startedAt + timeLimitSec; answers after it are refused */
+  deadline: string | null
   parts: string[]
   total: number
   correct: number | null
@@ -109,6 +132,34 @@ export interface Attempt {
   startedAt: string
   submittedAt: string | null
   questions: AttemptQuestion[]
+}
+
+export interface TestPart {
+  code: string
+  name: string
+  nameVi: string
+  section: string
+  questions: number
+  target: number
+}
+
+export type TestSummary = Omit<LingoTest, 'items' | 'attempts'> & {
+  parts: TestPart[]
+  questions: number
+  timeLimitSec: number
+  attempts: number
+}
+
+export type TestDetail = Omit<TestSummary, 'attempts'> & {
+  attempts: Pick<
+    Attempt,
+    'id' | 'mode' | 'parts' | 'correct' | 'total' | 'scores' | 'submittedAt'
+  >[]
+}
+
+export type AdminTest = Omit<LingoTest, 'items' | 'batch'> & {
+  items: AdminItem[]
+  batch: Pick<LingoBatch, 'id' | 'status' | 'message'> | null
 }
 
 export type DeckWithStats = LingoDeck & {
@@ -141,6 +192,12 @@ export const lingoKeys = {
   adminItems: (query: ListQuery) =>
     [...lingoKeys.all, 'admin', 'items', query] as const,
   batches: () => [...lingoKeys.all, 'admin', 'batches'] as const,
+  tests: (exam: string, query: ListQuery) =>
+    [...lingoKeys.all, 'tests', exam, query] as const,
+  test: (id: string) => [...lingoKeys.all, 'test', id] as const,
+  adminTests: (query: ListQuery) =>
+    [...lingoKeys.all, 'admin', 'tests', query] as const,
+  adminTest: (id: string) => [...lingoKeys.all, 'admin', 'test', id] as const,
   chats: () => [...lingoKeys.all, 'chats'] as const,
   chat: (id: string) => [...lingoKeys.all, 'chats', id] as const,
 }
@@ -213,6 +270,39 @@ export const batchesQueryOptions = () =>
           createdBy: { name: string | null; email: string | null }
         })[]
       >('/lingo/admin/batches'),
+  })
+
+// ─── Tests ──────────────────────────────────────────────────────────────────
+
+export const testsQueryOptions = (exam: string, query: ListQuery) =>
+  queryOptions({
+    queryKey: lingoKeys.tests(exam, query),
+    queryFn: () =>
+      get<Paginated<TestSummary>>(
+        `/lingo/exams/${encodeURIComponent(exam)}/tests?${listQueryToSearchParams(query).toString()}`,
+      ),
+  })
+
+export const testQueryOptions = (id: string) =>
+  queryOptions({
+    queryKey: lingoKeys.test(id),
+    queryFn: () => get<TestDetail>(`/lingo/tests/${encodeURIComponent(id)}`),
+  })
+
+export const adminTestsQueryOptions = (query: ListQuery) =>
+  queryOptions({
+    queryKey: lingoKeys.adminTests(query),
+    queryFn: () =>
+      get<Paginated<Omit<TestSummary, 'attempts'> & { attempts: number }>>(
+        `/lingo/admin/tests?${listQueryToSearchParams(query).toString()}`,
+      ),
+  })
+
+export const adminTestQueryOptions = (id: string) =>
+  queryOptions({
+    queryKey: lingoKeys.adminTest(id),
+    queryFn: () =>
+      get<AdminTest>(`/lingo/admin/tests/${encodeURIComponent(id)}`),
   })
 
 // ─── AI tutor chat ──────────────────────────────────────────────────────────

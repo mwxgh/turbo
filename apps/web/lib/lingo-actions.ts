@@ -1,7 +1,12 @@
 'use server'
 
 // Writes of Lingo. Callers toast the outcome and invalidate `lingoKeys` (see use-lingo-actions).
-import type { ApiErrorBody, LingoChat } from '@repo/types'
+import type {
+  ApiErrorBody,
+  LingoBatch,
+  LingoChat,
+  LingoTest,
+} from '@repo/types'
 
 import type { ActionState } from '@/lib/action-toast'
 import { ApiError, apiFetch } from '@/lib/api'
@@ -29,10 +34,16 @@ const post = <T>(path: string, body?: unknown, method = 'POST') =>
 
 export async function startAttempt(input: {
   exam: string
-  part: string
-  count: number
+  /** Quick practice of one part */
+  part?: string
+  count?: number
   difficulty?: string
   source?: 'NEW' | 'MISTAKES'
+  /** (Parts of) a published test */
+  testId?: string
+  mode?: 'PRACTICE' | 'FULL_TEST'
+  parts?: string[]
+  timeLimitSec?: number
 }) {
   return run(() => post<Attempt>('/lingo/attempts', input))
 }
@@ -119,6 +130,86 @@ export async function importCards(
 export async function loadSamples() {
   return run(() =>
     post<{ items: ImportResult; cards: ImportResult }>('/lingo/admin/samples'),
+  )
+}
+
+// ─── Admin: tests and AI ────────────────────────────────────────────────────
+
+type Kind = 'FULL' | 'MINI'
+type Difficulty = 'EASY' | 'MEDIUM' | 'HARD'
+
+export async function assembleTest(input: {
+  exam: string
+  kind: Kind
+  title: string
+  description?: string
+}) {
+  return run(() =>
+    post<{ test: LingoTest; shortfall: Record<string, number> }>(
+      '/lingo/admin/tests',
+      input,
+    ),
+  )
+}
+
+export async function setTestStatus(id: string, status: string) {
+  return run(() =>
+    post<LingoTest>(`/lingo/admin/tests/${encodeURIComponent(id)}/status`, {
+      status,
+    }),
+  )
+}
+
+export async function deleteTest(id: string) {
+  return run(() =>
+    post<null>(
+      `/lingo/admin/tests/${encodeURIComponent(id)}`,
+      undefined,
+      'DELETE',
+    ),
+  )
+}
+
+export async function setItemImage(id: string, key: string) {
+  return run(() =>
+    post<unknown>(
+      `/lingo/admin/items/${encodeURIComponent(id)}/image`,
+      { key },
+      'PUT',
+    ),
+  )
+}
+
+export async function generateItems(input: {
+  exam: string
+  part: string
+  count: number
+  difficulty: Difficulty
+  topic?: string
+  selfCheck?: boolean
+}) {
+  return run(() => post<LingoBatch>('/lingo/admin/generate/items', input))
+}
+
+export async function generateTest(input: {
+  exam: string
+  kind: Kind
+  difficulty: Difficulty
+  title: string
+  topic?: string
+  selfCheck?: boolean
+}) {
+  return run(() => post<LingoBatch>('/lingo/admin/generate/test', input))
+}
+
+export async function generateCards(deckId: string, terms: string[]) {
+  return run(() =>
+    post<ImportResult>(
+      `/lingo/admin/decks/${encodeURIComponent(deckId)}/generate`,
+      {
+        terms,
+      },
+    ),
   )
 }
 

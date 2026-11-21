@@ -3,7 +3,13 @@
 import Link from 'next/link'
 
 import { useQuery } from '@tanstack/react-query'
-import { BookOpenCheck, Flame, Layers, Target } from 'lucide-react'
+import {
+  BookOpenCheck,
+  ClipboardList,
+  Flame,
+  Layers,
+  Target,
+} from 'lucide-react'
 
 import { buttonVariants } from '@repo/ui/components/button'
 import { formatDate } from '@repo/utils'
@@ -120,6 +126,29 @@ export function ExamDashboard({
         >
           <GoalForm exam={exam} goal={dash.goal} />
         </Stat>
+      </section>
+
+      <section
+        aria-labelledby="tests-cta-heading"
+        className="flex flex-wrap items-center justify-between gap-4 rounded-xl
+          border bg-card p-5"
+      >
+        <div className="flex flex-col gap-1">
+          <h2 id="tests-cta-heading" className="font-semibold">
+            Thi thử theo đề
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Full test và mini test có giờ, điểm quy đổi, hoặc luyện từng Part
+            của một đề.
+          </p>
+        </div>
+        <Link
+          href={`/lingo/${exam}/tests`}
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          <ClipboardList aria-hidden="true" />
+          Thư viện đề
+        </Link>
       </section>
 
       <QuickPractice exam={exam} spec={spec} isAdmin={isAdmin} />
