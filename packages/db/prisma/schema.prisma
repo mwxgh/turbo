@@ -57,6 +57,7 @@ model User {
   lingoGoals      LingoGoal[]
   lingoDecks      LingoDeck[]
   lingoCardStates LingoCardState[]
+  lingoChats      LingoChat[]
 
   @@map("users")
 }
@@ -331,4 +332,39 @@ model LingoCardState {
   @@id([userId, cardId])
   @@index([userId, due])
   @@map("lingo_card_states")
+}
+
+/// Who wrote a message of an AI tutor chat
+enum LingoChatRole {
+  USER
+  ASSISTANT
+}
+
+/// A learner's conversation with the AI tutor
+model LingoChat {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// First question, shortened
+  title     String   @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  /// Bumped on every message: newest conversation first
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  messages LingoChatMessage[]
+
+  @@index([userId, updatedAt])
+  @@map("lingo_chats")
+}
+
+model LingoChatMessage {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  chatId    String        @map("chat_id") @db.Uuid
+  chat      LingoChat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  role      LingoChatRole
+  content   String
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([chatId, createdAt])
+  @@map("lingo_chat_messages")
 }

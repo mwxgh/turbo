@@ -52,3 +52,11 @@ export const LingoAttemptMode = {
 } as const
 
 export type LingoAttemptMode = (typeof LingoAttemptMode)[keyof typeof LingoAttemptMode]
+
+/** Who wrote a message of an AI tutor chat */
+export const LingoChatRole = {
+  USER: 'USER',
+  ASSISTANT: 'ASSISTANT',
+} as const
+
+export type LingoChatRole = (typeof LingoChatRole)[keyof typeof LingoChatRole]
