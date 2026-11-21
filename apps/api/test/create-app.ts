@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 
 import type { INestApplication } from '@nestjs/common'
 import type { NestExpressApplication } from '@nestjs/platform-express'
-import { Test } from '@nestjs/testing'
+import { Test, type TestingModuleBuilder } from '@nestjs/testing'
 
 import { AccessTokens } from '@repo/auth'
 import { PrismaService } from '@repo/db/nest'
@@ -10,14 +10,19 @@ import { PrismaService } from '@repo/db/nest'
 import { AppModule } from '../src/app.module'
 import { configureApp } from '../src/app.setup'
 
-/** The real application (same global setup as main.ts) on the test database. */
-export async function createApp(): Promise<{
+/**
+ * The real application (same global setup as main.ts) on the test database; `override` swaps
+ * providers that call outside services (`.overrideProvider(TutorModel)…`).
+ */
+export async function createApp(
+  override: (builder: TestingModuleBuilder) => TestingModuleBuilder = (b) => b,
+): Promise<{
   app: INestApplication
   prisma: PrismaService
 }> {
-  const moduleRef = await Test.createTestingModule({
-    imports: [AppModule],
-  }).compile()
+  const moduleRef = await override(
+    Test.createTestingModule({ imports: [AppModule] }),
+  ).compile()
   const app = configureApp(
     moduleRef.createNestApplication<NestExpressApplication>({ logger: false }),
   )

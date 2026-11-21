@@ -104,6 +104,19 @@ export class Env extends BaseEnv {
   @StringField({ optional: true })
   OAUTH_GITHUB_CLIENT_SECRET?: string
 
+  /**
+   * AI tutor chat (BytePlus ModelArk, OpenAI-compatible). On when both the key and the model are
+   * set; the model is a ModelArk model id or endpoint id (`ep-…`).
+   */
+  @StringField({ optional: true })
+  ARK_API_KEY?: string
+
+  @StringField({ optional: true })
+  ARK_MODEL?: string
+
+  @UrlField({ optional: true })
+  ARK_BASE_URL = 'https://ark.ap-southeast.bytepluses.com/api/v3'
+
   get oauthMobileRedirectUris(): string[] {
     return this.OAUTH_MOBILE_REDIRECT_URIS.split(',')
       .map((uri) => uri.trim())

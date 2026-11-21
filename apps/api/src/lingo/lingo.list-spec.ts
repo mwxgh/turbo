@@ -1,4 +1,4 @@
-import type { LingoAttempt, LingoItem } from '@repo/db'
+import type { LingoAttempt, LingoChat, LingoItem } from '@repo/db'
 import { defineListSpecFor } from '@repo/utils'
 
 /** GET /api/lingo/attempts: the learner's own attempts (scoped to the user by the service). */
@@ -28,4 +28,11 @@ export const itemListSpec = defineListSpecFor<LingoItem>()({
     batchId: { type: 'uuid' },
     createdAt: { type: 'date' },
   },
+})
+
+/** GET /api/lingo/chats: the learner's AI tutor chats (scoped to the user by the service). */
+export const chatListSpec = defineListSpecFor<LingoChat>()({
+  keywordFields: ['title'],
+  sortable: ['updatedAt', 'createdAt'],
+  defaultSort: { field: 'updatedAt', dir: 'desc' },
 })
