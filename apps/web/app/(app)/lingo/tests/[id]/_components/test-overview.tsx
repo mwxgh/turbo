@@ -15,6 +15,7 @@ import { cn } from '@repo/ui/lib/utils'
 import { formatDate } from '@repo/utils'
 
 import { minutes } from '@/app/(app)/lingo/[exam]/tests/_components/test-library'
+import { takeHref } from '@/lib/lingo'
 import { startAttempt } from '@/lib/lingo-actions'
 import { testQueryOptions } from '@/lib/queries/lingo'
 
@@ -42,7 +43,7 @@ export function TestOverview({ id }: { id: string }) {
           ...(limit && { timeLimitSec: limit * 60 }),
         }),
       })
-      if (res.data) router.push(`/lingo/attempts/${res.data.id}`)
+      if (res.data) router.push(takeHref(res.data.id))
       else
         toast.error('Không bắt đầu được bài', {
           description: res.errors?.join(' · '),

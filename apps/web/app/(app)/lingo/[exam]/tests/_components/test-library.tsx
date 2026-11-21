@@ -5,7 +5,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 import { useQuery } from '@tanstack/react-query'
-import { Clock, FileText, ListChecks } from 'lucide-react'
+import { CircleCheck, Clock, FileText, ListChecks, Users } from 'lucide-react'
 
 import { Badge } from '@repo/ui/components/badge'
 import { cn } from '@repo/ui/lib/utils'
@@ -66,8 +66,8 @@ export function TestLibrary({ exam }: { exam: string }) {
           className="rounded-xl border border-dashed p-8 text-center
             text-muted-foreground"
         >
-          Chưa có đề nào được xuất bản. Admin có thể ghép đề hoặc sinh đề bằng
-          AI ở trang Quản trị.
+          Chưa có đề nào được xuất bản. Thầy cô ghép đề hoặc sinh đề bằng AI ở
+          khu ra đề.
         </p>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
@@ -108,7 +108,16 @@ export function TestLibrary({ exam }: { exam: string }) {
                     <FileText aria-hidden className="size-4" />
                     {test.parts.length} Part
                   </span>
-                  {test.attempts > 0 && <span>Đã làm {test.attempts} lần</span>}
+                  <span className="flex items-center gap-1">
+                    <Users aria-hidden className="size-4" />
+                    {test.takers} lượt làm
+                  </span>
+                  {test.attempts > 0 && (
+                    <span className="flex items-center gap-1 text-foreground">
+                      <CircleCheck aria-hidden className="size-4" />
+                      Bạn đã làm {test.attempts} lần
+                    </span>
+                  )}
                 </div>
               </Link>
             </li>

@@ -16,7 +16,7 @@ import {
   QuestionImage,
   Transcript,
 } from '@/app/(app)/lingo/_components/question-media'
-import { LETTERS } from '@/lib/lingo'
+import { LETTERS, takeHref } from '@/lib/lingo'
 import { startAttempt } from '@/lib/lingo-actions'
 import { mistakesQueryOptions } from '@/lib/queries/lingo'
 
@@ -36,7 +36,7 @@ export function MistakesList({ exam }: { exam: string }) {
         count: 20,
         source: 'MISTAKES',
       })
-      if (res.data) router.push(`/lingo/attempts/${res.data.id}`)
+      if (res.data) router.push(takeHref(res.data.id))
       else
         toast.error('Không bắt đầu được bài', {
           description: res.errors?.join(' · '),

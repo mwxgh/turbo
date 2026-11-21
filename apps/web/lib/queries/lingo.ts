@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 
 import type {
+  LingoAttempt,
   LingoBatch,
   LingoCard,
   LingoChat,
@@ -147,14 +148,23 @@ export type TestSummary = Omit<LingoTest, 'items' | 'attempts'> & {
   parts: TestPart[]
   questions: number
   timeLimitSec: number
+  /** The learner's submitted attempts */
   attempts: number
+  /** Everyone's submitted attempts */
+  takers: number
 }
 
-export type TestDetail = Omit<TestSummary, 'attempts'> & {
+export type TestDetail = Omit<TestSummary, 'attempts' | 'takers'> & {
   attempts: Pick<
     Attempt,
     'id' | 'mode' | 'parts' | 'correct' | 'total' | 'scores' | 'submittedAt'
   >[]
+}
+
+/** GET /lingo/attempts: one row of the learner's history. */
+export type AttemptListItem = Omit<LingoAttempt, 'scores' | 'test'> & {
+  scores: Attempt['scores']
+  test: Attempt['test']
 }
 
 export type AdminTest = Omit<LingoTest, 'items' | 'batch'> & {
@@ -189,6 +199,8 @@ export const lingoKeys = {
     [...lingoKeys.all, 'review', exam ?? 'all'] as const,
   decks: (exam?: string) => [...lingoKeys.all, 'decks', exam ?? 'all'] as const,
   mistakes: (code: string) => [...lingoKeys.all, 'mistakes', code] as const,
+  attempts: (query: ListQuery) =>
+    [...lingoKeys.all, 'attempts', query] as const,
   adminItems: (query: ListQuery) =>
     [...lingoKeys.all, 'admin', 'items', query] as const,
   batches: () => [...lingoKeys.all, 'admin', 'batches'] as const,
@@ -249,6 +261,16 @@ export const mistakesQueryOptions = (code: string) =>
     queryFn: () =>
       get<(AttemptQuestion & { answeredAt: string })[]>(
         `/lingo/mistakes/${encodeURIComponent(code)}`,
+      ),
+  })
+
+/** The learner's attempts, newest first. */
+export const attemptsQueryOptions = (query: ListQuery) =>
+  queryOptions({
+    queryKey: lingoKeys.attempts(query),
+    queryFn: () =>
+      get<Paginated<AttemptListItem>>(
+        `/lingo/attempts?${listQueryToSearchParams(query).toString()}`,
       ),
   })
 

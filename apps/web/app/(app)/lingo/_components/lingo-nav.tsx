@@ -8,18 +8,19 @@ import { cn } from '@repo/ui/lib/utils'
 import { DEFAULT_EXAM } from '@/lib/lingo'
 
 const LINKS = [
-  { href: `/lingo/${DEFAULT_EXAM}`, label: 'Tổng quan' },
   { href: `/lingo/${DEFAULT_EXAM}/tests`, label: 'Đề thi' },
+  { href: `/lingo/${DEFAULT_EXAM}`, label: 'Luyện tập' },
+  { href: '/lingo/history', label: 'Lịch sử' },
   { href: '/lingo/review', label: 'Ôn từ vựng' },
   { href: `/lingo/${DEFAULT_EXAM}/mistakes`, label: 'Sổ câu sai' },
   { href: '/lingo/chat', label: 'Hỏi AI' },
 ]
 
-/** Sections of Lingo; the admin link only for admins. */
+/** Sections of the learner site; admins also get the way to the teacher site. */
 export function LingoNav({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname()
   const links = isAdmin
-    ? [...LINKS, { href: '/lingo/admin', label: 'Quản trị' }]
+    ? [...LINKS, { href: '/teach', label: 'Khu ra đề' }]
     : LINKS
   return (
     <nav aria-label="Lingo" className="border-b">
