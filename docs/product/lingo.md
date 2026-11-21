@@ -13,7 +13,8 @@ chứng chỉ, dùng chung cho nhiều kỳ thi. **TOEIC Listening & Reading** l
 Tập thể dục (gym) là **app riêng** về sau (vd. `Fit`, `/fit`), không nằm trong Lingo. Phần có thể dùng chung
 (mục tiêu, streak, nhắc học mỗi ngày) chỉ tách thành package khi app thứ hai thật sự cần.
 
-> **Trạng thái:** bản thiết kế đã chốt các câu hỏi (mục 10), chờ duyệt PR rồi làm giai đoạn 1.
+> **Trạng thái:** đã làm giai đoạn 1, đủ 7 Part TOEIC, bộ đề trong DB, AI sinh câu / đề / thẻ (BytePlus, ADR 0017).
+> Phần Nghe tạm đọc bằng giọng của trình duyệt; TTS thật (mục 5.3) chưa làm.
 
 ## 1. Tham khảo study4.com
 
@@ -193,7 +194,7 @@ Giống study4: chỉ chế độ **Full test** mới có điểm quy đổi. Ch
 
 ## 5. Nhập nội dung
 
-MVP **không dùng AI để tạo nội dung**. Mọi nguồn đi qua cùng một đường: kiểm tra bằng schema Zod của
+Mọi nguồn (kể cả AI) đi qua cùng một đường: kiểm tra bằng schema Zod của
 `specs` → `DRAFT` → admin duyệt → `PUBLISHED`. Thêm nguồn mới (AI) không đổi phần còn lại.
 
 ```mermaid
@@ -235,20 +236,26 @@ async importItems(exam: string, part: string, raw: unknown[], userId: string) {
 }
 ```
 
-### 5.2 AI sinh đề (sau MVP)
+### 5.2 AI sinh nội dung (BytePlus ModelArk, ADR 0017)
 
-Thêm một nguồn nữa qua interface `LlmProvider` (`generateItems(spec, brief) → item[]`), đầu ra vẫn qua schema và bước duyệt ở trên.
+`GeneratorService` (`apps/api/src/lingo/generator.service.ts`) gọi `ArkModel` (cùng model với AI tutor, ADR 0016).
+Prompt từ spec của Part (`guide`, mẫu JSON của item, tag kỹ năng) ở `generate-prompts.ts`.
 
-- **Claude API** (`claude-opus-5-5`, structured outputs, Message Batches API) khi có API key cá nhân với giới hạn chi tháng.
-- **Model local** (Ollama, chạy trên máy cá nhân, sinh ra file JSON rồi nhập) nếu không muốn tốn phí API.
-  Server hiện tại (4 CPU, 7.7 GB RAM, không GPU) không đủ để chạy model.
-- Lượt tự kiểm (model làm lại câu, lệch đáp án → `NEEDS_REVIEW`), chống trùng bằng `contentHash`.
-- Cùng giai đoạn: AI điền nghĩa / phiên âm / ví dụ cho thẻ tạo từ highlight.
-- Key (nếu có) chỉ ở `.env` server, không gửi xuống web.
+- **Sinh câu theo Part:** admin chọn Part, số item, độ khó, chủ đề. Mỗi lượt gọi ~10 câu, tối đa 3 lượt song song.
+- **Sinh trọn bộ đề:** sinh từng Part đến đủ số câu (Full / Mini), tối đa 3 vòng bù câu thiếu, rồi ghép `LingoTest` DRAFT.
+- **Tự kiểm:** model làm lại câu vừa sinh (không kèm đáp án); lệch đáp án → `NEEDS_REVIEW`. Gấp đôi số lượt gọi.
+- **Điền thẻ:** danh sách từ → nghĩa, IPA, ví dụ, dịch → thẻ của bộ hệ thống.
+- Câu và thẻ sinh ra đều chờ admin duyệt; trùng `contentHash` bỏ qua. Part 1 chỉ có mô tả cảnh: admin tải ảnh khớp
+  rồi mới duyệt được.
+- Job chạy nền, tiến độ ở `LingoBatch` (`RUNNING` → `DONE` / `FAILED`). Key chỉ ở `.env` server.
 
 ### 5.3 Audio và ảnh
 
-**Audio: Google Cloud Text-to-Speech** (đã chốt).
+**Hiện tại:** chưa có audio file. Web đọc transcript (Part 3–4) và câu hỏi / lựa chọn (Part 1–2) bằng
+`speechSynthesis` của trình duyệt, giọng theo `speaker` (M, W, M2, W2, N) và `accent` (US, GB, AU, CA). Full test chỉ
+phát mỗi đoạn một lần. Xem ADR 0017.
+
+**Audio: Google Cloud Text-to-Speech** (đã chốt, chưa làm).
 
 - Script Listening (admin viết; sau này AI viết) gán mỗi người nói một vai (`speaker`, `accent`). Worker map vai sang giọng Google, ghép bằng SSML
   (`<break>` giữa các lượt), xuất `.mp3`.
@@ -330,7 +337,11 @@ Mọi route cần đăng nhập. Route admin có `@Roles(Role.ADMIN)`. Controlle
 | `GET /lingo/review` · `POST /lingo/cards/:id/review`               | Hàng ôn hôm nay, chấm thẻ                                                    |
 | `POST /lingo/questions/:id/report`                                 | Báo câu sai                                                                  |
 | `POST /lingo/admin/imports` · `POST /lingo/admin/decks/:id/import` | Nhập file JSON đề / CSV từ vựng → kết quả từng dòng                          |
-| `/lingo/admin/items`, `/lingo/admin/tests`                         | Tạo / sửa item, duyệt, ghép đề                                               |
+| `/lingo/admin/items`, `PUT /lingo/admin/items/:id/image`           | Item: danh sách, duyệt, gắn ảnh Part 1                                       |
+| `GET /lingo/exams/:exam/tests` · `GET /lingo/tests/:id`            | Thư viện đề (đã xuất bản), chi tiết đề + lần làm của tôi                     |
+| `GET/POST /lingo/admin/tests` · `POST .../tests/:id/status`        | Danh sách đề, ghép đề từ câu đã duyệt, xuất bản / gỡ (`DELETE` xoá)          |
+| `POST /lingo/admin/generate/items` · `.../generate/test`           | AI sinh câu / trọn đề, chạy nền → 202 + batch                                |
+| `POST /lingo/admin/decks/:id/generate`                             | AI điền thẻ từ danh sách từ                                                  |
 | `GET/POST /lingo/chats` · `GET/DELETE /lingo/chats/:id`            | Hội thoại với AI tutor (`ListQueryDto`)                                      |
 | `POST /lingo/chats/:id/messages`                                   | `{ text }` → câu trả lời stream `text/plain` (20 lần / phút)                 |
 
@@ -348,7 +359,7 @@ Mọi route cần đăng nhập. Route admin có `@Roles(Role.ADMIN)`. Controlle
 | `/lingo/attempts/[id]/result`    | Kết quả, xem lại, highlight → flashcard                |
 | `/lingo/[exam]/mistakes`         | Sổ câu sai                                             |
 | `/lingo/decks` · `/lingo/review` | Bộ thẻ, phiên ôn (Space lật, 1–4 chấm)                 |
-| `/lingo/admin`                   | Nhập (form, JSON, CSV), duyệt, ghép đề (chỉ admin)     |
+| `/lingo/admin`                   | Nhập, AI sinh, duyệt, ghép / xuất bản đề (chỉ admin)   |
 | `/lingo/chat?c=<id>`             | Hỏi AI tutor, danh sách hội thoại                      |
 
 Màn làm bài dựng từ spec + `type` của câu: mỗi `QuestionType` một component (`SingleChoice`, `GapFill`…).
@@ -373,8 +384,8 @@ Mỗi giai đoạn: PR vào `develop` → tự lên **dev**, rồi theo release 
 | Câu hỏi                      | Quyết định                                                                                                                                    |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tên app                      | Lingo, `/lingo`. Gym là app riêng về sau                                                                                                      |
-| Nguồn nội dung MVP           | Admin nhập (form, JSON, CSV), chưa dùng AI                                                                                                    |
-| Audio                        | Google Cloud TTS qua `TtsProvider`                                                                                                            |
+| Nguồn nội dung               | Admin nhập (form, JSON, CSV) và AI (BytePlus) sinh câu / đề / thẻ, tất cả qua bước duyệt (ADR 0017)                                           |
+| Audio                        | Tạm: giọng của trình duyệt đọc transcript. Sau: Google Cloud TTS qua `TtsProvider`                                                            |
 | Ảnh Part 1                   | OpenAI image generation qua `ImageProvider`                                                                                                   |
 | Nội dung giữa các môi trường | Không đồng bộ. Mỗi môi trường tự nhập. Repo có vài item mẫu (`POST /lingo/admin/samples` nạp từ `apps/api/src/lingo/fixtures`) cho dev và e2e |
 | Quy đổi điểm                 | Bảng ước tính trong `specs`, hiệu chỉnh sau                                                                                                   |
@@ -385,4 +396,5 @@ Mỗi giai đoạn: PR vào `develop` → tự lên **dev**, rồi theo release 
 - `0013` Mọi nội dung học vào qua một đường nhập chung (kiểm tra schema `specs` → DRAFT → admin duyệt). MVP nhập tay / JSON / CSV, AI là nguồn thêm sau qua `LlmProvider`.
 - `0014` Audio học bằng Google Cloud Text-to-Speech qua interface `TtsProvider` (thay được bằng ElevenLabs), sinh một lần lúc tạo nội dung, lưu S3.
 - `0016` AI tutor chat gọi BytePlus ModelArk từ api, trả lời stream `text/plain`, hội thoại lưu DB.
+- `0017` Nội dung AI (BytePlus) qua cùng đường nhập + duyệt, chạy nền qua `LingoBatch`; phần Nghe tạm đọc bằng trình duyệt.
 - `0015` Ảnh học bằng OpenAI image generation qua interface `ImageProvider`, câu hỏi viết sau khi xem ảnh thật.
