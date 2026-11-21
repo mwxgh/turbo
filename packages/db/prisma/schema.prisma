@@ -58,6 +58,7 @@ model User {
   lingoDecks      LingoDeck[]
   lingoCardStates LingoCardState[]
   lingoChats      LingoChat[]
+  lingoTests      LingoTest[]
 
   @@map("users")
 }
@@ -132,6 +133,19 @@ enum LingoBatchSource {
   AI
 }
 
+/// RUNNING: an AI run still generating in the background
+enum LingoBatchStatus {
+  RUNNING
+  DONE
+  FAILED
+}
+
+/// FULL: every part at full length; MINI: every part, about half the questions
+enum LingoTestKind {
+  FULL
+  MINI
+}
+
 /// QUICK: a few questions of one part; PRACTICE: chosen parts of a test; FULL_TEST: scaled score
 enum LingoAttemptMode {
   QUICK
@@ -150,11 +164,17 @@ model LingoBatch {
   failed      Int              @default(0)
   /// `[{ line, issues: string[] }]` for rows that failed validation
   errors      Json?
+  status      LingoBatchStatus @default(DONE)
+  /// What an AI run was asked for (`{ difficulty, topic, count, kind }`)
+  request     Json?
+  /// Why a RUNNING batch FAILED
+  message     String?          @db.VarChar(1000)
   createdById String           @map("created_by_id") @db.Uuid
   createdBy   User             @relation(fields: [createdById], references: [id], onDelete: Cascade)
   createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
 
   items LingoItem[]
+  tests LingoTest[]
 
   @@index([createdAt, id])
   @@map("lingo_batches")
@@ -181,6 +201,7 @@ model LingoItem {
   updatedAt   DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   questions LingoQuestion[]
+  tests     LingoTestItem[]
 
   @@unique([exam, contentHash])
   @@index([exam, part, status])
@@ -223,12 +244,15 @@ model LingoAttempt {
   correct      Int?
   /// Per section `{ L: { correct, total, scaled? } }`, set on submit
   scores       Json?
+  testId       String?          @map("test_id") @db.Uuid
+  test         LingoTest?       @relation(fields: [testId], references: [id], onDelete: SetNull)
   startedAt    DateTime         @default(now()) @map("started_at") @db.Timestamptz(3)
   submittedAt  DateTime?        @map("submitted_at") @db.Timestamptz(3)
 
   answers LingoAnswer[]
 
   @@index([userId, startedAt])
+  @@index([testId])
   @@map("lingo_attempts")
 }
 
@@ -367,4 +391,42 @@ model LingoChatMessage {
 
   @@index([chatId, createdAt])
   @@map("lingo_chat_messages")
+}
+
+/// A test (đề): published items in exam order. Learners take all of it or chosen parts
+model LingoTest {
+  id          String             @id @default(uuid(7)) @db.Uuid
+  exam        String             @db.VarChar(32)
+  title       String             @db.VarChar(150)
+  kind        LingoTestKind
+  description String?            @db.VarChar(1000)
+  /// PUBLISHED needs every item PUBLISHED
+  status      LingoContentStatus @default(DRAFT)
+  createdById String?            @map("created_by_id") @db.Uuid
+  createdBy   User?              @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  /// The AI run that generated it
+  batchId     String?            @map("batch_id") @db.Uuid
+  batch       LingoBatch?        @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  items    LingoTestItem[]
+  attempts LingoAttempt[]
+
+  @@index([exam, status, createdAt])
+  @@index([createdAt, id])
+  @@map("lingo_tests")
+}
+
+model LingoTestItem {
+  testId String    @map("test_id") @db.Uuid
+  test   LingoTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  itemId String    @map("item_id") @db.Uuid
+  item   LingoItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  /// Position in the test (parts in exam order)
+  order  Int
+
+  @@id([testId, itemId])
+  @@index([itemId])
+  @@map("lingo_test_items")
 }

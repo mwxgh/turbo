@@ -44,6 +44,23 @@ export const LingoBatchSource = {
 
 export type LingoBatchSource = (typeof LingoBatchSource)[keyof typeof LingoBatchSource]
 
+/** RUNNING: an AI run still generating in the background */
+export const LingoBatchStatus = {
+  RUNNING: 'RUNNING',
+  DONE: 'DONE',
+  FAILED: 'FAILED',
+} as const
+
+export type LingoBatchStatus = (typeof LingoBatchStatus)[keyof typeof LingoBatchStatus]
+
+/** FULL: every part at full length; MINI: every part, about half the questions */
+export const LingoTestKind = {
+  FULL: 'FULL',
+  MINI: 'MINI',
+} as const
+
+export type LingoTestKind = (typeof LingoTestKind)[keyof typeof LingoTestKind]
+
 /** QUICK: a few questions of one part; PRACTICE: chosen parts of a test; FULL_TEST: scaled score */
 export const LingoAttemptMode = {
   QUICK: 'QUICK',
