@@ -16,10 +16,12 @@ import { type ListQuery, paginated } from '@repo/utils'
 
 import { itemCreateData, itemHash } from './content'
 import type { CreateDeckDto } from './dto/admin.dto'
+import { MORE_DECKS, SAMPLE_TESTS } from './fixtures/index'
 import { TOEIC_TOPIC_DECKS } from './fixtures/toeic-decks'
 import { TOEIC_EXTRA_SAMPLES } from './fixtures/toeic-extra'
 import { TOEIC_MORE_SAMPLES } from './fixtures/toeic-more'
 import { TOEIC_PART5_SAMPLES, TOEIC_STARTER_DECK } from './fixtures/toeic-part5'
+import type { TestFixture } from './fixtures/types'
 import { itemListSpec } from './lingo.list-spec'
 import { findPart, getExam, getPart } from './specs'
 import { parseCsv } from './specs/csv'
@@ -259,23 +261,47 @@ export class AdminService {
     for (const more of [TOEIC_MORE_SAMPLES, TOEIC_EXTRA_SAMPLES])
       for (const [part, partItems] of Object.entries(more))
         samples[part] = [...(samples[part] ?? []), ...partItems]
-    const results = []
-    for (const [part, partItems] of Object.entries(samples))
-      results.push(
-        await this.importItems(userId, {
-          exam: 'TOEIC_LR',
-          part,
-          items: partItems,
-          fileName: 'samples',
-          status: LingoContentStatus.PUBLISHED,
-        }),
-      )
     const items = {
-      succeeded: results.reduce((sum, r) => sum + r.succeeded, 0),
-      duplicates: results.reduce((sum, r) => sum + r.duplicates, 0),
-      failed: results.reduce((sum, r) => sum + r.failed, 0),
-      errors: results.flatMap((r) => r.errors),
+      succeeded: 0,
+      duplicates: 0,
+      failed: 0,
+      errors: [] as ImportResult['errors'],
     }
+    const add = (r: ImportResult) => {
+      items.succeeded += r.succeeded
+      items.duplicates += r.duplicates
+      items.failed += r.failed
+      items.errors.push(...r.errors)
+    }
+    const importParts = async (
+      parts: Record<string, object[]>,
+      fileName: string,
+    ) => {
+      for (const [part, partItems] of Object.entries(parts))
+        add(
+          await this.importItems(userId, {
+            exam: 'TOEIC_LR',
+            part,
+            items: partItems,
+            fileName,
+            status: LingoContentStatus.PUBLISHED,
+          }),
+        )
+    }
+    await importParts(samples, 'samples')
+    const tests = [
+      await this.publishedTest(userId, {
+        title: SAMPLE_TEST_TITLE,
+        description:
+          'Đề mẫu rút gọn từ các câu mẫu của Lingo (chưa có Part 1).',
+        items: samples,
+      }),
+    ]
+    for (const test of SAMPLE_TESTS) {
+      await importParts(test.items, `test: ${test.title}`)
+      tests.push(await this.publishedTest(userId, test))
+    }
+
     const decks = [
       { ...TOEIC_STARTER_DECK, rows: TOEIC_STARTER_DECK.cards, firstLine: 1 },
       // CSV: line 1 is the header
@@ -283,6 +309,11 @@ export class AdminService {
         ...d,
         rows: parseCsv(d.csv),
         firstLine: 2,
+      })),
+      ...MORE_DECKS.map((d) => ({
+        ...d,
+        rows: d.cards.map((c) => ({ ...c, topic: d.topic })),
+        firstLine: 1,
       })),
     ]
     const cards = { succeeded: 0, duplicates: 0, failed: 0, decks: 0 }
@@ -294,8 +325,7 @@ export class AdminService {
       cards.failed += result.failed
       cards.decks++
     }
-    const test = await this.sampleTest(userId)
-    return { items, cards, test }
+    return { items, cards, tests }
   }
 
   /** A system deck of the TOEIC samples, found by title (made once). */
@@ -310,36 +340,49 @@ export class AdminService {
     )
   }
 
-  /** A short published test of every sample item, so the library is not empty (made once). */
-  private async sampleTest(userId: string) {
+  /**
+   * A published MINI test of built-in items, found by title (made once). Items are matched by
+   * content hash, so the test also gets items that were already imported elsewhere.
+   */
+  private async publishedTest(userId: string, fixture: TestFixture) {
     const existing = await this.prisma.lingoTest.findFirst({
-      where: { exam: 'TOEIC_LR', title: SAMPLE_TEST_TITLE },
-      select: { id: true },
+      where: { exam: 'TOEIC_LR', title: fixture.title },
+      select: { id: true, title: true },
     })
     if (existing) return existing
-    const items = await this.prisma.lingoItem.findMany({
+    const exam = getExam('TOEIC_LR')
+    const hashes = exam.sections.flatMap((section) =>
+      section.parts.flatMap((part) =>
+        (fixture.items[part.code] ?? []).flatMap((raw) => {
+          const parsed = itemSchema(exam, part).safeParse(raw)
+          return parsed.success
+            ? [itemHash(exam.code, part.code, parsed.data)]
+            : []
+        }),
+      ),
+    )
+    const found = await this.prisma.lingoItem.findMany({
       where: {
-        exam: 'TOEIC_LR',
+        exam: exam.code,
+        contentHash: { in: hashes },
         status: LingoContentStatus.PUBLISHED,
-        batch: { fileName: 'samples' },
       },
-      orderBy: [{ part: 'asc' }, { createdAt: 'asc' }],
-      select: { id: true },
+      select: { id: true, contentHash: true },
     })
+    const ids = new Map(found.map((i) => [i.contentHash, i.id]))
+    // Exam order: parts in order, items as written
+    const itemIds = hashes.flatMap((h) => ids.get(h) ?? [])
     return this.prisma.lingoTest.create({
       data: {
-        exam: 'TOEIC_LR',
+        exam: exam.code,
         kind: LingoTestKind.MINI,
-        title: SAMPLE_TEST_TITLE,
-        description:
-          'Đề mẫu rút gọn từ các câu mẫu của Lingo (chưa có Part 1).',
+        title: fixture.title,
+        description: fixture.description,
         status: LingoContentStatus.PUBLISHED,
         createdById: userId,
-        items: {
-          create: items.map((item, order) => ({ itemId: item.id, order })),
-        },
+        items: { create: itemIds.map((itemId, order) => ({ itemId, order })) },
       },
-      select: { id: true },
+      select: { id: true, title: true },
     })
   }
 

@@ -205,8 +205,8 @@ describe('Lingo tests and AI generation (e2e)', () => {
       shortfall: Record<string, number>
     }
     expect(test.status).toBe('DRAFT')
-    // No Part 1 sample; 7 of 12 Part 2 questions; 12 Part 5 samples of 15
-    expect(shortfall).toMatchObject({ P1: 3, P2: 5, P5: 3 })
+    // Built-in content covers Parts 2–7; Part 1 needs real photos
+    expect(shortfall).toEqual({ P1: 3 })
 
     const detail = (await as(admin).get(`/admin/tests/${test.id}`).expect(200))
       .body as { items: { part: string }[] }
