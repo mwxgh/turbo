@@ -372,6 +372,23 @@ describe('Lingo tests and AI generation (e2e)', () => {
     const view = (await as(learner).get(`/tests/${test.id}`).expect(200))
       .body as TestSummary & { attempts: { id: string }[] }
     expect(view.attempts.map((a) => a.id)).toEqual([full.id])
+
+    // Library counts: the learner's own and everyone's submitted attempts
+    const after = (await as(learner).get('/exams/TOEIC_LR/tests').expect(200))
+      .body as { items: (TestSummary & { attempts: number; takers: number })[] }
+    expect(after.items.find((t) => t.id === test.id)).toMatchObject({
+      attempts: 1,
+      takers: 1,
+    })
+    // History names the test
+    const history = (
+      await as(learner)
+        .get(
+          `/attempts?filter=${encodeURIComponent(JSON.stringify({ mode: 'FULL_TEST' }))}`,
+        )
+        .expect(200)
+    ).body as { items: { id: string; test: { id: string } | null }[] }
+    expect(history.items.find((a) => a.id === full.id)?.test?.id).toBe(test.id)
   })
 
   it('fills vocabulary cards from terms', async () => {

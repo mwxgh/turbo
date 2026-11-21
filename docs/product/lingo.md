@@ -330,7 +330,7 @@ Mọi route cần đăng nhập. Route admin có `@Roles(Role.ADMIN)`. Controlle
 | `POST /lingo/attempts`                                             | `{ exam, testId?, mode, parts?, timeLimitSec? }` → câu hỏi (không có đáp án) |
 | `PUT /lingo/attempts/:id/answers/:questionId`                      | Tự lưu đáp án, đánh dấu                                                      |
 | `POST /lingo/attempts/:id/submit`                                  | Nộp → điểm, đúng/sai, giải thích                                             |
-| `GET /lingo/attempts` · `GET /lingo/attempts/:id`                  | Lịch sử, xem lại                                                             |
+| `GET /lingo/attempts` · `GET /lingo/attempts/:id`                  | Lịch sử (kèm tên đề), xem lại                                                |
 | `GET /lingo/:exam/mistakes`                                        | Sổ câu sai                                                                   |
 | `POST /lingo/highlights`                                           | Lưu highlight, tuỳ chọn tạo thẻ                                              |
 | `GET/POST /lingo/decks` · `POST /lingo/decks/:id/cards`            | Bộ thẻ, thêm thẻ                                                             |
@@ -347,20 +347,26 @@ Mọi route cần đăng nhập. Route admin có `@Roles(Role.ADMIN)`. Controlle
 
 Đáp án và giải thích không trả về trước khi câu đó được nộp.
 
-## 8. Màn hình web (`apps/web/app/(app)/lingo`)
+## 8. Màn hình web
 
-| Route                            | Nội dung                                               |
-| -------------------------------- | ------------------------------------------------------ |
-| `/lingo`                         | Chọn kỳ thi (TOEIC; IELTS, HSK hiện "Sắp có")          |
-| `/lingo/[exam]`                  | Dashboard kỳ thi                                       |
-| `/lingo/[exam]/tests`            | Thư viện đề                                            |
-| `/lingo/tests/[id]`              | Trang đề: Luyện tập (chọn Part, thời gian) / Full test |
-| `/lingo/attempts/[id]`           | Làm bài                                                |
-| `/lingo/attempts/[id]/result`    | Kết quả, xem lại, highlight → flashcard                |
-| `/lingo/[exam]/mistakes`         | Sổ câu sai                                             |
-| `/lingo/decks` · `/lingo/review` | Bộ thẻ, phiên ôn (Space lật, 1–4 chấm)                 |
-| `/lingo/admin`                   | Nhập, AI sinh, duyệt, ghép / xuất bản đề (chỉ admin)   |
-| `/lingo/chat?c=<id>`             | Hỏi AI tutor, danh sách hội thoại                      |
+Hai site trong `apps/web` (ADR 0019): site học viên `/lingo`, khu ra đề `/teach` (chỉ admin). Phòng thi nằm ngoài layout app.
+
+| Route                         | Nội dung                                                                                              |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `/lingo`                      | Chọn kỳ thi (TOEIC; IELTS, HSK hiện "Sắp có")                                                         |
+| `/lingo/[exam]/tests`         | Thư viện đề: lọc Full / Mini, số câu, thời gian, lượt làm                                             |
+| `/lingo/tests/[id]`           | Trang đề: Luyện tập (chọn Part, thời gian) / Full test                                                |
+| `/lingo/attempts/[id]/take`   | Phòng thi (`app/(room)`): câu theo nhóm, bảng số câu theo Part, đồng hồ, toàn màn hình                |
+| `/lingo/attempts/[id]`        | Kết quả: điểm quy đổi, đúng / sai / bỏ trống, theo Part, kỹ năng cần luyện, phiếu trả lời, giải thích |
+| `/lingo/history`              | Lịch sử: biểu đồ điểm full test (hoặc độ chính xác), các lần làm, làm tiếp bài dở                     |
+| `/lingo/[exam]`               | Luyện tập: dashboard, luyện nhanh theo Part                                                           |
+| `/lingo/[exam]/mistakes`      | Sổ câu sai                                                                                            |
+| `/lingo/review`               | Phiên ôn thẻ (Space lật, 1–4 chấm)                                                                    |
+| `/lingo/chat?c=<id>`          | Hỏi AI tutor, danh sách hội thoại                                                                     |
+| `/teach`                      | Khu ra đề: việc cần làm, lịch sử nhập và sinh AI                                                      |
+| `/teach/tests`                | Ghép đề, AI sinh trọn đề, duyệt và xuất bản đề                                                        |
+| `/teach/items`                | Ngân hàng câu hỏi: duyệt / loại, ảnh Part 1                                                           |
+| `/teach/ai` · `/teach/import` | AI sinh câu và thẻ từ · nhập JSON / CSV, dữ liệu mẫu                                                  |
 
 Màn làm bài dựng từ spec + `type` của câu: mỗi `QuestionType` một component (`SingleChoice`, `GapFill`…).
 Thêm kỳ thi mới không cần màn mới. Giao diện theo skill `ui-ux-pro-max`, component `@repo/ui`, kiểm tra light và dark.

@@ -72,7 +72,7 @@ function summary(
 export class TestsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Published tests of an exam, with the learner's submitted attempt count. */
+  /** Published tests of an exam: the learner's submitted attempts and everyone's (`takers`). */
   async list(userId: string, examCode: string, query: ListQuery) {
     const exam = getExam(examCode)
     return this.page(
@@ -267,9 +267,20 @@ export class TestsService {
       }),
       this.prisma.lingoTest.count({ where: scoped }),
     ])
+    // Submitted attempts of every learner: how popular a test is
+    const takers = await this.prisma.lingoAttempt.groupBy({
+      by: ['testId'],
+      where: {
+        testId: { in: tests.map((t) => t.id) },
+        submittedAt: { not: null },
+      },
+      _count: { _all: true },
+    })
+    const takenBy = new Map(takers.map((t) => [t.testId, t._count._all]))
     const items = tests.map(({ _count, ...test }) => ({
       ...summary(exam ?? getExam(test.exam), test),
       attempts: _count.attempts,
+      takers: takenBy.get(test.id) ?? 0,
     }))
     return paginated(items, total, query)
   }

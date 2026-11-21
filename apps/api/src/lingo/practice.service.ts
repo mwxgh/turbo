@@ -251,7 +251,11 @@ export class PracticeService {
     >(attemptListSpec, query)
     const scoped = { ...where, userId }
     return Promise.all([
-      this.prisma.lingoAttempt.findMany({ where: scoped, ...args }),
+      this.prisma.lingoAttempt.findMany({
+        where: scoped,
+        ...args,
+        include: { test: { select: { id: true, title: true, kind: true } } },
+      }),
       this.prisma.lingoAttempt.count({ where: scoped }),
     ]).then(([items, total]) => paginated(items, total, query))
   }
