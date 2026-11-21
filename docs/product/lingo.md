@@ -1,0 +1,377 @@
+---
+title: Lingo – app học ngoại ngữ, luyện thi (TOEIC trước, IELTS / HSK sau)
+status: draft
+applies-to: api, web, db
+---
+
+# Lingo – app học ngoại ngữ và luyện thi
+
+App thứ năm trong launcher (`/lingo`), cạnh Hellos, Chat, Files và Studio. App học ngoại ngữ và luyện thi
+chứng chỉ, dùng chung cho nhiều kỳ thi. **TOEIC Listening & Reading** làm đầu tiên. Thiết kế phải thêm được **IELTS**,
+**HSK** (và về sau TOPIK, JLPT…) mà không đổi schema hay viết lại màn làm bài.
+
+Tập thể dục (gym) là **app riêng** về sau (vd. `Fit`, `/fit`), không nằm trong Lingo. Phần có thể dùng chung
+(mục tiêu, streak, nhắc học mỗi ngày) chỉ tách thành package khi app thứ hai thật sự cần.
+
+> **Trạng thái:** bản thiết kế đã chốt các câu hỏi (mục 10), chờ duyệt PR rồi làm giai đoạn 1.
+
+## 1. Tham khảo study4.com
+
+Ghi chú từ các trang công khai của study4.com, đọc ngày 2026-11-18. Không xem được phần cần đăng nhập.
+
+| Study4 có                                                                                                               | Lingo lấy gì                                                        |
+| ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Thư viện đề, lọc theo kỳ thi (IELTS, TOEIC, HSK 1–6, TOPIK, JLPT…), tìm kiếm, mỗi đề có số lượt làm và số bình luận     | Thư viện đề theo kỳ thi, có lọc và tìm kiếm (bình luận để sau)      |
+| Trang đề có 2 chế độ: **Luyện tập** (chọn Part và giới hạn thời gian) và **Full test** (chỉ chế độ này có điểm quy đổi) | Giữ nguyên 2 chế độ này                                             |
+| Mỗi Part gắn tag dạng câu (vd. `[Listening] Note/Form Completion`)                                                      | Tag dạng câu, dùng để thống kê điểm yếu                             |
+| Đề rút gọn (`/tests/mini`)                                                                                              | Mini test                                                           |
+| Flashcard: bộ có sẵn theo kỳ thi; tạo thẻ từ **highlight** ở trang kết quả bài thi                                      | Bộ thẻ hệ thống + bộ thẻ của tôi + thêm thẻ từ highlight            |
+| [Unverified] Quảng cáo: ôn flashcard theo spaced repetition, thống kê theo ngày và dạng câu, AI chấm Speaking/Writing   | SRS (FSRS), thống kê theo dạng câu; AI chấm Writing ở giai đoạn sau |
+| Khoá học trả phí, trợ giảng, cộng đồng                                                                                  | Ngoài phạm vi                                                       |
+
+Khác study4: đề do admin tự soạn và duyệt (không sao chép đề có bản quyền), giải thích bằng tiếng Việt cho mọi câu.
+AI sinh đề là giai đoạn sau, dùng chung đường nhập và bước duyệt.
+
+## 2. Phạm vi
+
+| Trong MVP (TOEIC)                                                  | Sau MVP                                        |
+| ------------------------------------------------------------------ | ---------------------------------------------- |
+| Thư viện đề TOEIC: full test và mini test, luyện theo Part         | IELTS (Listening, Reading, rồi Writing)        |
+| Từ vựng: bộ thẻ hệ thống + bộ của tôi, ôn SRS, thêm từ highlight   | HSK 1–6 (thẻ có pinyin và chữ Hán)             |
+| Chấm, giải thích tiếng Việt, transcript, xem lại bài               | AI chấm Writing; Speaking (cần speech-to-text) |
+| Điểm dự đoán, điểm yếu theo Part và dạng câu, mục tiêu theo kỳ thi | Bình luận dưới đề, app mobile                  |
+| Admin: nhập đề (form, JSON), từ vựng (CSV), duyệt, ghép đề         | AI sinh đề, AI điền thẻ; thanh toán            |
+
+Người dùng: mọi tài khoản đã đăng nhập. Tiến độ riêng từng người. Đề và bộ thẻ hệ thống dùng chung.
+
+## 3. Mô hình chung cho nhiều kỳ thi
+
+Ý chính: **cấu trúc kỳ thi là code, nội dung là dữ liệu.**
+
+```
+Exam (TOEIC_LR, IELTS_AC, HSK3…)         ← code: apps/api/src/lingo/specs
+ └─ Section (Listening, Reading…)          thời gian, cách quy đổi điểm
+     └─ Part (TOEIC Part 5, IELTS Recording 1, HSK 阅读 第一部分…)
+         └─ dạng câu cho phép, số câu, tag dạng câu
+Test (một đề)                             ← dữ liệu: DB
+ └─ TestPart → Item (stimulus: văn bản / audio / ảnh)
+                 └─ Question (dạng câu + đáp án + giải thích)
+```
+
+### 3.1 `apps/api/src/lingo/specs`
+
+Mỗi kỳ thi là một file khai báo trong api (không tách package riêng, xem ADR 0012). Thêm kỳ thi = thêm một file + nội dung, không migration.
+
+```ts
+// apps/api/src/lingo/specs/toeic-lr.ts
+export const toeicLr = defineExam({
+  code: 'TOEIC_LR',
+  name: 'TOEIC Listening & Reading',
+  language: 'en',
+  sections: [
+    {
+      code: 'L',
+      name: 'Listening',
+      minutes: 45,
+      scoring: tableScore(TOEIC_L_TABLE), // số câu đúng → 5–495
+      parts: [
+        {
+          code: 'P1',
+          name: 'Photographs',
+          count: 6,
+          types: ['SINGLE_CHOICE'],
+          media: ['image', 'audio'],
+        },
+        {
+          code: 'P2',
+          name: 'Question–Response',
+          count: 25,
+          types: ['SINGLE_CHOICE'],
+          media: ['audio'],
+          options: 3,
+        },
+        // P3, P4…
+      ],
+    },
+    {
+      code: 'R',
+      name: 'Reading',
+      minutes: 75,
+      scoring: tableScore(TOEIC_R_TABLE),
+      parts: [/* P5, P6, P7 */],
+    },
+  ],
+  total: sum, // 10–990
+  skillTags: [
+    'grammar.verb-tense',
+    'grammar.word-form',
+    'vocab.collocation',
+    'reading.inference' /*…*/,
+  ],
+})
+```
+
+- Api dùng để kiểm tra khi nhập, chấm, quy đổi điểm. Web lấy cấu trúc qua `GET /lingo/exams/:exam` (kèm số câu đã xuất bản mỗi Part), không khai báo lại.
+- Mỗi dạng câu có **schema Zod** (`specs/schemas.ts`): kiểm tra file nhập ở api, và structured output khi có AI sinh đề. Lỗi trả về theo từng dòng cho web.
+
+### 3.2 Dạng câu (`QuestionType`)
+
+| Dạng            | Dùng ở                                                                   | Chấm                   |
+| --------------- | ------------------------------------------------------------------------ | ---------------------- |
+| `SINGLE_CHOICE` | TOEIC mọi Part, IELTS multiple choice, HSK chọn đáp án                   | tự động                |
+| `MULTI_CHOICE`  | IELTS "choose TWO letters"                                               | tự động                |
+| `TRUE_FALSE_NG` | IELTS Reading True/False/Not Given, HSK nghe đúng/sai                    | tự động                |
+| `GAP_FILL`      | IELTS form/note/table completion (gõ chữ, có danh sách đáp án chấp nhận) | tự động, chuẩn hoá chữ |
+| `MATCHING`      | IELTS matching headings / features, HSK ghép câu – tranh                 | tự động                |
+| `ORDERING`      | HSK sắp xếp từ thành câu                                                 | tự động                |
+| `ESSAY`         | IELTS Writing, HSK viết đoạn                                             | AI chấm (sau MVP)      |
+| `SPEAKING`      | IELTS Speaking                                                           | sau MVP                |
+
+MVP chỉ cài `SINGLE_CHOICE`. Đáp án lưu dạng JSON theo schema của dạng câu, nên thêm dạng mới không đổi bảng.
+
+### 3.3 Quy đổi điểm
+
+Mỗi Section khai báo hàm quy đổi trong spec. [Unverified] Các bảng sau không có bản chính thức công khai đầy đủ, app luôn hiển thị là **điểm dự đoán**:
+
+| Kỳ thi    | Thang                                      | Cách quy đổi trong app                     |
+| --------- | ------------------------------------------ | ------------------------------------------ |
+| TOEIC L&R | L 5–495, R 5–495, tổng 10–990              | bảng số câu đúng → điểm (ước tính)         |
+| IELTS     | band 0–9 mỗi kỹ năng, overall làm tròn 0.5 | bảng raw /40 → band cho Listening, Reading |
+| HSK       | theo cấp, có điểm đạt                      | điểm thô theo phần, tổng, đạt / chưa đạt   |
+
+Giống study4: chỉ chế độ **Full test** mới có điểm quy đổi. Chế độ luyện chỉ có số câu đúng.
+
+**Đã chốt:** MVP dùng bảng **ước tính** (số câu đúng → điểm, nội suy tuyến tính theo đoạn), khai báo trong
+`specs` cạnh Section. Hiệu chỉnh bảng sau chỉ cần sửa spec; điểm đã lưu của các lần thi cũ giữ nguyên.
+
+## 4. Tính năng
+
+### 4.1 Hồ sơ theo kỳ thi
+
+- Người học chọn kỳ thi đang ôn (có thể nhiều): mỗi kỳ có **mục tiêu** (TOEIC 650, IELTS 6.5, HSK 4 đạt) và **ngày thi** (tuỳ chọn).
+- Dashboard theo kỳ thi đang chọn: thẻ cần ôn hôm nay, điểm dự đoán gần nhất và mục tiêu, 3 dạng câu yếu nhất, streak.
+
+### 4.2 Thư viện đề (`/lingo/[exam]/tests`)
+
+- Danh sách đề: tên, thời gian, số Part, số câu, số lượt làm, tag; lọc theo Section, tìm theo tên.
+- Trang đề, 2 chế độ (như study4):
+  - **Luyện tập:** chọn 1 hoặc nhiều Part, giới hạn thời gian (không giới hạn / 5–120 phút). Chấm khi nộp, có tuỳ chọn hiện đáp án ngay từng câu.
+  - **Full test:** đủ Section, đúng thời gian, Listening chạy liền không tua. Có điểm quy đổi.
+- Thêm **Luyện nhanh**: 10–20 câu ngẫu nhiên của 1 Part, ưu tiên câu chưa làm và dạng câu yếu.
+
+### 4.3 Làm bài
+
+- Màn tập trung: đồng hồ đếm ngược, bảng điều hướng câu, đánh dấu câu xem lại, phím tắt A/B/C/D.
+- Highlight văn bản trong đề (Reading, transcript) để thêm vào flashcard sau.
+- Tự lưu đáp án. Mất mạng hoặc đóng tab → vào lại làm tiếp.
+
+### 4.4 Kết quả và xem lại
+
+- Điểm (full test), số câu đúng theo Part và theo tag dạng câu, thời gian mỗi câu.
+- Từng câu: đáp án đúng, giải thích tiếng Việt (vì sao đúng, vì sao từng đáp án sai, bẫy), dịch, **transcript** (Listening), từ vựng nổi bật.
+- Câu sai vào **Sổ câu sai**, làm lại được. Nút "Báo câu sai" đổ về hàng chờ admin.
+
+### 4.5 Từ vựng (SRS)
+
+- **Bộ thẻ hệ thống** theo kỳ thi và chủ đề (TOEIC: Office, Finance…; IELTS: Environment, Education…; HSK: theo cấp).
+- **Bộ thẻ của tôi:** tạo bộ, thêm thẻ tay, thêm từ **highlight** ở trang kết quả (người học tự gõ nghĩa; AI điền tự động ở giai đoạn AI).
+- Mặt thẻ tuỳ ngôn ngữ: tiếng Anh có IPA; tiếng Trung có chữ Hán, **pinyin**, Hán Việt. Có audio phát âm.
+- Ôn: lật thẻ → tự chấm **Again / Hard / Good / Easy**, lịch ôn theo FSRS (`ts-fsrs`). Giới hạn thẻ mới mỗi ngày.
+
+### 4.6 Admin (role `ADMIN`)
+
+- **Nhập nội dung:** form nhập từng item, nhập file JSON (đề), nhập file CSV (thẻ từ vựng). Xem mục 5.
+- **Duyệt:** xem, sửa, nghe audio, Duyệt / Loại. Chỉ nội dung đã duyệt mới hiện cho người học.
+- **Ghép đề:** chọn các Item đã duyệt theo cấu trúc spec thành một Test (có nút "ghép tự động đủ cấu trúc"), xuất bản.
+
+## 5. Nhập nội dung
+
+MVP **không dùng AI để tạo nội dung**. Mọi nguồn đi qua cùng một đường: kiểm tra bằng schema Zod của
+`specs` → `DRAFT` → admin duyệt → `PUBLISHED`. Thêm nguồn mới (AI) không đổi phần còn lại.
+
+```mermaid
+flowchart LR
+  A[Form admin] --> V
+  B[File JSON đề] --> V
+  C[File CSV từ vựng] --> V
+  X[AI sinh đề<br/>sau MVP] -.-> V
+  V[Kiểm tra schema<br/>specs] --> M[TTS audio / ảnh]
+  M --> F[(DRAFT)]
+  F --> G[Admin duyệt]
+  G --> H[(PUBLISHED)]
+  H --> I[Ghép thành Test]
+```
+
+### 5.1 Nguồn trong MVP
+
+- **Form admin:** nhập một item (stimulus + câu hỏi + đáp án + giải thích), form dựng từ schema của Part.
+- **File JSON đề:** mảng item theo schema của Part. Admin tự soạn, hoặc nhờ công cụ bất kỳ soạn rồi tải lên.
+  Lỗi schema trả về theo từng dòng; item hợp lệ vẫn được nhập. Trùng `contentHash` thì bỏ qua.
+- **File CSV từ vựng:** `term, pos, reading, meaningVi, example, exampleVi, topic` vào một bộ thẻ hệ thống.
+  Không chép nguyên bộ từ của sách có bản quyền.
+- Mỗi lần nhập tạo một `LingoBatch` (nguồn, số item thành công / lỗi, người nhập) để tra lại.
+
+```ts
+// apps/api/src/lingo/admin/import.service.ts
+async importItems(exam: string, part: string, raw: unknown[], userId: string) {
+  const schema = getExam(exam).part(part).itemSchema // apps/api/src/lingo/specs
+  const results = raw.map((r) => schema.safeParse(r))
+  const ok = results.filter((r) => r.success).map((r) => r.data)
+  const batch = await this.db.lingoBatch.create({
+    data: { source: 'IMPORT', exam, part, succeeded: ok.length, failed: raw.length - ok.length, createdBy: userId },
+  })
+  await this.db.lingoItem.createMany({
+    data: ok.map((i) => ({ ...toRow(exam, part, i), status: 'DRAFT', batchId: batch.id, contentHash: hash(i) })),
+    skipDuplicates: true,
+  })
+  return { batch, errors: results.flatMap((r, line) => (r.success ? [] : [{ line, issues: r.error.issues }])) }
+}
+```
+
+### 5.2 AI sinh đề (sau MVP)
+
+Thêm một nguồn nữa qua interface `LlmProvider` (`generateItems(spec, brief) → item[]`), đầu ra vẫn qua schema và bước duyệt ở trên.
+
+- **Claude API** (`claude-opus-5-5`, structured outputs, Message Batches API) khi có API key cá nhân với giới hạn chi tháng.
+- **Model local** (Ollama, chạy trên máy cá nhân, sinh ra file JSON rồi nhập) nếu không muốn tốn phí API.
+  Server hiện tại (4 CPU, 7.7 GB RAM, không GPU) không đủ để chạy model.
+- Lượt tự kiểm (model làm lại câu, lệch đáp án → `NEEDS_REVIEW`), chống trùng bằng `contentHash`.
+- Cùng giai đoạn: AI điền nghĩa / phiên âm / ví dụ cho thẻ tạo từ highlight.
+- Key (nếu có) chỉ ở `.env` server, không gửi xuống web.
+
+### 5.3 Audio và ảnh
+
+**Audio: Google Cloud Text-to-Speech** (đã chốt).
+
+- Script Listening (admin viết; sau này AI viết) gán mỗi người nói một vai (`speaker`, `accent`). Worker map vai sang giọng Google, ghép bằng SSML
+  (`<break>` giữa các lượt), xuất `.mp3`.
+- Giọng: `en-US`, `en-GB`, `en-AU` cho TOEIC / IELTS; `cmn-CN` cho HSK. [Unverified] Chưa kiểm tra Google có giọng
+  `en-CA` và danh sách giọng / giá hiện tại; chọn giọng cụ thể khi làm giai đoạn 3.
+- Chỉ gọi TTS **một lần khi nhập nội dung** (trước khi duyệt), không gọi khi người học nghe. File lưu ở bucket S3
+  của môi trường, phát qua URL ký tạm. Audio phát âm thẻ từ vựng cũng sinh một lần như vậy.
+- Credential: service account JSON chỉ có trong `.env` server (`GOOGLE_TTS_CREDENTIALS`), không đưa vào repo.
+- Gọi qua interface `TtsProvider` (`synthesize(lines) → mp3`). Kỳ thi khai báo vai giọng (`us-male`, `cn-female`…),
+  mỗi provider có bảng map vai → giọng. Đổi sang ElevenLabs sau này chỉ cần thêm một provider và đặt
+  `TTS_PROVIDER=elevenlabs`, không đổi nội dung đề.
+
+**Ảnh (TOEIC Part 1, thẻ từ vựng có ảnh): OpenAI image generation** (đã chốt).
+
+1. Admin nhập mô tả cảnh (người, hành động, vật, bối cảnh công sở). Sau MVP: AI viết mô tả.
+2. Worker gọi API sinh ảnh của OpenAI → lưu ảnh vào bucket S3 của môi trường. Admin cũng có thể tải ảnh lên.
+3. Viết 4 câu mô tả và đáp án **sau khi xem ảnh thật**, vì ảnh sinh ra có thể lệch mô tả.
+   Sau MVP: AI đọc ảnh (vision) để viết, ảnh không khớp → `NEEDS_REVIEW`.
+4. Admin duyệt ảnh cùng câu hỏi như mọi item.
+
+- Gọi qua interface `ImageProvider` (`generate(prompt) → png`), chọn bằng `IMAGE_PROVIDER`, giống `TtsProvider`.
+- `OPENAI_API_KEY` chỉ có trong `.env` server. [Unverified] Model ảnh cụ thể, kích thước và giá chọn khi làm
+  giai đoạn 3, sau khi kiểm tra tài liệu OpenAI hiện tại.
+
+## 6. Mô hình dữ liệu (Prisma, tiền tố `Lingo`)
+
+```mermaid
+erDiagram
+  LingoTest ||--o{ LingoTestPart : "gồm"
+  LingoTestPart ||--o{ LingoTestItem : "xếp"
+  LingoItem ||--o{ LingoTestItem : "dùng trong"
+  LingoItem ||--o{ LingoQuestion : "có"
+  LingoItem }o--o| LingoBatch : "nhập bởi"
+  LingoAttempt ||--o{ LingoAnswer : "gồm"
+  LingoQuestion ||--o{ LingoAnswer : "được trả lời"
+  User ||--o{ LingoAttempt : "làm"
+  User ||--o{ LingoGoal : "đặt"
+  LingoDeck ||--o{ LingoCard : "có"
+  LingoCard ||--o{ LingoCardState : "ôn bởi"
+  User ||--o{ LingoDeck : "sở hữu"
+```
+
+| Model            | Trường chính                                                                                                                                                                                                      |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LingoItem`      | `exam`, `section`, `part` (mã trong spec), `difficulty`, `topic`, `content` (JSON: văn bản, transcript), `audioKey?`, `imageKey?`, `status` (DRAFT, NEEDS_REVIEW, PUBLISHED, REJECTED), `batchId?`, `contentHash` |
+| `LingoQuestion`  | `itemId`, `order`, `type` (`QuestionType`), `prompt` (JSON), `answer` (JSON), `explanationVi`, `skillTags[]`                                                                                                      |
+| `LingoTest`      | `exam`, `title`, `kind` (FULL, MINI), `status`, `attemptCount`                                                                                                                                                    |
+| `LingoTestPart`  | `testId`, `section`, `part`, `order`                                                                                                                                                                              |
+| `LingoTestItem`  | `testPartId`, `itemId`, `order`                                                                                                                                                                                   |
+| `LingoAttempt`   | `userId`, `exam`, `testId?`, `mode` (PRACTICE, FULL_TEST, QUICK), `parts[]`, `timeLimitSec?`, `startedAt`, `submittedAt?`, `scores` (JSON theo Section)                                                           |
+| `LingoAnswer`    | `attemptId`, `questionId`, `response` (JSON), `correct?`, `timeMs`, `flagged`                                                                                                                                     |
+| `LingoGoal`      | `userId`, `exam`, `target` (JSON: 650 / 6.5 / đạt), `examDate?`, `newCardsPerDay`                                                                                                                                 |
+| `LingoDeck`      | `exam?`, `ownerId?` (null = hệ thống), `title`, `language` (en, zh…)                                                                                                                                              |
+| `LingoCard`      | `deckId`, `term`, `reading?` (IPA / pinyin), `meaningVi`, `example?`, `exampleVi?`, `audioKey?`, `extra` (JSON: Hán Việt…)                                                                                        |
+| `LingoCardState` | `userId`, `cardId`, trạng thái FSRS (`due`, `stability`, `difficulty`, `reps`, `lapses`, `state`), `lastReview`                                                                                                   |
+| `LingoHighlight` | `userId`, `attemptId`, `questionId?`, `text`, `cardId?`                                                                                                                                                           |
+| `LingoBatch`     | `source` (MANUAL, IMPORT, AI), `exam`, `part?`, `fileName?`, `succeeded`, `failed`, `errors` (JSON), `meta` (JSON: model, usage khi là AI), `createdBy`                                                           |
+
+- `exam`, `section`, `part` là chuỗi mã trong `specs` (không phải enum Prisma), nên thêm kỳ thi không cần migration. Api kiểm tra mã hợp lệ bằng spec.
+- Sổ câu sai, thống kê dạng câu, streak tính từ `LingoAnswer` / `LingoCardState`.
+
+## 7. API (`apps/api/src/lingo`)
+
+Mọi route cần đăng nhập. Route admin có `@Roles(Role.ADMIN)`. Controller có `ThrottlerGuard`. `:exam` là mã trong spec.
+
+| Method + path                                                      | Việc                                                                         |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `GET /lingo/exams`                                                 | Danh sách kỳ thi đang mở (từ spec)                                           |
+| `GET/PUT /lingo/goals/:exam`                                       | Mục tiêu, ngày thi, cài đặt                                                  |
+| `GET /lingo/:exam/dashboard`                                       | Thẻ cần ôn, điểm dự đoán, dạng câu yếu, streak                               |
+| `GET /lingo/:exam/tests` · `GET /lingo/tests/:id`                  | Thư viện đề (`ListQueryDto`), chi tiết đề                                    |
+| `POST /lingo/attempts`                                             | `{ exam, testId?, mode, parts?, timeLimitSec? }` → câu hỏi (không có đáp án) |
+| `PUT /lingo/attempts/:id/answers/:questionId`                      | Tự lưu đáp án, đánh dấu                                                      |
+| `POST /lingo/attempts/:id/submit`                                  | Nộp → điểm, đúng/sai, giải thích                                             |
+| `GET /lingo/attempts` · `GET /lingo/attempts/:id`                  | Lịch sử, xem lại                                                             |
+| `GET /lingo/:exam/mistakes`                                        | Sổ câu sai                                                                   |
+| `POST /lingo/highlights`                                           | Lưu highlight, tuỳ chọn tạo thẻ                                              |
+| `GET/POST /lingo/decks` · `POST /lingo/decks/:id/cards`            | Bộ thẻ, thêm thẻ                                                             |
+| `GET /lingo/review` · `POST /lingo/cards/:id/review`               | Hàng ôn hôm nay, chấm thẻ                                                    |
+| `POST /lingo/questions/:id/report`                                 | Báo câu sai                                                                  |
+| `POST /lingo/admin/imports` · `POST /lingo/admin/decks/:id/import` | Nhập file JSON đề / CSV từ vựng → kết quả từng dòng                          |
+| `/lingo/admin/items`, `/lingo/admin/tests`                         | Tạo / sửa item, duyệt, ghép đề                                               |
+
+Đáp án và giải thích không trả về trước khi câu đó được nộp.
+
+## 8. Màn hình web (`apps/web/app/(app)/lingo`)
+
+| Route                            | Nội dung                                               |
+| -------------------------------- | ------------------------------------------------------ |
+| `/lingo`                         | Chọn kỳ thi (TOEIC; IELTS, HSK hiện "Sắp có")          |
+| `/lingo/[exam]`                  | Dashboard kỳ thi                                       |
+| `/lingo/[exam]/tests`            | Thư viện đề                                            |
+| `/lingo/tests/[id]`              | Trang đề: Luyện tập (chọn Part, thời gian) / Full test |
+| `/lingo/attempts/[id]`           | Làm bài                                                |
+| `/lingo/attempts/[id]/result`    | Kết quả, xem lại, highlight → flashcard                |
+| `/lingo/[exam]/mistakes`         | Sổ câu sai                                             |
+| `/lingo/decks` · `/lingo/review` | Bộ thẻ, phiên ôn (Space lật, 1–4 chấm)                 |
+| `/lingo/admin`                   | Nhập (form, JSON, CSV), duyệt, ghép đề (chỉ admin)     |
+
+Màn làm bài dựng từ spec + `type` của câu: mỗi `QuestionType` một component (`SingleChoice`, `GapFill`…).
+Thêm kỳ thi mới không cần màn mới. Giao diện theo skill `ui-ux-pro-max`, component `@repo/ui`, kiểm tra light và dark.
+
+## 9. Lộ trình
+
+| Giai đoạn | Nội dung                                                                                                           | Kết quả dùng được           |
+| --------- | ------------------------------------------------------------------------------------------------------------------ | --------------------------- |
+| 1         | `specs` (TOEIC), schema, nhập (form + JSON) và duyệt Part 5, luyện nhanh Part 5, nhập CSV từ vựng + SRS, dashboard | Học từ vựng + ngữ pháp      |
+| 2         | Part 6, 7; ghép đề; thư viện đề; chế độ Luyện tập theo Part; highlight → thẻ                                       | Luyện đủ Reading như study4 |
+| 3         | TTS, Listening Part 1–4                                                                                            | Luyện đủ Listening          |
+| 4         | Full test + điểm quy đổi, mini test, điểm dự đoán theo thời gian                                                   | Thi thử TOEIC đầy đủ        |
+| 5         | IELTS Listening + Reading (`GAP_FILL`, `TRUE_FALSE_NG`, `MATCHING`, `MULTI_CHOICE`)                                | Kỳ thi thứ hai              |
+| 6         | HSK (thẻ pinyin, `ORDERING`), AI chấm IELTS Writing                                                                | Kỳ thi thứ ba               |
+| 7         | AI sinh đề qua `LlmProvider` (Claude API hoặc model local), AI điền thẻ highlight, AI viết câu Part 1 từ ảnh       | Bớt việc soạn đề tay        |
+
+Mỗi giai đoạn: PR vào `develop` → tự lên **dev**, rồi theo release lên stg và prod.
+
+## 10. Đã chốt
+
+| Câu hỏi                      | Quyết định                                                                                                                                    |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tên app                      | Lingo, `/lingo`. Gym là app riêng về sau                                                                                                      |
+| Nguồn nội dung MVP           | Admin nhập (form, JSON, CSV), chưa dùng AI                                                                                                    |
+| Audio                        | Google Cloud TTS qua `TtsProvider`                                                                                                            |
+| Ảnh Part 1                   | OpenAI image generation qua `ImageProvider`                                                                                                   |
+| Nội dung giữa các môi trường | Không đồng bộ. Mỗi môi trường tự nhập. Repo có vài item mẫu (`POST /lingo/admin/samples` nạp từ `apps/api/src/lingo/fixtures`) cho dev và e2e |
+| Quy đổi điểm                 | Bảng ước tính trong `specs`, hiệu chỉnh sau                                                                                                   |
+
+## 11. Quyết định cần ADR
+
+- `0012` Cấu trúc kỳ thi khai báo bằng code (`apps/api/src/lingo/specs`), nội dung trong DB; mã kỳ thi / Part là chuỗi, không phải enum.
+- `0013` Mọi nội dung học vào qua một đường nhập chung (kiểm tra schema `specs` → DRAFT → admin duyệt). MVP nhập tay / JSON / CSV, AI là nguồn thêm sau qua `LlmProvider`.
+- `0014` Audio học bằng Google Cloud Text-to-Speech qua interface `TtsProvider` (thay được bằng ElevenLabs), sinh một lần lúc tạo nội dung, lưu S3.
+- `0015` Ảnh học bằng OpenAI image generation qua interface `ImageProvider`, câu hỏi viết sau khi xem ảnh thật.
