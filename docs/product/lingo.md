@@ -321,29 +321,30 @@ erDiagram
 
 Mọi route cần đăng nhập. Route admin có `@Roles(Role.ADMIN)`. Controller có `ThrottlerGuard`. `:exam` là mã trong spec.
 
-| Method + path                                                      | Việc                                                                         |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| `GET /lingo/exams`                                                 | Danh sách kỳ thi đang mở (từ spec)                                           |
-| `GET/PUT /lingo/goals/:exam`                                       | Mục tiêu, ngày thi, cài đặt                                                  |
-| `GET /lingo/:exam/dashboard`                                       | Thẻ cần ôn, điểm dự đoán, dạng câu yếu, streak                               |
-| `GET /lingo/:exam/tests` · `GET /lingo/tests/:id`                  | Thư viện đề (`ListQueryDto`), chi tiết đề                                    |
-| `POST /lingo/attempts`                                             | `{ exam, testId?, mode, parts?, timeLimitSec? }` → câu hỏi (không có đáp án) |
-| `PUT /lingo/attempts/:id/answers/:questionId`                      | Tự lưu đáp án, đánh dấu                                                      |
-| `POST /lingo/attempts/:id/submit`                                  | Nộp → điểm, đúng/sai, giải thích                                             |
-| `GET /lingo/attempts` · `GET /lingo/attempts/:id`                  | Lịch sử (kèm tên đề), xem lại                                                |
-| `GET /lingo/:exam/mistakes`                                        | Sổ câu sai                                                                   |
-| `POST /lingo/highlights`                                           | Lưu highlight, tuỳ chọn tạo thẻ                                              |
-| `GET/POST /lingo/decks` · `POST /lingo/decks/:id/cards`            | Bộ thẻ, thêm thẻ                                                             |
-| `GET /lingo/review` · `POST /lingo/cards/:id/review`               | Hàng ôn hôm nay, chấm thẻ                                                    |
-| `POST /lingo/questions/:id/report`                                 | Báo câu sai                                                                  |
-| `POST /lingo/admin/imports` · `POST /lingo/admin/decks/:id/import` | Nhập file JSON đề / CSV từ vựng → kết quả từng dòng                          |
-| `/lingo/admin/items`, `PUT /lingo/admin/items/:id/image`           | Item: danh sách, duyệt, gắn ảnh Part 1                                       |
-| `GET /lingo/exams/:exam/tests` · `GET /lingo/tests/:id`            | Thư viện đề (đã xuất bản), chi tiết đề + lần làm của tôi                     |
-| `GET/POST /lingo/admin/tests` · `POST .../tests/:id/status`        | Danh sách đề, ghép đề từ câu đã duyệt, xuất bản / gỡ (`DELETE` xoá)          |
-| `POST /lingo/admin/generate/items` · `.../generate/test`           | AI sinh câu / trọn đề, chạy nền → 202 + batch                                |
-| `POST /lingo/admin/decks/:id/generate`                             | AI điền thẻ từ danh sách từ                                                  |
-| `GET/POST /lingo/chats` · `GET/DELETE /lingo/chats/:id`            | Hội thoại với AI tutor (`ListQueryDto`)                                      |
-| `POST /lingo/chats/:id/messages`                                   | `{ text }` → câu trả lời stream `text/plain` (20 lần / phút)                 |
+| Method + path                                                      | Việc                                                                                     |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `GET /lingo/exams`                                                 | Danh sách kỳ thi đang mở (từ spec)                                                       |
+| `GET/PUT /lingo/goals/:exam`                                       | Mục tiêu, ngày thi, cài đặt                                                              |
+| `GET /lingo/:exam/dashboard`                                       | Thẻ cần ôn, điểm dự đoán, dạng câu yếu, streak                                           |
+| `GET /lingo/:exam/tests` · `GET /lingo/tests/:id`                  | Thư viện đề (`ListQueryDto`), chi tiết đề                                                |
+| `POST /lingo/attempts`                                             | `{ exam, testId?, mode, parts?, timeLimitSec?, placement? }` → câu hỏi (không có đáp án) |
+| `GET /lingo/roadmap/:exam`                                         | Lộ trình: giai đoạn, nhiệm vụ, tiến độ tính từ hoạt động                                 |
+| `PUT /lingo/attempts/:id/answers/:questionId`                      | Tự lưu đáp án, đánh dấu                                                                  |
+| `POST /lingo/attempts/:id/submit`                                  | Nộp → điểm, đúng/sai, giải thích                                                         |
+| `GET /lingo/attempts` · `GET /lingo/attempts/:id`                  | Lịch sử (kèm tên đề), xem lại                                                            |
+| `GET /lingo/:exam/mistakes`                                        | Sổ câu sai                                                                               |
+| `POST /lingo/highlights`                                           | Lưu highlight, tuỳ chọn tạo thẻ                                                          |
+| `GET/POST /lingo/decks` · `POST /lingo/decks/:id/cards`            | Bộ thẻ, thêm thẻ                                                                         |
+| `GET /lingo/review` · `POST /lingo/cards/:id/review`               | Hàng ôn hôm nay, chấm thẻ                                                                |
+| `POST /lingo/questions/:id/report`                                 | Báo câu sai                                                                              |
+| `POST /lingo/admin/imports` · `POST /lingo/admin/decks/:id/import` | Nhập file JSON đề / CSV từ vựng → kết quả từng dòng                                      |
+| `/lingo/admin/items`, `PUT /lingo/admin/items/:id/image`           | Item: danh sách, duyệt, gắn ảnh Part 1                                                   |
+| `GET /lingo/exams/:exam/tests` · `GET /lingo/tests/:id`            | Thư viện đề (đã xuất bản), chi tiết đề + lần làm của tôi                                 |
+| `GET/POST /lingo/admin/tests` · `POST .../tests/:id/status`        | Danh sách đề, ghép đề từ câu đã duyệt, xuất bản / gỡ (`DELETE` xoá)                      |
+| `POST /lingo/admin/generate/items` · `.../generate/test`           | AI sinh câu / trọn đề, chạy nền → 202 + batch                                            |
+| `POST /lingo/admin/decks/:id/generate`                             | AI điền thẻ từ danh sách từ                                                              |
+| `GET/POST /lingo/chats` · `GET/DELETE /lingo/chats/:id`            | Hội thoại với AI tutor (`ListQueryDto`)                                                  |
+| `POST /lingo/chats/:id/messages`                                   | `{ text }` → câu trả lời stream `text/plain` (20 lần / phút)                             |
 
 Đáp án và giải thích không trả về trước khi câu đó được nộp.
 
@@ -354,6 +355,7 @@ Hai site trong `apps/web` (ADR 0019): site học viên `/lingo`, khu ra đề `/
 | Route                         | Nội dung                                                                                              |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `/lingo`                      | Chọn kỳ thi (TOEIC; IELTS, HSK hiện "Sắp có")                                                         |
+| `/lingo/roadmap`              | Lộ trình 4 giai đoạn theo mục tiêu, bài kiểm tra đầu vào, việc hôm nay (ADR 0020)                     |
 | `/lingo/[exam]/tests`         | Thư viện đề: lọc Full / Mini, số câu, thời gian, lượt làm                                             |
 | `/lingo/tests/[id]`           | Trang đề: Luyện tập (chọn Part, thời gian) / Full test                                                |
 | `/lingo/attempts/[id]/take`   | Phòng thi (`app/(room)`): câu theo nhóm, bảng số câu theo Part, đồng hồ, toàn màn hình                |

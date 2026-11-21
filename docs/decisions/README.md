@@ -24,5 +24,6 @@ Mỗi file ghi một quyết định: bối cảnh → quyết định → hệ 
 | 0017 | [Sinh nội dung Lingo bằng BytePlus chạy nền, phần Nghe tạm đọc bằng trình duyệt](0017-sinh-noi-dung-lingo-bang-byteplus-nghe-tam-bang-trinh-duyet.md) | accepted | 2026-11-21 |
 | 0018 | [Bộ sinh project của Studio nằm trong api, web chỉ đọc danh mục lựa chọn](0018-studio-scaffold-nam-trong-api.md) | accepted | 2026-11-21 |
 | 0019 | [Lingo tách khu ra đề và phòng thi trong cùng app web](0019-lingo-tach-khu-ra-de-va-phong-thi.md) | accepted | 2026-11-21 |
+| 0020 | [Lộ trình Lingo định nghĩa trong code, tiến độ tính từ hoạt động](0020-lo-trinh-lingo-tinh-tu-hoat-dong.md) | accepted | 2026-11-21 |
 
 `Ngày` của 0002–0007 = ngày commit đưa quyết định vào code (ADR viết lại sau, ngày 2026-11-11). `UNKNOWN` trong ADR = không có tài liệu về lý do; ai biết thì bổ sung.
