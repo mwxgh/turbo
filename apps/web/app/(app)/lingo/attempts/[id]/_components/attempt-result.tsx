@@ -12,6 +12,7 @@ import {
   History,
   Loader2,
   RotateCcw,
+  Route,
   X,
 } from 'lucide-react'
 
@@ -229,8 +230,11 @@ export function AttemptResult({
   const counts = { correct: 0, wrong: 0, blank: 0 }
   for (const q of questions) counts[outcomeOf(q)]++
   const ratio = attempt.total ? counts.correct / attempt.total : 0
+  const placement = attempt.mode === 'PLACEMENT'
   const total =
-    attempt.mode === 'FULL_TEST' ? scaledTotal(attempt.scores) : null
+    attempt.mode === 'FULL_TEST' || placement
+      ? scaledTotal(attempt.scores)
+      : null
   const partNames = new Map(
     exam.sections.flatMap((s) => s.parts.map((p) => [p.code, p.nameVi])),
   )
@@ -292,12 +296,15 @@ export function AttemptResult({
             Kết quả ·{' '}
             {attempt.mode === 'FULL_TEST'
               ? 'Full test'
-              : attempt.parts.map(partLabel).join(', ')}
+              : placement
+                ? 'Kiểm tra đầu vào'
+                : attempt.parts.map(partLabel).join(', ')}
             {attempt.submittedAt &&
               ` · nộp lúc ${formatDateTime(attempt.submittedAt)}`}
           </p>
           <h1 id="result-heading" className="text-2xl font-semibold">
-            {attempt.test?.title ?? `Luyện ${exam.name}`}
+            {attempt.test?.title ??
+              (placement ? 'Bài kiểm tra đầu vào' : `Luyện ${exam.name}`)}
           </h1>
         </div>
 
@@ -366,18 +373,31 @@ export function AttemptResult({
           )}
         </dl>
 
+        {placement && (
+          <p className="rounded-lg bg-muted/50 p-3 text-sm">
+            Điểm ước tính từ khoảng 30 câu, chỉ dùng để chọn giai đoạn bắt đầu.
+            Lộ trình đã cập nhật theo kết quả này.
+          </p>
+        )}
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => void again()} disabled={starting}>
-            {starting ? (
-              <Loader2
-                aria-hidden="true"
-                className="animate-spin motion-reduce:animate-none"
-              />
-            ) : (
-              <RotateCcw aria-hidden="true" />
-            )}
-            {attempt.test ? 'Về trang đề' : 'Luyện tiếp'}
-          </Button>
+          {placement ? (
+            <Link href="/lingo/roadmap" className={buttonVariants()}>
+              <Route aria-hidden="true" />
+              Xem lộ trình
+            </Link>
+          ) : (
+            <Button onClick={() => void again()} disabled={starting}>
+              {starting ? (
+                <Loader2
+                  aria-hidden="true"
+                  className="animate-spin motion-reduce:animate-none"
+                />
+              ) : (
+                <RotateCcw aria-hidden="true" />
+              )}
+              {attempt.test ? 'Về trang đề' : 'Luyện tiếp'}
+            </Button>
+          )}
           <Link
             href="/lingo/history"
             className={buttonVariants({ variant: 'outline' })}

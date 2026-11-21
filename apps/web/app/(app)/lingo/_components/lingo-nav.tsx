@@ -8,6 +8,7 @@ import { cn } from '@repo/ui/lib/utils'
 import { DEFAULT_EXAM } from '@/lib/lingo'
 
 const LINKS = [
+  { href: '/lingo/roadmap', label: 'Lộ trình' },
   { href: `/lingo/${DEFAULT_EXAM}/tests`, label: 'Đề thi' },
   { href: `/lingo/${DEFAULT_EXAM}`, label: 'Luyện tập' },
   { href: '/lingo/history', label: 'Lịch sử' },

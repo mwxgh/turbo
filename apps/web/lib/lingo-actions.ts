@@ -44,6 +44,8 @@ export async function startAttempt(input: {
   mode?: 'PRACTICE' | 'FULL_TEST'
   parts?: string[]
   timeLimitSec?: number
+  /** The placement test (every part, a few questions each) */
+  placement?: boolean
 }) {
   return run(() => post<Attempt>('/lingo/attempts', input))
 }

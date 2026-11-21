@@ -249,7 +249,9 @@ export function ExamRoom({
   const remaining = deadline === null ? null : deadline - now
   const exitHref = attempt.test
     ? `/lingo/tests/${attempt.test.id}`
-    : `/lingo/${attempt.exam}`
+    : attempt.mode === 'PLACEMENT'
+      ? '/lingo/roadmap'
+      : `/lingo/${attempt.exam}`
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000)
@@ -420,7 +422,9 @@ export function ExamRoom({
             <span className="truncate text-xs text-muted-foreground">
               {attempt.mode === 'FULL_TEST'
                 ? 'Full test'
-                : attempt.parts.map(partLabel).join(', ')}
+                : attempt.mode === 'PLACEMENT'
+                  ? 'Kiểm tra đầu vào'
+                  : attempt.parts.map(partLabel).join(', ')}
             </span>
           </div>
           <div className="ml-auto flex items-center gap-2">

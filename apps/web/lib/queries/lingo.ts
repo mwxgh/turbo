@@ -118,7 +118,7 @@ export interface AttemptQuestion {
 export interface Attempt {
   id: string
   exam: string
-  mode: 'QUICK' | 'PRACTICE' | 'FULL_TEST'
+  mode: 'QUICK' | 'PRACTICE' | 'FULL_TEST' | 'PLACEMENT'
   test: { id: string; title: string; kind: 'FULL' | 'MINI' } | null
   timeLimitSec: number | null
   /** startedAt + timeLimitSec; answers after it are refused */
@@ -161,6 +161,35 @@ export type TestDetail = Omit<TestSummary, 'attempts' | 'takers'> & {
   >[]
 }
 
+/** GET /lingo/roadmap/:exam (apps/api/src/lingo/roadmap.ts). */
+export interface RoadmapTask {
+  id: string
+  kind: 'placement' | 'words' | 'part' | 'tests' | 'score'
+  label: string
+  detail: string
+  progress: number
+  done: boolean
+  part?: string
+  testKind?: 'MINI' | 'FULL'
+}
+
+export interface RoadmapStage {
+  id: string
+  title: string
+  goal: string
+  tips: string[]
+  status: 'done' | 'passed' | 'current' | 'upcoming'
+  passScore: number | null
+  tasks: RoadmapTask[]
+}
+
+export interface Roadmap {
+  target: number
+  estimate: number | null
+  accuracy: number
+  stages: RoadmapStage[]
+}
+
 /** GET /lingo/attempts: one row of the learner's history. */
 export type AttemptListItem = Omit<LingoAttempt, 'scores' | 'test'> & {
   scores: Attempt['scores']
@@ -199,6 +228,7 @@ export const lingoKeys = {
     [...lingoKeys.all, 'review', exam ?? 'all'] as const,
   decks: (exam?: string) => [...lingoKeys.all, 'decks', exam ?? 'all'] as const,
   mistakes: (code: string) => [...lingoKeys.all, 'mistakes', code] as const,
+  roadmap: (code: string) => [...lingoKeys.all, 'roadmap', code] as const,
   attempts: (query: ListQuery) =>
     [...lingoKeys.all, 'attempts', query] as const,
   adminItems: (query: ListQuery) =>
@@ -262,6 +292,12 @@ export const mistakesQueryOptions = (code: string) =>
       get<(AttemptQuestion & { answeredAt: string })[]>(
         `/lingo/mistakes/${encodeURIComponent(code)}`,
       ),
+  })
+
+export const roadmapQueryOptions = (code: string) =>
+  queryOptions({
+    queryKey: lingoKeys.roadmap(code),
+    queryFn: () => get<Roadmap>(`/lingo/roadmap/${encodeURIComponent(code)}`),
   })
 
 /** The learner's attempts, newest first. */

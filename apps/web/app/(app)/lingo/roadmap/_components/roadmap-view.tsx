@@ -1,0 +1,429 @@
+'use client'
+
+import { useState } from 'react'
+
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+
+import { useQuery } from '@tanstack/react-query'
+import {
+  BookOpen,
+  Check,
+  ClipboardCheck,
+  FileText,
+  Loader2,
+  Play,
+  Target,
+} from 'lucide-react'
+
+import { Badge } from '@repo/ui/components/badge'
+import { Button, buttonVariants } from '@repo/ui/components/button'
+import { toast } from '@repo/ui/components/sonner'
+import { cn } from '@repo/ui/lib/utils'
+
+import { percent, takeHref } from '@/lib/lingo'
+import { startAttempt } from '@/lib/lingo-actions'
+import {
+  type RoadmapStage,
+  type RoadmapTask,
+  dashboardQueryOptions,
+  roadmapQueryOptions,
+} from '@/lib/queries/lingo'
+
+const STATUS: Record<
+  RoadmapStage['status'],
+  { label: string; variant: 'default' | 'secondary' | 'outline' }
+> = {
+  done: { label: 'Đã xong', variant: 'secondary' },
+  passed: { label: 'Đã vượt qua', variant: 'secondary' },
+  current: { label: 'Đang học', variant: 'default' },
+  upcoming: { label: 'Sắp tới', variant: 'outline' },
+}
+
+/** Starts an attempt and opens the exam room. */
+function useStart(exam: string) {
+  const router = useRouter()
+  const [pending, setPending] = useState<string>()
+  async function start(
+    key: string,
+    input: { part?: string; placement?: boolean },
+  ) {
+    setPending(key)
+    try {
+      const res = await startAttempt({ exam, count: 10, ...input })
+      if (res.data) router.push(takeHref(res.data.id))
+      else
+        toast.error('Không bắt đầu được bài', {
+          description: res.errors?.join(' · '),
+        })
+    } catch {
+      toast.error('Không kết nối được máy chủ')
+    } finally {
+      setPending(undefined)
+    }
+  }
+  return { pending, start }
+}
+
+function TaskAction({
+  task,
+  exam,
+  starter,
+}: {
+  task: RoadmapTask
+  exam: string
+  starter: ReturnType<typeof useStart>
+}) {
+  const busy = starter.pending === task.id
+  const spinner = (
+    <Loader2 aria-hidden className="animate-spin motion-reduce:animate-none" />
+  )
+  switch (task.kind) {
+    case 'placement':
+      return (
+        <Button
+          size="sm"
+          disabled={!!starter.pending}
+          onClick={() => void starter.start(task.id, { placement: true })}
+        >
+          {busy ? spinner : <ClipboardCheck aria-hidden />}
+          Làm bài
+        </Button>
+      )
+    case 'part':
+      return (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={!!starter.pending}
+          onClick={() => void starter.start(task.id, { part: task.part })}
+        >
+          {busy ? spinner : <Play aria-hidden />}
+          Luyện 10 câu
+        </Button>
+      )
+    case 'words':
+      return (
+        <Link
+          href={`/lingo/review?exam=${exam}`}
+          className={buttonVariants({ size: 'sm', variant: 'outline' })}
+        >
+          <BookOpen aria-hidden />
+          Ôn từ
+        </Link>
+      )
+    default:
+      return (
+        <Link
+          href={`/lingo/${exam}/tests`}
+          className={buttonVariants({ size: 'sm', variant: 'outline' })}
+        >
+          <FileText aria-hidden />
+          Chọn đề
+        </Link>
+      )
+  }
+}
+
+function TaskRow({
+  task,
+  exam,
+  starter,
+  actionable,
+}: {
+  task: RoadmapTask
+  exam: string
+  starter: ReturnType<typeof useStart>
+  actionable: boolean
+}) {
+  return (
+    <li className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3">
+      <span
+        aria-hidden="true"
+        className={cn(
+          'flex size-6 shrink-0 items-center justify-center rounded-full border',
+          task.done && 'border-primary bg-primary text-primary-foreground',
+        )}
+      >
+        {task.done && <Check className="size-3.5" />}
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <span
+          className={cn(
+            'text-sm font-medium',
+            task.done && 'text-muted-foreground',
+          )}
+        >
+          {task.label}
+          {task.done && <span className="sr-only"> (đã xong)</span>}
+        </span>
+        <div className="flex items-center gap-3">
+          <div
+            role="progressbar"
+            aria-label={task.label}
+            aria-valuenow={Math.round(task.progress * 100)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            className="h-1.5 w-full max-w-56 overflow-hidden rounded-full
+              bg-muted"
+          >
+            <div
+              className="h-full rounded-full bg-primary"
+              style={{ width: `${Math.round(task.progress * 100)}%` }}
+            />
+          </div>
+          <span
+            className="text-xs whitespace-nowrap text-muted-foreground
+              tabular-nums"
+          >
+            {task.detail}
+          </span>
+        </div>
+      </div>
+      {actionable && !task.done && (
+        <TaskAction task={task} exam={exam} starter={starter} />
+      )}
+    </li>
+  )
+}
+
+function StageCard({
+  stage,
+  index,
+  exam,
+  starter,
+}: {
+  stage: RoadmapStage
+  index: number
+  exam: string
+  starter: ReturnType<typeof useStart>
+}) {
+  const status = STATUS[stage.status]
+  const current = stage.status === 'current'
+  const finished = stage.status === 'done' || stage.status === 'passed'
+  const done = stage.tasks.filter((t) => t.done).length
+  return (
+    <li className="relative flex gap-4">
+      <div className="flex flex-col items-center">
+        <span
+          className={cn(
+            `flex size-9 shrink-0 items-center justify-center rounded-full
+            border-2 text-sm font-semibold`,
+            current && 'border-primary bg-primary text-primary-foreground',
+            finished && 'border-primary text-primary',
+          )}
+        >
+          {finished ? <Check aria-hidden className="size-4" /> : index + 1}
+        </span>
+        <span aria-hidden="true" className="w-px flex-1 bg-border" />
+      </div>
+      <section
+        aria-labelledby={`stage-${stage.id}`}
+        className={cn(
+          `mb-6 flex min-w-0 flex-1 flex-col gap-3 rounded-xl border bg-card
+          p-5`,
+          current && 'border-primary/50 shadow-sm',
+          finished && 'bg-card/60',
+        )}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 id={`stage-${stage.id}`} className="text-lg font-semibold">
+            Giai đoạn {index + 1}: {stage.title}
+          </h2>
+          <Badge variant={status.variant}>{status.label}</Badge>
+          <span className="ml-auto text-sm text-muted-foreground tabular-nums">
+            {done}/{stage.tasks.length} nhiệm vụ
+          </span>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {stage.goal}
+          {stage.status === 'passed' &&
+            stage.passScore !== null &&
+            ` Điểm ước tính của bạn đã từ ${stage.passScore}, có thể bỏ qua hoặc làm để củng cố.`}
+        </p>
+        <details open={current} className="group">
+          <summary className="cursor-pointer text-sm font-medium">
+            Nhiệm vụ và lời khuyên
+          </summary>
+          <ul className="mt-1 flex flex-col divide-y">
+            {stage.tasks.map((task) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                exam={exam}
+                starter={starter}
+                actionable={stage.status !== 'upcoming'}
+              />
+            ))}
+          </ul>
+          <ul
+            className="mt-2 flex list-disc flex-col gap-1 pl-5 text-sm
+              text-muted-foreground"
+          >
+            {stage.tips.map((tip) => (
+              <li key={tip}>{tip}</li>
+            ))}
+          </ul>
+        </details>
+      </section>
+    </li>
+  )
+}
+
+/** The learner's roadmap: target, today's work, then the stages with their tasks. */
+export function RoadmapView({ exam }: { exam: string }) {
+  const { data: roadmap } = useQuery(roadmapQueryOptions(exam))
+  const { data: dashboard } = useQuery(dashboardQueryOptions(exam))
+  const starter = useStart(exam)
+  // Read once: rendering must stay pure
+  const [now] = useState(() => Date.now())
+  if (!roadmap) return null
+
+  const stage = roadmap.stages.find((s) => s.status === 'current')
+  const next = stage?.tasks.find((t) => !t.done)
+  const placement = roadmap.stages[0]?.tasks.find((t) => t.kind === 'placement')
+  const examDate = dashboard?.goal.examDate
+  const daysLeft = examDate
+    ? Math.ceil((Date.parse(examDate) - now) / 86_400_000)
+    : null
+  const newToday = Math.min(
+    dashboard?.review.new ?? 0,
+    dashboard?.goal.newCardsPerDay ?? 0,
+  )
+
+  return (
+    <>
+      <div className="flex flex-col gap-1.5">
+        <h1 className="text-2xl font-semibold">Lộ trình TOEIC</h1>
+        <p className="text-muted-foreground">
+          Đi lần lượt từng giai đoạn. Tiến độ tự cập nhật từ bài làm và thẻ từ
+          vựng bạn đã ôn.
+        </p>
+      </div>
+
+      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
+          <dt className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Target aria-hidden className="size-3.5" />
+            Mục tiêu
+          </dt>
+          <dd className="text-2xl font-semibold tabular-nums">
+            {roadmap.target}
+          </dd>
+          <dd>
+            <Link
+              href={`/lingo/${exam}`}
+              className="text-xs text-muted-foreground underline
+                hover:text-foreground"
+            >
+              Đổi mục tiêu
+            </Link>
+          </dd>
+        </div>
+        <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
+          <dt className="text-sm text-muted-foreground">Điểm ước tính</dt>
+          <dd className="text-2xl font-semibold tabular-nums">
+            {roadmap.estimate ?? '–'}
+          </dd>
+          <dd className="text-xs text-muted-foreground">
+            Từ bài đầu vào hoặc full test gần nhất
+          </dd>
+        </div>
+        <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
+          <dt className="text-sm text-muted-foreground">Tỉ lệ đúng cần đạt</dt>
+          <dd className="text-2xl font-semibold tabular-nums">
+            {percent(roadmap.accuracy)}
+          </dd>
+          <dd className="text-xs text-muted-foreground">
+            Khoảng {Math.round(roadmap.accuracy * 200)}/200 câu
+          </dd>
+        </div>
+        <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
+          <dt className="text-sm text-muted-foreground">Ngày thi</dt>
+          <dd className="text-2xl font-semibold tabular-nums">
+            {daysLeft === null
+              ? '–'
+              : daysLeft >= 0
+                ? `${daysLeft} ngày`
+                : 'Đã qua'}
+          </dd>
+          <dd className="text-xs text-muted-foreground">
+            {daysLeft === null ? 'Đặt ngày thi ở trang Luyện tập' : 'còn lại'}
+          </dd>
+        </div>
+      </dl>
+
+      {placement && !placement.done ? (
+        <section
+          aria-labelledby="placement-heading"
+          className="flex flex-wrap items-center gap-4 rounded-xl border
+            border-primary/50 bg-primary/5 p-5"
+        >
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h2 id="placement-heading" className="font-semibold">
+              Bắt đầu bằng bài kiểm tra đầu vào
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Khoảng 30 câu của mọi Part, 20 phút. Điểm ước tính chọn giai đoạn
+              bắt đầu phù hợp, bỏ qua phần bạn đã vững.
+            </p>
+          </div>
+          <TaskAction task={placement} exam={exam} starter={starter} />
+        </section>
+      ) : (
+        <section
+          aria-labelledby="today-heading"
+          className="flex flex-col gap-3 rounded-xl border bg-card p-5"
+        >
+          <h2 id="today-heading" className="font-semibold">
+            Hôm nay
+          </h2>
+          <ul className="flex flex-col gap-3 text-sm">
+            <li className="flex flex-wrap items-center gap-3">
+              <span className="flex-1">
+                Ôn {dashboard?.review.due ?? 0} thẻ đến hạn và học {newToday} từ
+                mới
+              </span>
+              <Link
+                href={`/lingo/review?exam=${exam}`}
+                className={buttonVariants({ size: 'sm', variant: 'outline' })}
+              >
+                <BookOpen aria-hidden />
+                Ôn từ
+              </Link>
+            </li>
+            {next && next.kind !== 'words' && (
+              <li className="flex flex-wrap items-center gap-3">
+                <span className="flex-1">
+                  {next.label}
+                  <span className="text-muted-foreground">
+                    {' '}
+                    · {next.detail}
+                  </span>
+                </span>
+                <TaskAction task={next} exam={exam} starter={starter} />
+              </li>
+            )}
+            {!stage && (
+              <li>
+                Bạn đã hoàn thành lộ trình. Giữ nhịp làm full test mỗi tuần.
+              </li>
+            )}
+          </ul>
+        </section>
+      )}
+
+      <ol aria-label="Các giai đoạn" className="flex flex-col">
+        {roadmap.stages.map((s, i) => (
+          <StageCard
+            key={s.id}
+            stage={s}
+            index={i}
+            exam={exam}
+            starter={starter}
+          />
+        ))}
+      </ol>
+    </>
+  )
+}

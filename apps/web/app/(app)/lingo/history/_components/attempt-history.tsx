@@ -39,10 +39,14 @@ const MODE_LABEL: Record<AttemptListItem['mode'], string> = {
   FULL_TEST: 'Full test',
   PRACTICE: 'Luyện đề',
   QUICK: 'Luyện nhanh',
+  PLACEMENT: 'Kiểm tra đầu vào',
 }
 
 const titleOf = (a: AttemptListItem) =>
-  a.test?.title ?? a.parts.map(partLabel).join(', ')
+  a.test?.title ??
+  (a.mode === 'PLACEMENT'
+    ? 'Bài kiểm tra đầu vào'
+    : a.parts.map(partLabel).join(', '))
 
 const matches = (
   a: AttemptListItem,

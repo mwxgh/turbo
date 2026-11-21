@@ -39,6 +39,24 @@ export function scaledTotal(
   return total
 }
 
+/** Test recipes by level for the AI generator (the teacher site). */
+export const LEVEL_PRESETS = [
+  {
+    id: 'foundation',
+    label: 'Mất gốc (dưới 350)',
+    kind: 'MINI',
+    difficulty: 'EASY',
+  },
+  {
+    id: 'basic',
+    label: 'Trung bình (450–600)',
+    kind: 'MINI',
+    difficulty: 'MEDIUM',
+  },
+  { id: 'good', label: 'Khá (650–800)', kind: 'FULL', difficulty: 'MEDIUM' },
+  { id: 'advanced', label: 'Giỏi (800+)', kind: 'FULL', difficulty: 'HARD' },
+] as const
+
 export const percent = (ratio: number) => `${Math.round(ratio * 100)}%`
 
 export const LETTERS = ['A', 'B', 'C', 'D', 'E']

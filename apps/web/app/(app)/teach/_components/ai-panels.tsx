@@ -10,7 +10,9 @@ import { Input } from '@repo/ui/components/input'
 import { Label } from '@repo/ui/components/label'
 import { toast } from '@repo/ui/components/sonner'
 import { Textarea } from '@repo/ui/components/textarea'
+import { cn } from '@repo/ui/lib/utils'
 
+import { LEVEL_PRESETS } from '@/lib/lingo'
 import { generateCards, generateItems, generateTest } from '@/lib/lingo-actions'
 import {
   type ImportResult,
@@ -218,6 +220,15 @@ export function GenerateTestPanel({ exam }: { exam: string }) {
   const [selfCheck, setSelfCheck] = useState(true)
   const [busy, setBusy] = useState(false)
 
+  /** A level recipe fills kind and difficulty; changing either by hand keeps the rest. */
+  function applyLevel(id: string) {
+    const level = LEVEL_PRESETS.find((l) => l.id === id)
+    if (!level) return
+    setKind(level.kind)
+    setDifficulty(level.difficulty)
+    if (!title.trim()) setTitle(`TOEIC ${level.label}`)
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault()
     setBusy(true)
@@ -252,6 +263,25 @@ export function GenerateTestPanel({ exam }: { exam: string }) {
       description="Sinh đủ 7 Part theo cấu trúc rồi ghép thành đề nháp. Mini ≈ 96 câu, Full = 200 câu (nhiều lượt gọi, tốn token hơn)."
     >
       <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="gen-test-level">Công thức theo trình độ</Label>
+          <select
+            id="gen-test-level"
+            className={cn(selectClass, 'w-fit')}
+            defaultValue=""
+            onChange={(e) => applyLevel(e.target.value)}
+          >
+            <option value="" disabled>
+              Chọn trình độ học viên…
+            </option>
+            {LEVEL_PRESETS.map((level) => (
+              <option key={level.id} value={level.id}>
+                {level.label}: {level.kind === 'FULL' ? 'Full' : 'Mini'},{' '}
+                {DIFFICULTY_LABEL[level.difficulty]}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="flex flex-wrap items-end gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="gen-test-title">Tên đề</Label>
