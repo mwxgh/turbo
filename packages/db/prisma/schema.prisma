@@ -151,6 +151,8 @@ enum LingoAttemptMode {
   QUICK
   PRACTICE
   FULL_TEST
+  /// Placement test: a few questions of every part, estimated score picks the roadmap stage
+  PLACEMENT
 }
 
 /// One import / manual entry / AI run: what came in and what was rejected

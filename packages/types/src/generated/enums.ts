@@ -66,6 +66,7 @@ export const LingoAttemptMode = {
   QUICK: 'QUICK',
   PRACTICE: 'PRACTICE',
   FULL_TEST: 'FULL_TEST',
+  PLACEMENT: 'PLACEMENT',
 } as const
 
 export type LingoAttemptMode = (typeof LingoAttemptMode)[keyof typeof LingoAttemptMode]
