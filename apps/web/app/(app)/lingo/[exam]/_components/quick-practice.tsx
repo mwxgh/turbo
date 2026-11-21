@@ -11,6 +11,7 @@ import { Button } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'
 import { cn } from '@repo/ui/lib/utils'
 
+import { takeHref } from '@/lib/lingo'
 import { startAttempt } from '@/lib/lingo-actions'
 import type { ExamDetail } from '@/lib/queries/lingo'
 
@@ -113,7 +114,7 @@ export function QuickPractice({
         count,
         ...(difficulty && { difficulty }),
       })
-      if (res.data) router.push(`/lingo/attempts/${res.data.id}`)
+      if (res.data) router.push(takeHref(res.data.id))
       else
         toast.error('Không bắt đầu được bài', {
           description: res.errors?.join(' · '),
@@ -150,10 +151,10 @@ export function QuickPractice({
             <>
               Vào{' '}
               <Link
-                href="/lingo/admin"
+                href="/teach/import"
                 className="font-medium text-foreground underline"
               >
-                trang quản trị
+                khu ra đề
               </Link>{' '}
               để nạp dữ liệu mẫu hoặc nhập đề.
             </>

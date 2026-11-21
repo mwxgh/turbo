@@ -45,13 +45,7 @@ import {
 } from '@/lib/queries/lingo'
 import { deleteFromStorage, uploadToStorage } from '@/lib/storage'
 
-import {
-  GenerateCardsPanel,
-  GenerateItemsPanel,
-  GenerateTestPanel,
-} from './ai-panels'
 import { Panel, ResultSummary, selectClass } from './panel'
-import { AssembleTestPanel, TestsListPanel } from './tests-panel'
 
 const ITEM_EXAMPLE = `[
   {
@@ -73,7 +67,7 @@ const ITEM_EXAMPLE = `[
 const CSV_EXAMPLE = `term,pos,reading,meaningVi,example,exampleVi,topic
 deadline,n,/ˈdedlaɪn/,hạn chót,The deadline is May 1.,Hạn chót là ngày 1/5.,Office`
 
-function SamplesPanel() {
+export function SamplesPanel() {
   const queryClient = useQueryClient()
   const [busy, setBusy] = useState(false)
   async function run() {
@@ -115,7 +109,7 @@ function SamplesPanel() {
   )
 }
 
-function ImportItemsPanel({ exam }: { exam: string }) {
+export function ImportItemsPanel({ exam }: { exam: string }) {
   const queryClient = useQueryClient()
   const { data: spec } = useQuery(examQueryOptions(exam))
   const parts = spec?.sections.flatMap((s) => s.parts) ?? []
@@ -237,7 +231,7 @@ function ImportItemsPanel({ exam }: { exam: string }) {
   )
 }
 
-function ImportCardsPanel({ exam }: { exam: string }) {
+export function ImportCardsPanel({ exam }: { exam: string }) {
   const queryClient = useQueryClient()
   const { data: decks = [] } = useQuery(decksQueryOptions(exam))
   const systemDecks = decks.filter((d) => d.ownerId === null)
@@ -484,7 +478,7 @@ function ItemCard({
   )
 }
 
-function ReviewQueuePanel({ exam }: { exam: string }) {
+export function ReviewQueuePanel({ exam }: { exam: string }) {
   const queryClient = useQueryClient()
   const { data: spec } = useQuery(examQueryOptions(exam))
   const parts = spec?.sections.flatMap((s) => s.parts) ?? []
@@ -517,7 +511,7 @@ function ReviewQueuePanel({ exam }: { exam: string }) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
           <h2 id="queue-heading" className="text-lg font-semibold">
-            Duyệt nội dung
+            Hàng duyệt
           </h2>
           <p className="text-sm text-muted-foreground">
             {data ? `${data.total} item` : '…'}
@@ -636,7 +630,7 @@ const BATCH_STATUS: Record<string, string> = {
   FAILED: 'Lỗi',
 }
 
-function BatchesPanel() {
+export function BatchesPanel() {
   const { data: batches = [] } = useQuery({
     ...batchesQueryOptions(),
     // AI runs report progress here: poll while one is running
@@ -647,7 +641,7 @@ function BatchesPanel() {
   return (
     <section aria-labelledby="batches-heading" className="flex flex-col gap-3">
       <h2 id="batches-heading" className="text-lg font-semibold">
-        Lịch sử nhập
+        Lịch sử nhập và sinh AI
       </h2>
       <div className="overflow-x-auto rounded-xl border">
         <table className="w-full text-sm">
@@ -700,30 +694,5 @@ function BatchesPanel() {
         </table>
       </div>
     </section>
-  )
-}
-
-export function AdminPanel({ exam }: { exam: string }) {
-  return (
-    <>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <ImportItemsPanel exam={exam} />
-        <div className="flex flex-col gap-6">
-          <SamplesPanel />
-          <ImportCardsPanel exam={exam} />
-        </div>
-      </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <GenerateItemsPanel exam={exam} />
-        <div className="flex flex-col gap-6">
-          <GenerateTestPanel exam={exam} />
-          <GenerateCardsPanel exam={exam} />
-        </div>
-      </div>
-      <AssembleTestPanel exam={exam} />
-      <TestsListPanel />
-      <ReviewQueuePanel exam={exam} />
-      <BatchesPanel />
-    </>
   )
 }

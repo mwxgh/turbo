@@ -16,22 +16,21 @@ import { HealthCard } from './_components/health-card'
 // Always render at request time so the first health status is fresh.
 export const dynamic = 'force-dynamic'
 
-async function displayName(): Promise<string | undefined> {
-  if (!(await cookies()).has(authCookies.access)) return undefined
-  const user = await apiFetch<User>('/auth/me', { cache: 'no-store' }).catch(
-    () => null,
-  )
-  return user?.name ?? user?.username ?? user?.email ?? undefined
+async function signedInUser(): Promise<User | null> {
+  if (!(await cookies()).has(authCookies.access)) return null
+  return apiFetch<User>('/auth/me', { cache: 'no-store' }).catch(() => null)
 }
 
 /** Launcher: one card per app (`lib/apps.ts`), then the system status. */
 export default async function Home() {
   const queryClient = getQueryClient()
   // Errors are swallowed: the client retries and shows "offline"
-  const [name] = await Promise.all([
-    displayName(),
+  const [user] = await Promise.all([
+    signedInUser(),
     queryClient.prefetchQuery(healthQueryOptions()),
   ])
+  const name = user?.name ?? user?.username ?? user?.email
+  const apps = APPS.filter((app) => !app.adminOnly || user?.role === 'ADMIN')
 
   return (
     <main
@@ -53,7 +52,7 @@ export default async function Home() {
           Apps
         </h2>
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {APPS.map((app) => (
+          {apps.map((app) => (
             <li key={app.id}>
               <AppCard app={app} />
             </li>

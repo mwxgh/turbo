@@ -241,7 +241,7 @@ export function ReviewSession({ exam }: { exam?: string }) {
           <p className="text-sm text-muted-foreground">
             {decks.length
               ? 'Quay lại ngày mai, hoặc tăng số thẻ mới mỗi ngày trong Mục tiêu.'
-              : 'Chưa có bộ thẻ nào. Admin có thể nạp dữ liệu mẫu ở trang Quản trị.'}
+              : 'Chưa có bộ thẻ nào. Thầy cô nạp từ vựng ở khu ra đề.'}
           </p>
           <Button variant="outline" onClick={() => void restart()}>
             <RotateCcw aria-hidden="true" />

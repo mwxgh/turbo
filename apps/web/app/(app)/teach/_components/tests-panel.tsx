@@ -165,14 +165,14 @@ function TestReview({ id, status }: { id: string; status: string }) {
       </p>
       {noPhoto > 0 && (
         <p className="text-amber-700 dark:text-amber-300">
-          {noPhoto} câu Part 1 chưa có ảnh: tải ảnh ở mục “Duyệt nội dung” (lọc
+          {noPhoto} câu Part 1 chưa có ảnh: tải ảnh ở “Ngân hàng câu hỏi” (lọc
           Part P1) trước khi duyệt.
         </p>
       )}
       {status !== 'PUBLISHED' && pending.length > 0 && (
         <div className="flex flex-col gap-2">
           <p>
-            Xem kỹ các item trong “Duyệt nội dung” trước. Duyệt hàng loạt chỉ
+            Xem kỹ các item trong “Ngân hàng câu hỏi” trước. Duyệt hàng loạt chỉ
             nên dùng khi đã kiểm tra.
           </p>
           <Button

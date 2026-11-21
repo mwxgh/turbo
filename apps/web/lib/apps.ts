@@ -1,4 +1,5 @@
 import {
+  FilePenLine,
   FolderUp,
   Languages,
   LayoutTemplate,
@@ -19,6 +20,8 @@ export interface AppEntry {
   /** `ready`: opens `href`. `soon`: shown, not clickable, with the reason. */
   status: 'ready' | 'soon'
   href: `/${string}`
+  /** Shown on the launcher to admins only */
+  adminOnly?: boolean
 }
 
 /** Launcher order. Add an app here and give it a page under `app/(app)/<href>`. */
@@ -72,6 +75,17 @@ export const APPS: AppEntry[] = [
     tone: 'bg-rose-500/10 text-rose-700 dark:bg-rose-400/15 dark:text-rose-300',
     status: 'ready',
     href: '/lingo',
+  },
+  {
+    id: 'teach',
+    name: 'Lingo Teach',
+    description:
+      'Write, generate with AI, review and publish Lingo tests for learners.',
+    icon: FilePenLine,
+    tone: 'bg-rose-500/10 text-rose-700 dark:bg-rose-400/15 dark:text-rose-300',
+    status: 'ready',
+    href: '/teach',
+    adminOnly: true,
   },
 ]
 
