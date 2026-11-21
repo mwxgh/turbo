@@ -1,4 +1,5 @@
 import { EnumField, StringField } from '@repo/nest-common'
+
 import {
   BACKENDS,
   type Choice,
@@ -7,7 +8,7 @@ import {
   ORMS,
   REPOS,
   type ScaffoldOptions,
-} from '@repo/scaffold'
+} from '../scaffold'
 
 /** `{ value: value }` of an option list, as EnumField takes it. */
 const values = <T extends string>(list: Choice<T>[]) =>
@@ -15,7 +16,7 @@ const values = <T extends string>(list: Choice<T>[]) =>
 
 /**
  * Studio options. Shapes only: the name pattern, planned entries and pairs that do not fit are
- * checked by `incompatibilities()` (one place, the same messages as the web preview).
+ * checked by `incompatibilities()` (one place, the same messages for preview and download).
  */
 export class GenerateProjectDto implements ScaffoldOptions {
   @StringField({ maxLength: 50, example: 'my-app' })
