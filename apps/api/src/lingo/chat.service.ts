@@ -9,8 +9,8 @@ import { LingoChatRole, type Prisma, toPrismaListArgs } from '@repo/db'
 import { PrismaService } from '@repo/db/nest'
 import { type ListQuery, paginated } from '@repo/utils'
 
+import { type ArkMessage, ArkModel } from './ark-model'
 import { chatListSpec } from './lingo.list-spec'
-import { type TutorMessage, TutorModel } from './tutor-model'
 
 /** Earlier messages sent along with a question: enough context, bounded cost. */
 const HISTORY_LIMIT = 20
@@ -37,7 +37,7 @@ export class ChatService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly model: TutorModel,
+    private readonly model: ArkModel,
   ) {}
 
   list(userId: string, query: ListQuery) {
@@ -107,7 +107,7 @@ export class ChatService {
       },
     })
 
-    const messages: TutorMessage[] = [
+    const messages: ArkMessage[] = [
       { role: 'system', content: TUTOR_PROMPT },
       ...chat.messages.reverse().map((message) => ({
         role:
@@ -123,7 +123,7 @@ export class ChatService {
 
   private async *reply(
     chatId: string,
-    messages: TutorMessage[],
+    messages: ArkMessage[],
     signal?: AbortSignal,
   ): AsyncGenerator<string> {
     let answer = ''

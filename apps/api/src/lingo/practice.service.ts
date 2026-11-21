@@ -14,9 +14,16 @@ import {
 import { PrismaService } from '@repo/db/nest'
 import { type ListQuery, paginated } from '@repo/utils'
 
-import type { SaveAnswerDto, StartAttemptDto } from './dto/attempt.dto'
+import { FilesService } from '../files/files.service'
+import { shuffle, timeLimitSec } from './assemble'
+import {
+  type SaveAnswerDto,
+  type StartAttemptDto,
+  TestMode,
+} from './dto/attempt.dto'
 import { attemptListSpec } from './lingo.list-spec'
-import { getExam, getPart } from './specs'
+import { type ExamSpec, getExam, getPart } from './specs'
+import type { ScriptLine } from './specs/schemas'
 import { scaledScore } from './specs/score'
 
 const DEFAULT_COUNT = 10
@@ -28,15 +35,26 @@ interface ChoicePrompt {
 interface ChoiceAnswer {
   choice: number
 }
+interface ItemContent {
+  passage?: string
+  transcript?: ScriptLine[]
+  accent?: string
+  scene?: string
+}
+
+/** Answers saved this long after the time limit still count (network, clock skew). */
+const GRACE_MS = 60_000
 
 const answerInclude = {
   question: {
     include: {
       item: {
         select: {
+          id: true,
           part: true,
           section: true,
           content: true,
+          imageKey: true,
           difficulty: true,
           topic: true,
         },
@@ -47,23 +65,96 @@ const answerInclude = {
 
 type AnswerRow = Prisma.LingoAnswerGetPayload<{ include: typeof answerInclude }>
 
-/** Fisher–Yates, in place. */
-function shuffle<T>(items: T[]): T[] {
-  for (let i = items.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[items[i], items[j]] = [items[j]!, items[i]!]
-  }
-  return items
-}
-
 @Injectable()
 export class PracticeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly files: FilesService,
+  ) {}
 
-  /** Picks published questions of one part (unseen first, or last-wrong ones) and starts an attempt. */
-  async start(userId: string, body: StartAttemptDto) {
+  /** A quick practice of one part, or (parts of) a published test. */
+  start(userId: string, body: StartAttemptDto) {
     const exam = getExam(body.exam)
-    const { part } = getPart(exam, body.part)
+    if (body.testId) return this.startTest(userId, exam, body.testId, body)
+    if (!body.part) throw new BadRequestException('part or testId is required')
+    return this.startQuick(userId, exam, body.part, body)
+  }
+
+  /**
+   * FULL_TEST: every question, the test's time limit, scaled score. PRACTICE: the chosen parts,
+   * with the timer the learner picked (or none).
+   */
+  private async startTest(
+    userId: string,
+    exam: ExamSpec,
+    testId: string,
+    body: StartAttemptDto,
+  ) {
+    const test = await this.prisma.lingoTest.findFirst({
+      where: {
+        id: testId,
+        exam: exam.code,
+        status: LingoContentStatus.PUBLISHED,
+      },
+      include: {
+        items: {
+          orderBy: { order: 'asc' },
+          include: {
+            item: {
+              select: {
+                part: true,
+                questions: { select: { id: true }, orderBy: { order: 'asc' } },
+              },
+            },
+          },
+        },
+      },
+    })
+    if (!test) throw new NotFoundException('Test not found')
+
+    const full = body.mode !== TestMode.PRACTICE
+    const wanted = !full && body.parts?.length ? new Set(body.parts) : null
+    const rows = test.items.filter(
+      (row) => !wanted || wanted.has(row.item.part),
+    )
+    if (!rows.length)
+      throw new BadRequestException('The test has none of these parts')
+
+    const perPart: Record<string, number> = {}
+    for (const row of rows)
+      perPart[row.item.part] =
+        (perPart[row.item.part] ?? 0) + row.item.questions.length
+    const questionIds = rows.flatMap((row) =>
+      row.item.questions.map((q) => q.id),
+    )
+    const attempt = await this.prisma.lingoAttempt.create({
+      data: {
+        userId,
+        exam: exam.code,
+        testId: test.id,
+        mode: full ? LingoAttemptMode.FULL_TEST : LingoAttemptMode.PRACTICE,
+        parts: Object.keys(perPart),
+        timeLimitSec: full ? timeLimitSec(exam, perPart) : body.timeLimitSec,
+        total: questionIds.length,
+        answers: {
+          create: questionIds.map((questionId, order) => ({
+            questionId,
+            order,
+          })),
+        },
+      },
+    })
+    return this.view(userId, attempt.id)
+  }
+
+  /** Picks published questions of one part (unseen first, or last-wrong ones). */
+  private async startQuick(
+    userId: string,
+    exam: ExamSpec,
+    partCode: string,
+    body: StartAttemptDto,
+  ) {
+    const { part } = getPart(exam, partCode)
     const count = body.count ?? DEFAULT_COUNT
 
     const items = await this.prisma.lingoItem.findMany({
@@ -125,6 +216,7 @@ export class PracticeService {
       where: { id, userId },
       include: {
         answers: { include: answerInclude, orderBy: { order: 'asc' } },
+        test: { select: { id: true, title: true, kind: true } },
       },
     })
     if (!attempt) throw new NotFoundException('Attempt not found')
@@ -132,8 +224,24 @@ export class PracticeService {
     const { answers, ...rest } = attempt
     return {
       ...rest,
-      questions: answers.map((a) => questionView(a, submitted)),
+      deadline: attempt.timeLimitSec
+        ? new Date(attempt.startedAt.getTime() + attempt.timeLimitSec * 1000)
+        : null,
+      questions: await this.questionViews(answers, submitted),
     }
+  }
+
+  /** Questions as the runner / result page shows them, photos as temporary URLs. */
+  private async questionViews(rows: AnswerRow[], reveal: boolean) {
+    const keys = [
+      ...new Set(rows.flatMap((a) => a.question.item.imageKey ?? [])),
+    ]
+    const urls = new Map(
+      await Promise.all(
+        keys.map(async (key) => [key, await this.files.readUrl(key)] as const),
+      ),
+    )
+    return rows.map((a) => questionView(a, reveal, urls))
   }
 
   list(userId: string, query: ListQuery) {
@@ -157,13 +265,22 @@ export class PracticeService {
     const answer = await this.prisma.lingoAnswer.findFirst({
       where: { attemptId, questionId, attempt: { userId } },
       include: {
-        attempt: { select: { submittedAt: true } },
+        attempt: {
+          select: { submittedAt: true, startedAt: true, timeLimitSec: true },
+        },
         question: { select: { prompt: true } },
       },
     })
     if (!answer) throw new NotFoundException('Question not in this attempt')
-    if (answer.attempt.submittedAt)
+    const { attempt } = answer
+    if (attempt.submittedAt)
       throw new ConflictException('Attempt already submitted')
+    if (
+      attempt.timeLimitSec &&
+      Date.now() >
+        attempt.startedAt.getTime() + attempt.timeLimitSec * 1000 + GRACE_MS
+    )
+      throw new ConflictException('Time is up')
 
     const options = (answer.question.prompt as unknown as ChoicePrompt).options
     if (body.choice != null && body.choice >= options.length)
@@ -251,9 +368,12 @@ export class PracticeService {
       include: answerInclude,
       take: 500,
     })
-    return latest
-      .filter((a) => a.correct === false)
-      .map((a) => ({ ...questionView(a, true), answeredAt: a.answeredAt }))
+    const wrong = latest.filter((a) => a.correct === false)
+    const views = await this.questionViews(wrong, true)
+    return views.map((view, i) => ({
+      ...view,
+      answeredAt: wrong[i]!.answeredAt,
+    }))
   }
 
   /** questionId → whether the learner's latest graded answer was correct. */
@@ -268,15 +388,29 @@ export class PracticeService {
   }
 }
 
-function questionView(a: AnswerRow, reveal: boolean) {
+/**
+ * One question for the learner. Listening scripts are sent before submitting: the browser reads
+ * them aloud (no recorded audio yet), the runner keeps them hidden until then.
+ */
+function questionView(
+  a: AnswerRow,
+  reveal: boolean,
+  imageUrls: Map<string, string>,
+) {
   const q = a.question
   const prompt = q.prompt as unknown as ChoicePrompt
+  const content = (q.item.content ?? {}) as ItemContent
   const base = {
     id: q.id,
     order: a.order,
     type: q.type,
+    itemId: q.item.id,
+    section: q.item.section,
     part: q.item.part,
-    passage: (q.item.content as { passage?: string } | null)?.passage ?? null,
+    passage: content.passage ?? null,
+    transcript: content.transcript ?? null,
+    accent: content.accent ?? null,
+    imageUrl: q.item.imageKey ? (imageUrls.get(q.item.imageKey) ?? null) : null,
     text: prompt.text ?? null,
     options: prompt.options,
     response: a.response as unknown as ChoiceAnswer | null,
@@ -292,5 +426,6 @@ function questionView(a: AnswerRow, reveal: boolean) {
     skillTags: q.skillTags,
     difficulty: q.item.difficulty,
     topic: q.item.topic,
+    scene: content.scene ?? null,
   }
 }

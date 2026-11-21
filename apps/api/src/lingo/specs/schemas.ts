@@ -9,10 +9,32 @@ const optionalText = (max: number) =>
     z.string().trim().max(max).optional(),
   )
 
-/** One SINGLE_CHOICE question as admins write it (JSON import, form). */
+/** Who speaks a line: man, woman, a second man / woman, narrator. */
+export const SPEAKERS = ['M', 'W', 'M2', 'W2', 'N'] as const
+export const ACCENTS = ['US', 'GB', 'AU', 'CA'] as const
+
+/** One line of a listening script. */
+export const scriptLineSchema = z.object({
+  speaker: z.enum(SPEAKERS),
+  accent: z.enum(ACCENTS).optional(),
+  text: z.string().trim().min(1).max(1000),
+})
+
+export type ScriptLine = z.infer<typeof scriptLineSchema>
+
+/** Not allowed on this part: a clear message instead of a silent strip. */
+const forbidden = (what: string, part: PartSpec) =>
+  z.undefined({ message: `${part.code} items have no ${what}` }).optional()
+
+/** One SINGLE_CHOICE question as admins write it (JSON import, form, AI). */
 export function choiceQuestionSchema(exam: ExamSpec, part: PartSpec) {
+  const text = {
+    required: z.string().trim().min(1).max(1000),
+    optional: optionalText(1000),
+    none: forbidden('question text', part),
+  }[part.questionText]
   return z.object({
-    text: z.string().trim().min(1).max(1000),
+    text,
     options: z.array(z.string().trim().min(1).max(300)).length(part.options),
     answer: z
       .number()
@@ -35,14 +57,33 @@ export function choiceQuestionSchema(exam: ExamSpec, part: PartSpec) {
 /** One item (stimulus + its questions) of a part, as admins write it. */
 export function itemSchema(exam: ExamSpec, part: PartSpec) {
   const [min, max] = part.questionsPerItem
+  const pictured = part.media.includes('image')
   return z.object({
     difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
     topic: optionalText(100),
     passage: part.passage
       ? z.string().trim().min(1).max(10_000)
-      : z
-          .undefined({ message: `${part.code} items have no passage` })
-          .optional(),
+      : forbidden('passage', part),
+    transcript: part.transcript
+      ? z.array(scriptLineSchema).min(1).max(30)
+      : forbidden('transcript', part),
+    /** Accent of the spoken question and options (Part 1, 2) */
+    accent: part.spokenOptions
+      ? z.enum(ACCENTS).optional()
+      : forbidden('accent', part),
+    /** What the photo shows: for whoever draws or finds it, and for reviewers */
+    scene: pictured
+      ? z.string().trim().min(1).max(1000)
+      : forbidden('scene', part),
+    /** Storage key of an uploaded photo (POST /api/files/uploads); required to publish */
+    image: pictured
+      ? z
+          .string()
+          .trim()
+          .regex(/^uploads\/[\w./-]+$/, 'Not an uploaded file key')
+          .max(255)
+          .optional()
+      : forbidden('image', part),
     questions: z.array(choiceQuestionSchema(exam, part)).min(min).max(max),
   })
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { TOEIC_MORE_SAMPLES } from '../fixtures/toeic-more'
 import {
   TOEIC_PART5_SAMPLES,
   TOEIC_STARTER_DECK,
@@ -69,8 +70,76 @@ describe('itemSchema', () => {
   it('validates every built-in sample', () => {
     for (const sample of TOEIC_PART5_SAMPLES)
       expect(schema.safeParse(sample).error).toBeUndefined()
+    for (const [code, items] of Object.entries(TOEIC_MORE_SAMPLES)) {
+      const partSchema = itemSchema(toeic, getPart(toeic, code).part)
+      for (const sample of items)
+        expect(partSchema.safeParse(sample).error).toBeUndefined()
+    }
     for (const card of TOEIC_STARTER_DECK.cards)
       expect(cardRowSchema.safeParse(card).success).toBe(true)
+  })
+})
+
+describe('itemSchema by part', () => {
+  const schemaOf = (code: string) =>
+    itemSchema(toeic, getPart(toeic, code).part)
+  const question = (extra: object = {}) => ({
+    options: ['a', 'b', 'c', 'd'],
+    answer: 0,
+    ...extra,
+  })
+
+  it('Part 1: a scene, no question text, an uploaded photo key only', () => {
+    const p1 = schemaOf('P1')
+    const item = {
+      difficulty: 'EASY',
+      scene: 'A man reading',
+      questions: [question()],
+    }
+    expect(p1.safeParse(item).success).toBe(true)
+    expect(p1.safeParse({ ...item, scene: undefined }).success).toBe(false)
+    expect(
+      p1.safeParse({ ...item, questions: [question({ text: 'Q' })] }).success,
+    ).toBe(false)
+    expect(
+      p1.safeParse({ ...item, image: 'uploads/2026/11/a/photo.png' }).success,
+    ).toBe(true)
+    expect(p1.safeParse({ ...item, image: 'https://evil/x.png' }).success).toBe(
+      false,
+    )
+  })
+
+  it('Part 3: needs a transcript of known speakers and exactly 3 questions', () => {
+    const p3 = schemaOf('P3')
+    const item = {
+      difficulty: 'EASY',
+      transcript: [{ speaker: 'W', text: 'Hi' }],
+      questions: [
+        question({ text: 'Q' }),
+        question({ text: 'Q' }),
+        question({ text: 'Q' }),
+      ],
+    }
+    expect(p3.safeParse(item).success).toBe(true)
+    expect(p3.safeParse({ ...item, transcript: undefined }).success).toBe(false)
+    expect(
+      p3.safeParse({ ...item, transcript: [{ speaker: 'X', text: 'Hi' }] })
+        .success,
+    ).toBe(false)
+    expect(
+      p3.safeParse({ ...item, questions: item.questions.slice(1) }).success,
+    ).toBe(false)
+  })
+
+  it('Part 6: question text may be omitted', () => {
+    const p6 = schemaOf('P6')
+    expect(
+      p6.safeParse({
+        difficulty: 'EASY',
+        passage: 'Text [1] [2] [3] [4]',
+        questions: [question(), question(), question(), question()],
+      }).success,
+    ).toBe(true)
   })
 })
 

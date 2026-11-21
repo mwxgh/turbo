@@ -12,7 +12,7 @@ import { configureApp } from '../src/app.setup'
 
 /**
  * The real application (same global setup as main.ts) on the test database; `override` swaps
- * providers that call outside services (`.overrideProvider(TutorModel)…`).
+ * providers that call outside services (`.overrideProvider(ArkModel)…`).
  */
 export async function createApp(
   override: (builder: TestingModuleBuilder) => TestingModuleBuilder = (b) => b,

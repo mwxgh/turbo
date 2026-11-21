@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { sseDeltas } from './tutor-model'
+import { extractJson, sseDeltas } from './ark-model'
 
 async function* chunks(...parts: string[]) {
   const encoder = new TextEncoder()
@@ -37,5 +37,19 @@ describe('sseDeltas', () => {
     const out: string[] = []
     for await (const text of sseDeltas(split())) out.push(text)
     expect(out).toEqual(['tiếng Việt'])
+  })
+})
+
+describe('extractJson', () => {
+  it('reads JSON wrapped in reasoning, fences and prose', () => {
+    expect(
+      extractJson(
+        '<think>{"draft": true}</think>Here you go:\n```json\n[{"a": 1}]\n```\nDone.',
+      ),
+    ).toEqual([{ a: 1 }])
+  })
+
+  it('throws when there is no JSON', () => {
+    expect(() => extractJson('Sorry, I cannot.')).toThrow('no JSON')
   })
 })

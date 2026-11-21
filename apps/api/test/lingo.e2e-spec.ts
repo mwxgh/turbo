@@ -93,12 +93,12 @@ describe('Lingo (e2e)', () => {
   it('loads the samples once', async () => {
     const first = await as(admin).post('/admin/samples').expect(200)
     expect(first.body).toMatchObject({
-      items: { succeeded: 12, failed: 0 },
+      items: { succeeded: 19, failed: 0 },
       cards: { succeeded: 30 },
     })
     const again = await as(admin).post('/admin/samples').expect(200)
     expect(again.body).toMatchObject({
-      items: { succeeded: 0, duplicates: 12 },
+      items: { succeeded: 0, duplicates: 19 },
       cards: { succeeded: 0, duplicates: 30 },
     })
     const exam = await as(learner).get('/exams/TOEIC_LR').expect(200)

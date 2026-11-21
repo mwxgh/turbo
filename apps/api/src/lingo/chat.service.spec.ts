@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { PrismaService } from '@repo/db/nest'
 
+import { ArkModel } from './ark-model'
 import { ChatService, TUTOR_PROMPT, chatTitle } from './chat.service'
-import { TutorModel } from './tutor-model'
 
 /** A model answer arriving in pieces. */
 async function* pieces(...items: string[]) {
@@ -40,7 +40,7 @@ describe('ChatService', () => {
       providers: [
         ChatService,
         { provide: PrismaService, useValue: prisma },
-        { provide: TutorModel, useValue: model },
+        { provide: ArkModel, useValue: model },
       ],
     }).compile()
     service = moduleRef.get(ChatService)

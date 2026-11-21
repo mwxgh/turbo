@@ -1,4 +1,4 @@
-import type { LingoAttempt, LingoChat, LingoItem } from '@repo/db'
+import type { LingoAttempt, LingoChat, LingoItem, LingoTest } from '@repo/db'
 import { defineListSpecFor } from '@repo/utils'
 
 /** GET /api/lingo/attempts: the learner's own attempts (scoped to the user by the service). */
@@ -35,4 +35,19 @@ export const chatListSpec = defineListSpecFor<LingoChat>()({
   keywordFields: ['title'],
   sortable: ['updatedAt', 'createdAt'],
   defaultSort: { field: 'updatedAt', dir: 'desc' },
+})
+
+/** GET /api/lingo/tests (published, one exam) and /api/lingo/admin/tests (all). */
+export const testListSpec = defineListSpecFor<LingoTest>()({
+  keywordFields: ['title'],
+  sortable: ['createdAt', 'title'],
+  defaultSort: { field: 'createdAt', dir: 'desc' },
+  filters: {
+    exam: { type: 'string' },
+    kind: { type: 'enum', values: ['FULL', 'MINI'] },
+    status: {
+      type: 'enum',
+      values: ['DRAFT', 'NEEDS_REVIEW', 'PUBLISHED', 'REJECTED'],
+    },
+  },
 })

@@ -29,6 +29,10 @@ describe('itemHash', () => {
     difficulty: 'EASY' as const,
     topic: undefined,
     passage: undefined,
+    transcript: undefined,
+    accent: undefined,
+    scene: undefined,
+    image: undefined,
     questions: [
       {
         text: 'Q',

@@ -8,7 +8,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { AccessTokens } from '@repo/auth'
 import type { PrismaService } from '@repo/db/nest'
 
-import { TutorModel } from '../src/lingo/tutor-model'
+import { ArkModel } from '../src/lingo/ark-model'
 import { createApp } from './create-app'
 
 /** The model is faked: no BytePlus calls (and no key) in tests. */
@@ -41,7 +41,7 @@ describe('Lingo AI tutor chat (e2e)', () => {
 
   beforeAll(async () => {
     ;({ app, prisma } = await createApp((builder) =>
-      builder.overrideProvider(TutorModel).useValue(model),
+      builder.overrideProvider(ArkModel).useValue(model),
     ))
     learner = await userToken()
     other = await userToken()

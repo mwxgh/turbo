@@ -17,8 +17,18 @@ export interface PartSpec {
   /** Questions per item (1 for a sentence, 3–5 for a passage) */
   questionsPerItem: readonly [min: number, max: number]
   media: readonly Media[]
-  /** Item content needs a passage (Part 6, 7) */
+  /** Item content needs a passage (Part 6, 7; Part 7 separates multiple texts with a `---` line) */
   passage: boolean
+  /** Item content needs a spoken script (Part 3, 4) */
+  transcript: boolean
+  /** Question text and options are heard, not printed (Part 1, 2) */
+  spokenOptions: boolean
+  /** A question needs its own text (`none`: Part 1 photos; `optional`: Part 6 blanks) */
+  questionText: 'required' | 'optional' | 'none'
+  /** Roughly how many questions a mini test takes from this part */
+  miniCount: number
+  /** What the AI writer is told about the part (format, traps, length) */
+  guide: string
   /** Learners can practise it (content pipeline ready) */
   available: boolean
 }

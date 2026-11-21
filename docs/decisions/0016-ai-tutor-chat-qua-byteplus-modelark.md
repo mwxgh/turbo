@@ -16,7 +16,7 @@ date: 2026-11-21
 
 ## Quyết định
 
-- api gọi `POST {ARK_BASE_URL}/chat/completions` (`stream: true`) qua `TutorModel` (`apps/api/src/lingo/tutor-model.ts`),
+- api gọi `POST {ARK_BASE_URL}/chat/completions` (`stream: true`) qua `ArkModel` (`apps/api/src/lingo/ark-model.ts`),
   bằng `fetch`, không thêm SDK. Tính năng bật khi có cả `ARK_API_KEY` và `ARK_MODEL`; thiếu thì route trả 503.
 - `POST /api/lingo/chats/:id/messages` trả lời dạng `text/plain` stream (chunked). Trình duyệt đọc qua `apiFetch.raw`,
   không qua Server Action. Header gửi khi có mẩu đầu tiên, nên model lỗi trước khi trả lời vẫn là 502.
@@ -25,13 +25,13 @@ date: 2026-11-21
 
 ## Hệ quả
 
-| Loại     | Nội dung                                                                                                                        |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Được     | Không cần key để chạy dev / test (e2e thay `TutorModel` bằng bản giả). Đổi model chỉ cần đổi `ARK_MODEL`.                       |
-| Được     | API tương thích OpenAI: đổi nhà cung cấp chỉ cần đổi `ARK_BASE_URL` + key, nếu bên kia cùng giao thức.                          |
-| Đánh đổi | Stream text thô: không có sự kiện lỗi giữa chừng, lỗi sau mẩu đầu tiên chỉ làm câu trả lời dừng.                                |
-| Đánh đổi | Giới hạn tần suất theo IP, không theo user; chưa có hạn mức token / ngày.                                                       |
-| Áp dụng  | `apps/api/src/lingo/{tutor-model,chat.service,chat.controller}.ts`, `apps/web/lib/lingo-chat.ts`, `test/lingo-chat.e2e-spec.ts` |
+| Loại     | Nội dung                                                                                                                      |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Được     | Không cần key để chạy dev / test (e2e thay `ArkModel` bằng bản giả). Đổi model chỉ cần đổi `ARK_MODEL`.                       |
+| Được     | API tương thích OpenAI: đổi nhà cung cấp chỉ cần đổi `ARK_BASE_URL` + key, nếu bên kia cùng giao thức.                        |
+| Đánh đổi | Stream text thô: không có sự kiện lỗi giữa chừng, lỗi sau mẩu đầu tiên chỉ làm câu trả lời dừng.                              |
+| Đánh đổi | Giới hạn tần suất theo IP, không theo user; chưa có hạn mức token / ngày.                                                     |
+| Áp dụng  | `apps/api/src/lingo/{ark-model,chat.service,chat.controller}.ts`, `apps/web/lib/lingo-chat.ts`, `test/lingo-chat.e2e-spec.ts` |
 
 ## Phương án đã cân nhắc
 
