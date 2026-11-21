@@ -89,7 +89,7 @@ export function SamplesPanel() {
     <Panel
       icon={Database}
       title="Dữ liệu mẫu"
-      description="12 câu Part 5 (đã xuất bản) và bộ 30 từ TOEIC cơ bản. Chạy lại không tạo trùng."
+      description="40 câu mẫu Part 2–7 (đã xuất bản), một đề mẫu, bộ 30 từ cơ bản và 6 bộ từ vựng theo chủ đề (240 từ). Chạy lại không tạo trùng."
     >
       <Button
         variant="outline"

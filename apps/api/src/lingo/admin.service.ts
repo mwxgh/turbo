@@ -16,6 +16,7 @@ import { type ListQuery, paginated } from '@repo/utils'
 
 import { itemCreateData, itemHash } from './content'
 import type { CreateDeckDto } from './dto/admin.dto'
+import { TOEIC_TOPIC_DECKS } from './fixtures/toeic-decks'
 import { TOEIC_EXTRA_SAMPLES } from './fixtures/toeic-extra'
 import { TOEIC_MORE_SAMPLES } from './fixtures/toeic-more'
 import { TOEIC_PART5_SAMPLES, TOEIC_STARTER_DECK } from './fixtures/toeic-part5'
@@ -249,7 +250,8 @@ export class AdminService {
   }
 
   /**
-   * Loads the built-in TOEIC samples (published items of Parts 2–7 + a starter deck) so a fresh
+   * Loads the built-in TOEIC samples (published items of Parts 2–7, a sample test, the starter deck
+   * and six topic decks) so a fresh
    * environment has something to practise. Safe to run twice.
    */
   async loadSamples(userId: string) {
@@ -274,21 +276,38 @@ export class AdminService {
       failed: results.reduce((sum, r) => sum + r.failed, 0),
       errors: results.flatMap((r) => r.errors),
     }
-    const deck =
-      (await this.prisma.lingoDeck.findFirst({
-        where: { ownerId: null, title: TOEIC_STARTER_DECK.title },
-      })) ??
-      (await this.prisma.lingoDeck.create({
-        data: {
-          exam: 'TOEIC_LR',
-          title: TOEIC_STARTER_DECK.title,
-          description: TOEIC_STARTER_DECK.description,
-          language: 'en',
-        },
-      }))
-    const cards = await this.insertCards(deck.id, TOEIC_STARTER_DECK.cards, 1)
+    const decks = [
+      { ...TOEIC_STARTER_DECK, rows: TOEIC_STARTER_DECK.cards, firstLine: 1 },
+      // CSV: line 1 is the header
+      ...TOEIC_TOPIC_DECKS.map((d) => ({
+        ...d,
+        rows: parseCsv(d.csv),
+        firstLine: 2,
+      })),
+    ]
+    const cards = { succeeded: 0, duplicates: 0, failed: 0, decks: 0 }
+    for (const { title, description, rows, firstLine } of decks) {
+      const deck = await this.systemDeck(title, description)
+      const result = await this.insertCards(deck.id, rows, firstLine)
+      cards.succeeded += result.succeeded
+      cards.duplicates += result.duplicates
+      cards.failed += result.failed
+      cards.decks++
+    }
     const test = await this.sampleTest(userId)
     return { items, cards, test }
+  }
+
+  /** A system deck of the TOEIC samples, found by title (made once). */
+  private async systemDeck(title: string, description: string) {
+    return (
+      (await this.prisma.lingoDeck.findFirst({
+        where: { ownerId: null, title },
+      })) ??
+      this.prisma.lingoDeck.create({
+        data: { exam: 'TOEIC_LR', title, description, language: 'en' },
+      })
+    )
   }
 
   /** A short published test of every sample item, so the library is not empty (made once). */

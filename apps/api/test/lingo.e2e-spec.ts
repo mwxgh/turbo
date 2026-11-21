@@ -105,7 +105,8 @@ describe('Lingo (e2e)', () => {
     const first = await as(admin).post('/admin/samples').expect(200)
     expect(first.body).toMatchObject({
       items: { succeeded: 26, failed: 0 },
-      cards: { succeeded: 30 },
+      // Starter deck 30 + six topic decks of 40
+      cards: { succeeded: 270, failed: 0, decks: 7 },
     })
     // …and a published sample test of them, made once
     const library = (await as(learner).get('/exams/TOEIC_LR/tests').expect(200))
@@ -116,7 +117,7 @@ describe('Lingo (e2e)', () => {
     const again = await as(admin).post('/admin/samples').expect(200)
     expect(again.body).toMatchObject({
       items: { succeeded: 0, duplicates: 26 },
-      cards: { succeeded: 0, duplicates: 30 },
+      cards: { succeeded: 0, duplicates: 270 },
     })
     const exam = await as(learner).get('/exams/TOEIC_LR').expect(200)
     const parts = (
