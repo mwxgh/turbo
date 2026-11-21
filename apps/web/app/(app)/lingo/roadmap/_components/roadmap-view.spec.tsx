@@ -12,6 +12,11 @@ import { createTestQueryClient, renderWithQuery } from '@/lib/test-utils'
 
 import { RoadmapView } from './roadmap-view'
 
+// Only reached by the error test: the others have their data cached
+vi.mock('@/lib/api', () => ({
+  apiFetch: () => Promise.reject(new Error('Not Found')),
+}))
+
 const push = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
 const startAttempt = vi.fn((_input: unknown) =>
@@ -89,5 +94,13 @@ describe('RoadmapView', () => {
       within(today).getByRole('button', { name: 'Luyện 10 câu' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Đã vượt qua')).toBeInTheDocument()
+  })
+
+  it('says so when the roadmap cannot be loaded', async () => {
+    // Nothing cached: the (mocked) api call fails
+    renderWithQuery(<RoadmapView exam="TOEIC_LR" />)
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Không tải được lộ trình.',
+    )
   })
 })

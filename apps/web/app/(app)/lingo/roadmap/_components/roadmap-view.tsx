@@ -272,12 +272,33 @@ function StageCard({
 
 /** The learner's roadmap: target, today's work, then the stages with their tasks. */
 export function RoadmapView({ exam }: { exam: string }) {
-  const { data: roadmap } = useQuery(roadmapQueryOptions(exam))
+  const {
+    data: roadmap,
+    isError,
+    refetch,
+  } = useQuery(roadmapQueryOptions(exam))
   const { data: dashboard } = useQuery(dashboardQueryOptions(exam))
   const starter = useStart(exam)
   // Read once: rendering must stay pure
   const [now] = useState(() => Date.now())
-  if (!roadmap) return null
+  if (!roadmap)
+    return isError ? (
+      <div
+        role="alert"
+        className="flex flex-col items-start gap-3 rounded-xl border
+          border-destructive/40 p-6"
+      >
+        <p className="font-medium">Không tải được lộ trình.</p>
+        <p className="text-sm text-muted-foreground">
+          Máy chủ chưa trả lời. Thử lại sau ít phút.
+        </p>
+        <Button size="sm" variant="outline" onClick={() => void refetch()}>
+          Thử lại
+        </Button>
+      </div>
+    ) : (
+      <p className="text-muted-foreground">Đang tải lộ trình…</p>
+    )
 
   const stage = roadmap.stages.find((s) => s.status === 'current')
   const next = stage?.tasks.find((t) => !t.done)
