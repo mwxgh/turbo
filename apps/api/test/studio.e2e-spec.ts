@@ -4,8 +4,7 @@ import JSZip from 'jszip'
 import request from 'supertest'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { DEFAULT_OPTIONS } from '@repo/scaffold'
-
+import { DEFAULT_OPTIONS } from '../src/studio/scaffold'
 import { bearer, createApp } from './create-app'
 
 /** supertest keeps a binary body as a Buffer only with a parser. */
@@ -68,6 +67,30 @@ describe('Studio (e2e)', () => {
   it('rejects unknown values and bad names', async () => {
     await generate({ ...DEFAULT_OPTIONS, backend: 'rails' }).expect(400)
     await generate({ ...DEFAULT_OPTIONS, name: 'My App' }).expect(400)
+  })
+
+  it('serves the form options and a preview of the files', async () => {
+    const options = await request(app.getHttpServer())
+      .get('/api/studio/options')
+      .set('authorization', auth)
+      .expect(200)
+    expect(options.body).toMatchObject({
+      defaults: DEFAULT_OPTIONS,
+      ormsByStack: { typescript: { mongodb: ['mongoose', 'none'] } },
+    })
+
+    const preview = await request(app.getHttpServer())
+      .post('/api/studio/preview')
+      .set('authorization', auth)
+      .send({ ...DEFAULT_OPTIONS, name: 'shop' })
+      .expect(200)
+    const files = (preview.body as { files: Record<string, string> }).files
+    expect(files).toHaveProperty(['apps/api/package.json'])
+    await request(app.getHttpServer())
+      .post('/api/studio/preview')
+      .set('authorization', auth)
+      .send({ ...DEFAULT_OPTIONS, database: 'mongodb', orm: 'prisma' })
+      .expect(400)
   })
 
   it('needs a signed-in user', async () => {

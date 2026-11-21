@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { ScaffoldError, generate, supportedCombinations } from './generate.js'
+import { ScaffoldError, generate, supportedCombinations } from './generate'
 import {
   DEFAULT_OPTIONS,
   ORMS_BY_STACK,
   incompatibilities,
   monorepoUnavailable,
   ormsFor,
-} from './options.js'
+} from './options'
 
 describe('generate', () => {
   it('builds a turbo monorepo with api, web and shared types', () => {

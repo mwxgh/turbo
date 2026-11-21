@@ -1,7 +1,7 @@
-import type { ScaffoldOptions } from '../options.js'
-import { text } from '../tree.js'
-import { V } from '../versions.js'
-import type { OrmLayer } from './orm.js'
+import type { ScaffoldOptions } from '../options'
+import { text } from '../tree'
+import { V } from '../versions'
+import type { OrmLayer } from './orm'
 
 /** Prisma is offered for SQL databases only (ORMS_BY_DATABASE). */
 type SqlDatabase = 'postgres' | 'mysql'
@@ -112,9 +112,9 @@ export function prismaLayer(o: ScaffoldOptions): OrmLayer {
       'src/database/database.ts': [
         a.imports,
         '',
-        "import type { Database } from '../todos/todos.repository.js'",
-        "import { PrismaClient } from '../generated/prisma/client.js'",
-        "import { PrismaTodosRepository } from './prisma-todos.repository.js'",
+        "import type { Database } from '../todos/todos.repository'",
+        "import { PrismaClient } from '../generated/prisma/client'",
+        "import { PrismaTodosRepository } from './prisma-todos.repository'",
         '',
         '/** Opens the connection pool; close() on shutdown. */',
         "export async function connectDatabase(url = process.env.DATABASE_URL ?? ''): Promise<Database> {",
@@ -134,8 +134,8 @@ export function prismaLayer(o: ScaffoldOptions): OrmLayer {
       'src/database/prisma-todos.repository.ts': text`
         import type { Todo, UpdateTodo } from '@app/types'
 
-        import type { PrismaClient } from '../generated/prisma/client.js'
-        import { TodosRepository } from '../todos/todos.repository.js'
+        import type { PrismaClient } from '../generated/prisma/client'
+        import { TodosRepository } from '../todos/todos.repository'
 
         type Row = { id: string; title: string; done: boolean; createdAt: Date }
         const toTodo = (row: Row): Todo => ({ ...row, createdAt: row.createdAt.toISOString() })

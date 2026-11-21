@@ -7,10 +7,10 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
-import type { FileTree } from '../src/tree.js'
+import type { FileTree } from '../src/studio/scaffold/tree'
 
 export const RECORD_FILE = fileURLToPath(
-  new URL('../verify-results.json', import.meta.url),
+  new URL('./studio-verify-results.json', import.meta.url),
 )
 
 export interface RecordEntry {

@@ -1,8 +1,8 @@
-import type { ScaffoldOptions } from '../options.js'
-import { type FileTree, json, text } from '../tree.js'
-import { V } from '../versions.js'
-import type { AppContext } from './app.js'
-import { applyUpgrade, webUpgrade } from './modern-apps.js'
+import type { ScaffoldOptions } from '../options'
+import { type FileTree, json, text } from '../tree'
+import { V } from '../versions'
+import type { AppContext } from './app'
+import { applyUpgrade, webUpgrade } from './modern-apps'
 
 /** The todo screen of the React frontends; only the API URL expression differs. Nuxt: TODO_VUE. */
 function todoApp(apiUrl: string, directive: string) {

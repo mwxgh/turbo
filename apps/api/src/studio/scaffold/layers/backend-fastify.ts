@@ -1,10 +1,10 @@
-import type { ScaffoldOptions } from '../options.js'
-import { type FileTree, text } from '../tree.js'
-import { V } from '../versions.js'
-import type { AppContext } from './app.js'
-import { nodeApiBase } from './backend-node.js'
-import { applyUpgrade, fastifyUpgrade } from './modern-apps.js'
-import type { OrmLayer } from './orm.js'
+import type { ScaffoldOptions } from '../options'
+import { type FileTree, text } from '../tree'
+import { V } from '../versions'
+import type { AppContext } from './app'
+import { nodeApiBase } from './backend-node'
+import { applyUpgrade, fastifyUpgrade } from './modern-apps'
+import type { OrmLayer } from './orm'
 
 /**
  * api with Fastify 5 (build and layout: backend-node.ts). Bodies are validated by JSON schemas on
@@ -31,8 +31,8 @@ function plainFastifyLayer(
       devDependencies: {},
     }),
     'src/main.ts': text`
-      import { createApp } from './app.js'
-      import { connectDatabase } from './database/database.js'
+      import { createApp } from './app'
+      import { connectDatabase } from './database/database'
 
       const app = await createApp(await connectDatabase())
       await app.listen({ port: Number(process.env.PORT ?? 3001), host: '0.0.0.0' })
@@ -44,9 +44,9 @@ function plainFastifyLayer(
       import cors from '@fastify/cors'
       import Fastify from 'fastify'
 
-      import { AJV_OPTIONS, jsonApi } from './http.js'
-      import type { Database } from './todos/todos.repository.js'
-      import { todosRoutes } from './todos/todos.routes.js'
+      import { AJV_OPTIONS, jsonApi } from './http'
+      import type { Database } from './todos/todos.repository'
+      import { todosRoutes } from './todos/todos.routes'
 
       export async function createApp(db: Database) {
         const app = Fastify({ logger: true, ajv: AJV_OPTIONS })
@@ -102,7 +102,7 @@ const ROUTES = text`
   import type { CreateTodo, UpdateTodo } from '@app/types'
   import type { FastifyPluginCallback } from 'fastify'
 
-  import type { TodosRepository } from './todos.repository.js'
+  import type { TodosRepository } from './todos.repository'
 
   /** Request schemas: Fastify checks each request against them before the handler runs. */
   const title = { type: 'string', minLength: 1, maxLength: 200, pattern: '\\\\S' } as const

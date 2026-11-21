@@ -8,11 +8,11 @@ catalog:
   # Dev tooling (TS 7 has no compiler API yet: Nest CLI, typescript-eslint, @nestjs/swagger need it)
   'typescript': 6.0.3
   'eslint': 10.9.1
-  # Prettier: root (repo format) and @repo/scaffold (formats generated projects)
+  # Prettier: root (repo format) and api (Studio formats generated projects)
   'prettier': 3.9.6
   '@trivago/prettier-plugin-sort-imports': 6.0.2
   'prettier-plugin-sort-json': 4.2.0
-  # Studio downloads (api zips @repo/scaffold trees)
+  # Studio downloads (api zips generated projects)
   'jszip': 3.10.2
   '@types/node': 26.4.1
   'tsx': 4.23.15

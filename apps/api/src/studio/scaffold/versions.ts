@@ -1,7 +1,7 @@
 /**
  * Exact versions written into generated projects. Same as this repo's catalog where it has them
  * (pnpm-workspace.yaml), otherwise the newest release at least 14 days old when added. Bump
- * together and re-run `pnpm --filter @repo/scaffold verify`.
+ * together and re-run `pnpm --filter api studio:verify`.
  */
 export const V = {
   node: '24',

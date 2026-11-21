@@ -1,13 +1,13 @@
-# @repo/scaffold – project generator behind Studio
+# Studio scaffold – project generator behind Studio
 
 > **Work in progress** on branch `feature/studio-scaffold` (the app launcher it was built on is in `develop`, PR #32). See [Progress](#progress) and [Next steps](#next-steps).
 
-Studio (the "Studio" card of the web launcher) generates a new project. You pick the options, and you get **a project that runs**: a plain Turborepo or Nx monorepo, or two separate folders. It is deliberately simpler than this repo (no lint, hooks or custom tooling). This package is the pure-TypeScript engine:
+Studio (the "Studio" card of the web launcher) generates a new project. You pick the options, and you get **a project that runs**: a plain Turborepo or Nx monorepo, or two separate folders. It is deliberately simpler than this repo (no lint, hooks or custom tooling). This folder of the api (`studio` module) is the pure-TypeScript engine:
 
 - **Input:** `ScaffoldOptions` (`name`, `repo`, `backend`, `database`, `orm`, `frontend`). The database is picked before the ORM.
 - **Output:** a `FileTree` (path → content).
 
-The API zips the tree and the web UI previews it.
+The api serves the choices (`GET /api/studio/options`), the formatted files (`POST /api/studio/preview`) and the zip (`POST /api/studio/generate`); the web form reads the choices and shows the files once every step is picked (ADR 0018).
 
 ## Generated project
 
@@ -79,10 +79,10 @@ Decisions taken so far:
 ## Verify
 
 ```bash
-pnpm --filter @repo/scaffold verify                     # every supported combination, 3 at a time
-pnpm --filter @repo/scaffold verify nest-mysql-drizzle  # names (app-<repo>-<backend>-<database>-<orm>-<frontend>) containing a filter
-pnpm --filter @repo/scaffold verify --jobs=1            # one at a time (less RAM)
-pnpm --filter @repo/scaffold verify --force             # also those that passed already
+pnpm --filter api studio:verify                     # every supported combination, 3 at a time
+pnpm --filter api studio:verify nest-mysql-drizzle  # names (app-<repo>-<backend>-<database>-<orm>-<frontend>) containing a filter
+pnpm --filter api studio:verify --jobs=1            # one at a time (less RAM)
+pnpm --filter api studio:verify --force             # also those that passed already
 ```
 
 **Progress is recorded:** each result is written to `verify-results.json` (commit it) as soon as the combination finishes, with a hash of the generated project. A run skips every combination that passed with the same files, so an interrupted run, or one on another machine, picks up where it stopped. When the engine changes a combination's files (code or versions), its hash changes and it runs again.
@@ -110,7 +110,7 @@ As of 2026-11-17:
 | ✅   | Repository: Turborepo, Nx (package-based) or separate folders (`api/`, `web/`, nothing shared). Backends: NestJS, Express and Fastify on one framework-free data layer (`connectDatabase()` → `{ todos, ping, close }`)                                                                                            |
 | ✅   | Monorepo setup from this repo's decisions (`layers/modern.ts`, `layers/modern-apps.ts`): pnpm catalog, `packages/tooling` (typescript / eslint config), Prettier + husky + lint-staged + commitlint, validated env, pino, helmet, Swagger, rate limit, health with a database ping, Dockerfiles, GitHub Actions CI |
 | ✅   | No unit tests in generated projects (decision 2026-11-14): end-to-end tests (Playwright) will come as a separate package                                                                                                                                                                                           |
-| ✅   | `@repo/scaffold/format` (Node only): formats a generated tree with its own `.prettierrc`, so a download passes `format:check`                                                                                                                                                                                      |
+| ✅   | `scaffold/format.ts`: formats a generated tree with its own `.prettierrc`, so a download passes `format:check`                                                                                                                                                                                                     |
 | ✅   | `verify` runs combinations in parallel (`--jobs`, default 3; Oracle one at a time) and checks `format:check` and `lint` for monorepos                                                                                                                                                                              |
 | ✅   | Web `/studio` (ui-ux-pro-max): one step at a time (picked step collapses, Change reopens it), choices in the URL, file tree + viewer; Studio is `ready` in `apps/web/lib/apps.ts`                                                                                                                                  |
 | ✅   | **`verify` (2026-11-17), recorded in `verify-results.json`: 243/243 passed with the current files** (Next.js 81, React 81, Nuxt 81; Fastify included); 0 failures. Earlier full run: 108/108 in 12.8 min with `next` 16.4.5 and the Postgres readiness check over TCP; the run before those fixes 72/108           |

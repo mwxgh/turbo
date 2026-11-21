@@ -23,7 +23,6 @@ export default {
         'auth',
         'nest-common',
         'utils',
-        'scaffold',
         'socket-events',
         'e2e',
         'tooling',

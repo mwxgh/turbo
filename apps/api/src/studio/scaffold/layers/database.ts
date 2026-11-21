@@ -1,4 +1,4 @@
-import type { Database, ScaffoldOptions } from '../options.js'
+import type { Database, ScaffoldOptions } from '../options'
 
 export interface DatabaseProfile {
   label: string

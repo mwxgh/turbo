@@ -1,7 +1,7 @@
-import type { ScaffoldOptions } from '../options.js'
-import { text } from '../tree.js'
-import { V } from '../versions.js'
-import type { OrmLayer } from './orm.js'
+import type { ScaffoldOptions } from '../options'
+import { text } from '../tree'
+import { V } from '../versions'
+import type { OrmLayer } from './orm'
 
 /** oracle://user:pass@host:port/service → the credentials TypeORM's Oracle driver takes (no url option). */
 const ORACLE_CONNECTION = text`
@@ -61,8 +61,8 @@ export function typeormLayer(o: ScaffoldOptions): OrmLayer {
 
         import type { Todo, UpdateTodo } from '@app/types'
 
-        import { TodosRepository } from '../todos/todos.repository.js'
-        import type { TodoEntity } from './todo.entity.js'
+        import { TodosRepository } from '../todos/todos.repository'
+        import type { TodoEntity } from './todo.entity'
 
         const toTodo = (row: TodoEntity): Todo => ({ ...row, createdAt: row.createdAt.toISOString() })
         const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -117,9 +117,9 @@ export function typeormLayer(o: ScaffoldOptions): OrmLayer {
 
         import { DataSource } from 'typeorm'
 
-        import type { Database } from '../todos/todos.repository.js'
-        import { TodoEntity } from './todo.entity.js'
-        import { TypeormTodosRepository } from './typeorm-todos.repository.js'
+        import type { Database } from '../todos/todos.repository'
+        import { TodoEntity } from './todo.entity'
+        import { TypeormTodosRepository } from './typeorm-todos.repository'
 
         /** Opens the connection pool; close() on shutdown. */
         export async function connectDatabase(url = process.env.DATABASE_URL ?? ''): Promise<Database> {

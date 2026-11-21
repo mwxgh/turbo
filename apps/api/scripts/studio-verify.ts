@@ -4,10 +4,10 @@
  * database in Docker, runs the README's database step, builds, type-checks, starts the api and
  * walks the todo CRUD over HTTP.
  *
- *   pnpm --filter @repo/scaffold verify                 # all, 3 at a time
- *   pnpm --filter @repo/scaffold verify mysql-prisma    # names containing a filter
- *   pnpm --filter @repo/scaffold verify --jobs=1        # one at a time (less RAM)
- *   pnpm --filter @repo/scaffold verify --force         # also those that passed already
+ *   pnpm --filter api studio:verify                 # all, 3 at a time
+ *   pnpm --filter api studio:verify mysql-prisma    # names containing a filter
+ *   pnpm --filter api studio:verify --jobs=1        # one at a time (less RAM)
+ *   pnpm --filter api studio:verify --force         # also those that passed already
  *
  * Every result goes to verify-results.json (scripts/verify-record.ts) as soon as it is known. A
  * combination whose generated project has not changed since it passed is skipped.
@@ -26,16 +26,23 @@ import { createServer } from 'node:net'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 
-import { formatTree } from '../src/format.js'
-import { appDirs, generate, supportedCombinations } from '../src/generate.js'
-import { DATABASE_PROFILES, DB_INIT_MOUNT } from '../src/layers/database.js'
-import type { ScaffoldOptions } from '../src/options.js'
+import { formatTree } from '../src/studio/scaffold/format'
+import {
+  appDirs,
+  generate,
+  supportedCombinations,
+} from '../src/studio/scaffold/generate'
+import {
+  DATABASE_PROFILES,
+  DB_INIT_MOUNT,
+} from '../src/studio/scaffold/layers/database'
+import type { ScaffoldOptions } from '../src/studio/scaffold/options'
 import {
   RECORD_FILE,
   readRecord,
   treeHash,
   writeRecord,
-} from './verify-record.js'
+} from './studio-verify-record'
 
 const ROOT = join(homedir(), '.cache', 'turbo-studio-verify')
 

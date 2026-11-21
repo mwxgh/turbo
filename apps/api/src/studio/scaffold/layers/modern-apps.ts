@@ -1,6 +1,6 @@
-import type { ScaffoldOptions } from '../options.js'
-import { type FileTree, json, text } from '../tree.js'
-import { V } from '../versions.js'
+import type { ScaffoldOptions } from '../options'
+import { type FileTree, json, text } from '../tree'
+import { V } from '../versions'
 
 /**
  * App-level files of the monorepo setup (layers/modern.ts): each function returns the files that
@@ -337,7 +337,7 @@ function nodeUpgrade(pre: string, own: AppUpgrade): AppUpgrade {
       'src/logger.ts': text`
         import pino from 'pino'
 
-        import { env } from './env.js'
+        import { env } from './env'
 
         /** Readable lines in development, JSON in production. */
         export const logger = pino({
@@ -370,10 +370,10 @@ export function expressUpgrade(o: ScaffoldOptions, pre: string): AppUpgrade {
     },
     files: {
       'src/main.ts': text`
-        import { createApp } from './app.js'
-        import { connectDatabase } from './database/database.js'
-        import { env } from './env.js'
-        import { logger } from './logger.js'
+        import { createApp } from './app'
+        import { connectDatabase } from './database/database'
+        import { env } from './env'
+        import { logger } from './logger'
 
         const db = await connectDatabase(env.DATABASE_URL)
         const server = createApp(db).listen(env.PORT, env.HOST, () => {
@@ -432,11 +432,11 @@ export function expressUpgrade(o: ScaffoldOptions, pre: string): AppUpgrade {
         import { pinoHttp } from 'pino-http'
         import swaggerUi from 'swagger-ui-express'
 
-        import { env } from './env.js'
-        import { logger } from './logger.js'
-        import { openapi } from './openapi.js'
-        import type { Database } from './todos/todos.repository.js'
-        import { todosRouter } from './todos/todos.router.js'
+        import { env } from './env'
+        import { logger } from './logger'
+        import { openapi } from './openapi'
+        import type { Database } from './todos/todos.repository'
+        import { todosRouter } from './todos/todos.router'
 
         const TIMEOUT_MS = 2_000
 
@@ -514,7 +514,7 @@ export function fastifyUpgrade(o: ScaffoldOptions, pre: string): AppUpgrade {
       'src/logger.ts': text`
         import type { FastifyServerOptions } from 'fastify'
 
-        import { env } from './env.js'
+        import { env } from './env'
 
         /** Options of Fastify's own pino logger: readable lines in development, JSON in production. */
         export const logger: FastifyServerOptions['logger'] = {
@@ -526,9 +526,9 @@ export function fastifyUpgrade(o: ScaffoldOptions, pre: string): AppUpgrade {
         }
       `,
       'src/main.ts': text`
-        import { createApp } from './app.js'
-        import { connectDatabase } from './database/database.js'
-        import { env } from './env.js'
+        import { createApp } from './app'
+        import { connectDatabase } from './database/database'
+        import { env } from './env'
 
         const app = await createApp(await connectDatabase(env.DATABASE_URL))
         await app.listen({ port: env.PORT, host: env.HOST })
@@ -545,11 +545,11 @@ export function fastifyUpgrade(o: ScaffoldOptions, pre: string): AppUpgrade {
         import swaggerUi from '@fastify/swagger-ui'
         import Fastify from 'fastify'
 
-        import { env } from './env.js'
-        import { AJV_OPTIONS, jsonApi } from './http.js'
-        import { logger } from './logger.js'
-        import type { Database } from './todos/todos.repository.js'
-        import { todosRoutes } from './todos/todos.routes.js'
+        import { env } from './env'
+        import { AJV_OPTIONS, jsonApi } from './http'
+        import { logger } from './logger'
+        import type { Database } from './todos/todos.repository'
+        import { todosRoutes } from './todos/todos.routes'
 
         const TIMEOUT_MS = 2_000
         /** Probes: no rate limit, and not in the request log (every few seconds would drown it). */

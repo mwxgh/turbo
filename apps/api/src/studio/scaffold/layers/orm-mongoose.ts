@@ -1,7 +1,7 @@
-import type { ScaffoldOptions } from '../options.js'
-import { text } from '../tree.js'
-import { V } from '../versions.js'
-import type { OrmLayer } from './orm.js'
+import type { ScaffoldOptions } from '../options'
+import { text } from '../tree'
+import { V } from '../versions'
+import type { OrmLayer } from './orm'
 
 /** Mongoose (MongoDB only, ORMS_BY_DATABASE). No migrations: the schema lives in code. */
 export function mongooseLayer(_o: ScaffoldOptions): OrmLayer {
@@ -35,8 +35,8 @@ export function mongooseLayer(_o: ScaffoldOptions): OrmLayer {
 
         import type { Todo, UpdateTodo } from '@app/types'
 
-        import { TodosRepository } from '../todos/todos.repository.js'
-        import type { TodoDoc } from './todo.schema.js'
+        import { TodosRepository } from '../todos/todos.repository'
+        import type { TodoDoc } from './todo.schema'
 
         type Row = TodoDoc & { _id: Types.ObjectId }
         const toTodo = (row: Row): Todo => ({
@@ -81,9 +81,9 @@ export function mongooseLayer(_o: ScaffoldOptions): OrmLayer {
       'src/database/database.ts': text`
         import mongoose from 'mongoose'
 
-        import type { Database } from '../todos/todos.repository.js'
-        import { MongooseTodosRepository } from './mongoose-todos.repository.js'
-        import { type TodoDoc, todoSchema } from './todo.schema.js'
+        import type { Database } from '../todos/todos.repository'
+        import { MongooseTodosRepository } from './mongoose-todos.repository'
+        import { type TodoDoc, todoSchema } from './todo.schema'
 
         /** Opens the connection (the collection and its index are created on first use); close() on shutdown. */
         export async function connectDatabase(url = process.env.DATABASE_URL ?? ''): Promise<Database> {

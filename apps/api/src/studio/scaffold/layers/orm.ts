@@ -1,4 +1,4 @@
-import type { FileTree } from '../tree.js'
+import type { FileTree } from '../tree'
 
 /**
  * What an ORM adds to the api, whatever the backend: files (paths relative to the api), deps,

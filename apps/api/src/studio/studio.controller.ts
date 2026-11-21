@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -23,6 +24,20 @@ import { StudioService } from './studio.service'
 @Controller('studio')
 export class StudioController {
   constructor(private readonly studio: StudioService) {}
+
+  /** Choices and the rules between them, for the web form. */
+  @Get('options')
+  options() {
+    return this.studio.options()
+  }
+
+  /** Every file of the project (path → content), to review before downloading. */
+  @Post('preview')
+  @HttpCode(HttpStatus.OK)
+  @ApiBadRequestResponse({ description: 'Options that cannot be generated' })
+  async preview(@Body() body: GenerateProjectDto) {
+    return { files: await this.studio.files(body) }
+  }
 
   /** The generated project as a zip (signed-in users: the global auth guard). */
   @Post('generate')

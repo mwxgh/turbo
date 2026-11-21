@@ -308,10 +308,13 @@ export const DEFAULT_OPTIONS: ScaffoldOptions = {
   frontend: 'next',
 }
 
+/** Project names: folder and package scope. */
+export const NAME_PATTERN = /^[a-z][a-z0-9-]{1,49}$/
+
 /** Why a combination cannot be generated (empty: it can). */
 export function incompatibilities(options: ScaffoldOptions): string[] {
   const reasons: string[] = []
-  if (!/^[a-z][a-z0-9-]{1,49}$/.test(options.name))
+  if (!NAME_PATTERN.test(options.name))
     reasons.push(
       'Name: 2–50 characters, lowercase letters, digits and dashes, starting with a letter.',
     )

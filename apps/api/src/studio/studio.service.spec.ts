@@ -3,8 +3,7 @@ import { BadRequestException } from '@nestjs/common'
 import JSZip from 'jszip'
 import { describe, expect, it } from 'vitest'
 
-import { DEFAULT_OPTIONS } from '@repo/scaffold'
-
+import { DEFAULT_OPTIONS, ormIdsFor } from './scaffold'
 import { StudioService, toZip } from './studio.service'
 
 describe('StudioService', () => {
@@ -24,6 +23,27 @@ describe('StudioService', () => {
       await files['shop/package.json']!.async('string'),
     ) as { name: string }
     expect(pkg.name).toBe('shop')
+  }, 30_000)
+
+  it('gives the form every choice and the ORM rules', () => {
+    const options = service.options()
+    expect(new RegExp(options.namePattern).test('my-app')).toBe(true)
+    expect(options.defaults).toEqual(DEFAULT_OPTIONS)
+    const go = options.backends.find((b) => b.value === 'go')!
+    expect(go).toMatchObject({ language: 'go', planned: true })
+    expect(go.monorepoUnavailable).toMatch(/TypeScript backend/)
+    expect(
+      options.backends.find((b) => b.value === 'nest')!.monorepoUnavailable,
+    ).toBeNull()
+    // Same table the server checks with
+    expect(options.ormsByStack.typescript.oracle).toEqual(
+      ormIdsFor('nest', 'oracle'),
+    )
+  })
+
+  it('previews the formatted files', async () => {
+    const files = await service.files({ ...DEFAULT_OPTIONS, name: 'shop' })
+    expect(JSON.parse(files['package.json']!)).toMatchObject({ name: 'shop' })
   }, 30_000)
 
   it('refuses a combination that cannot be generated, with the reasons', async () => {

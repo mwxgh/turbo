@@ -1,6 +1,6 @@
-import type { ScaffoldOptions } from '../options.js'
-import { type FileTree, json, text } from '../tree.js'
-import { V } from '../versions.js'
+import type { ScaffoldOptions } from '../options'
+import { type FileTree, json, text } from '../tree'
+import { V } from '../versions'
 
 /**
  * The monorepo setup (repo `turbo` or `nx`), taken from this repository's own decisions:
@@ -191,13 +191,13 @@ function eslintConfig(o: ScaffoldOptions): FileTree {
     [`${dir}/node.js`]: text`
       import globals from 'globals'
 
-      import { config as baseConfig } from './base.js'
+      import { config as baseConfig } from './base'
 
       /** Node.js servers (Express, Fastify). @type {import("eslint").Linter.Config[]} */
       export const config = [...baseConfig, { languageOptions: { globals: globals.node } }]
     `,
     [`${dir}/nest.js`]: text`
-      import { config as nodeConfig } from './node.js'
+      import { config as nodeConfig } from './node'
 
       /** NestJS apps. @type {import("eslint").Linter.Config[]} */
       export const config = [
@@ -210,7 +210,7 @@ function eslintConfig(o: ScaffoldOptions): FileTree {
       import pluginReactHooks from 'eslint-plugin-react-hooks'
       import globals from 'globals'
 
-      import { config as baseConfig } from './base.js'
+      import { config as baseConfig } from './base'
 
       /** React apps and libraries. @type {import("eslint").Linter.Config[]} */
       export const config = [
@@ -225,7 +225,7 @@ function eslintConfig(o: ScaffoldOptions): FileTree {
       import pluginNext from '@next/eslint-plugin-next'
       import { globalIgnores } from 'eslint/config'
 
-      import { config as reactConfig } from './react.js'
+      import { config as reactConfig } from './react'
 
       /** Next.js apps. @type {import("eslint").Linter.Config[]} */
       export const config = [
@@ -249,7 +249,7 @@ function eslintConfig(o: ScaffoldOptions): FileTree {
             import globals from 'globals'
             import tseslint from 'typescript-eslint'
 
-            import { config as baseConfig } from './base.js'
+            import { config as baseConfig } from './base'
 
             /** Vue and Nuxt apps. @type {import("eslint").Linter.Config[]} */
             export const config = [

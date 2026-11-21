@@ -5,12 +5,12 @@ import {
   ORMS,
   REPOS,
   type ScaffoldOptions,
-} from '../options.js'
-import { type FileTree, json, text } from '../tree.js'
-import { V } from '../versions.js'
-import { TYPES } from './app.js'
-import { DATABASE_PROFILES, dockerCompose } from './database.js'
-import { modernRootDevDependencies, runAll } from './modern.js'
+} from '../options'
+import { type FileTree, json, text } from '../tree'
+import { V } from '../versions'
+import { TYPES } from './app'
+import { DATABASE_PROFILES, dockerCompose } from './database'
+import { modernRootDevDependencies, runAll } from './modern'
 
 const labelOf = <T extends string>(list: { value: T; label: string }[], v: T) =>
   list.find((c) => c.value === v)!.label

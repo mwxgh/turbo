@@ -1,9 +1,9 @@
-import type { ScaffoldOptions } from '../options.js'
-import { type FileTree, json } from '../tree.js'
-import { V } from '../versions.js'
-import { type AppContext, TODOS_REPOSITORY } from './app.js'
-import { DATABASE_PROFILES } from './database.js'
-import type { OrmLayer } from './orm.js'
+import type { ScaffoldOptions } from '../options'
+import { type FileTree, json } from '../tree'
+import { V } from '../versions'
+import { type AppContext, TODOS_REPOSITORY } from './app'
+import { DATABASE_PROFILES } from './database'
+import type { OrmLayer } from './orm'
 
 /**
  * What the Express and Fastify apis share: ESM, compiled by tsc (NodeNext, so relative imports end

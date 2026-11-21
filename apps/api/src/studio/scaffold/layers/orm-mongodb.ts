@@ -1,7 +1,7 @@
-import type { ScaffoldOptions } from '../options.js'
-import { text } from '../tree.js'
-import { V } from '../versions.js'
-import type { OrmLayer } from './orm.js'
+import type { ScaffoldOptions } from '../options'
+import { text } from '../tree'
+import { V } from '../versions'
+import type { OrmLayer } from './orm'
 
 /** No ORM: the official MongoDB driver, queries written by hand (ORMS_BY_DATABASE: MongoDB only). */
 export function mongodbLayer(_o: ScaffoldOptions): OrmLayer {
@@ -16,7 +16,7 @@ export function mongodbLayer(_o: ScaffoldOptions): OrmLayer {
 
         import type { Todo, UpdateTodo } from '@app/types'
 
-        import { TodosRepository } from '../todos/todos.repository.js'
+        import { TodosRepository } from '../todos/todos.repository'
 
         export interface TodoDoc {
           _id: ObjectId
@@ -72,8 +72,8 @@ export function mongodbLayer(_o: ScaffoldOptions): OrmLayer {
       'src/database/database.ts': text`
         import { MongoClient } from 'mongodb'
 
-        import type { Database } from '../todos/todos.repository.js'
-        import { MongoTodosRepository, type TodoDoc } from './mongo-todos.repository.js'
+        import type { Database } from '../todos/todos.repository'
+        import { MongoTodosRepository, type TodoDoc } from './mongo-todos.repository'
 
         /** One MongoClient (it pools connections) for the whole app; close() on shutdown. */
         export async function connectDatabase(url = process.env.DATABASE_URL ?? ''): Promise<Database> {

@@ -1,10 +1,10 @@
-import type { ScaffoldOptions } from '../options.js'
-import { type FileTree, text } from '../tree.js'
-import { V } from '../versions.js'
-import type { AppContext } from './app.js'
-import { nodeApiBase } from './backend-node.js'
-import { applyUpgrade, expressUpgrade } from './modern-apps.js'
-import type { OrmLayer } from './orm.js'
+import type { ScaffoldOptions } from '../options'
+import { type FileTree, text } from '../tree'
+import { V } from '../versions'
+import type { AppContext } from './app'
+import { nodeApiBase } from './backend-node'
+import { applyUpgrade, expressUpgrade } from './modern-apps'
+import type { OrmLayer } from './orm'
 
 /**
  * api with Express 5 (build and layout: backend-node.ts). Same routes and status codes as the
@@ -34,8 +34,8 @@ function plainExpressLayer(
       },
     }),
     'src/main.ts': text`
-      import { createApp } from './app.js'
-      import { connectDatabase } from './database/database.js'
+      import { createApp } from './app'
+      import { connectDatabase } from './database/database'
 
       const db = await connectDatabase()
       const port = Number(process.env.PORT ?? 3001)
@@ -51,8 +51,8 @@ function plainExpressLayer(
       import cors from 'cors'
       import express, { type ErrorRequestHandler } from 'express'
 
-      import type { Database } from './todos/todos.repository.js'
-      import { todosRouter } from './todos/todos.router.js'
+      import type { Database } from './todos/todos.repository'
+      import { todosRouter } from './todos/todos.router'
 
       export function createApp(db: Database) {
         const app = express()
@@ -119,8 +119,8 @@ function plainExpressLayer(
     'src/todos/todos.router.ts': text`
       import { type Response, Router } from 'express'
 
-      import { parseCreateTodo, parseUpdateTodo } from './todo.validation.js'
-      import type { TodosRepository } from './todos.repository.js'
+      import { parseCreateTodo, parseUpdateTodo } from './todo.validation'
+      import type { TodosRepository } from './todos.repository'
 
       const badRequest = (res: Response, errors: string[]) =>
         res.status(400).json({ statusCode: 400, message: errors, error: 'Bad Request' })

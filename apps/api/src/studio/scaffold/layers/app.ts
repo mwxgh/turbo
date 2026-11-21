@@ -1,5 +1,5 @@
-import type { ScaffoldOptions } from '../options.js'
-import { text } from '../tree.js'
+import type { ScaffoldOptions } from '../options'
+import { text } from '../tree'
 
 /**
  * Where an app sits and how it gets the shared types.

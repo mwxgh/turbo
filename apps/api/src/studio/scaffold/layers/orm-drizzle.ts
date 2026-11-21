@@ -1,7 +1,7 @@
-import type { ScaffoldOptions } from '../options.js'
-import { text } from '../tree.js'
-import { V } from '../versions.js'
-import type { OrmLayer } from './orm.js'
+import type { ScaffoldOptions } from '../options'
+import { text } from '../tree'
+import { V } from '../versions'
+import type { OrmLayer } from './orm'
 
 export function drizzleLayer(o: ScaffoldOptions): OrmLayer {
   const pg = o.database === 'postgres'
@@ -93,9 +93,9 @@ export function drizzleLayer(o: ScaffoldOptions): OrmLayer {
       'src/database/database.ts': text`
         import { sql } from 'drizzle-orm'
 
-        import type { Database } from '../todos/todos.repository.js'
-        import { createDb } from '../db/client.js'
-        import { DrizzleTodosRepository } from './drizzle-todos.repository.js'
+        import type { Database } from '../todos/todos.repository'
+        import { createDb } from '../db/client'
+        import { DrizzleTodosRepository } from './drizzle-todos.repository'
 
         /** Opens the connection pool (fails now if the database does not answer); close() on shutdown. */
         export async function connectDatabase(url = process.env.DATABASE_URL ?? ''): Promise<Database> {
@@ -116,9 +116,9 @@ export function drizzleLayer(o: ScaffoldOptions): OrmLayer {
         '',
         "import type { Todo, UpdateTodo } from '@app/types'",
         '',
-        "import type { createDb } from '../db/client.js'",
-        "import { todos } from '../db/schema.js'",
-        "import { TodosRepository } from '../todos/todos.repository.js'",
+        "import type { createDb } from '../db/client'",
+        "import { todos } from '../db/schema'",
+        "import { TodosRepository } from '../todos/todos.repository'",
         '',
         'type Db = ReturnType<typeof createDb>',
         'type Row = typeof todos.$inferSelect',

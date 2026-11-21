@@ -2,10 +2,10 @@ import * as sortImportsModule from '@trivago/prettier-plugin-sort-imports'
 import { type Options, type Plugin, format } from 'prettier'
 import * as sortJsonModule from 'prettier-plugin-sort-json'
 
-import type { FileTree } from './tree.js'
+import type { FileTree } from './tree'
 
 /**
- * Node only (`@repo/scaffold/format`, kept out of the browser bundle): formats a generated tree
+ * Node only: formats a generated tree
  * with the project's own `.prettierrc`, so a downloaded project passes `pnpm format:check` from the
  * first commit. Trees without a `.prettierrc` (separate folders) are returned as they are.
  */

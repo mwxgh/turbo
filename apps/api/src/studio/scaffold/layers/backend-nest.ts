@@ -1,10 +1,10 @@
-import type { ScaffoldOptions } from '../options.js'
-import { type FileTree, json, text } from '../tree.js'
-import { V } from '../versions.js'
-import { type AppContext, TODOS_REPOSITORY } from './app.js'
-import { DATABASE_PROFILES } from './database.js'
-import { applyUpgrade, nestUpgrade } from './modern-apps.js'
-import type { OrmLayer } from './orm.js'
+import type { ScaffoldOptions } from '../options'
+import { type FileTree, json, text } from '../tree'
+import { V } from '../versions'
+import { type AppContext, TODOS_REPOSITORY } from './app'
+import { DATABASE_PROFILES } from './database'
+import { applyUpgrade, nestUpgrade } from './modern-apps'
+import type { OrmLayer } from './orm'
 
 /**
  * apps/api with NestJS 12: ESM, built by the Nest CLI with SWC (keeps decorator metadata for

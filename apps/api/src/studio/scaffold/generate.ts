@@ -1,16 +1,16 @@
-import { type AppContext, TYPES, appContext } from './layers/app.js'
-import { expressLayer } from './layers/backend-express.js'
-import { fastifyLayer } from './layers/backend-fastify.js'
-import { nestLayer } from './layers/backend-nest.js'
-import { allowBuilds, appDirs, baseLayer } from './layers/base.js'
-import { frontendLayer } from './layers/frontend.js'
-import { applyCatalog, isModern, modernRoot } from './layers/modern.js'
-import { drizzleLayer } from './layers/orm-drizzle.js'
-import { mongodbLayer } from './layers/orm-mongodb.js'
-import { mongooseLayer } from './layers/orm-mongoose.js'
-import { prismaLayer } from './layers/orm-prisma.js'
-import { typeormLayer } from './layers/orm-typeorm.js'
-import type { OrmLayer } from './layers/orm.js'
+import { type AppContext, TYPES, appContext } from './layers/app'
+import { expressLayer } from './layers/backend-express'
+import { fastifyLayer } from './layers/backend-fastify'
+import { nestLayer } from './layers/backend-nest'
+import { allowBuilds, appDirs, baseLayer } from './layers/base'
+import { frontendLayer } from './layers/frontend'
+import { applyCatalog, isModern, modernRoot } from './layers/modern'
+import type { OrmLayer } from './layers/orm'
+import { drizzleLayer } from './layers/orm-drizzle'
+import { mongodbLayer } from './layers/orm-mongodb'
+import { mongooseLayer } from './layers/orm-mongoose'
+import { prismaLayer } from './layers/orm-prisma'
+import { typeormLayer } from './layers/orm-typeorm'
 import {
   BACKENDS,
   DATABASES,
@@ -19,9 +19,9 @@ import {
   type ScaffoldOptions,
   incompatibilities,
   ormIdsFor,
-} from './options.js'
-import { type FileTree, json, sortedPaths } from './tree.js'
-import { V } from './versions.js'
+} from './options'
+import { type FileTree, json, sortedPaths } from './tree'
+import { V } from './versions'
 
 export class ScaffoldError extends Error {
   constructor(readonly reasons: string[]) {
