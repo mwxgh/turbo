@@ -26,6 +26,16 @@ interface Attempt {
   questions: Question[]
 }
 
+interface Roadmap {
+  target: number
+  estimate: number | null
+  stages: {
+    id: string
+    status: string
+    tasks: { kind: string; done: boolean }[]
+  }[]
+}
+
 describe('Lingo (e2e)', () => {
   let app: INestApplication
   let prisma: PrismaService
@@ -64,6 +74,7 @@ describe('Lingo (e2e)', () => {
   beforeAll(async () => {
     ;({ app, prisma } = await createApp())
     // Lingo content is shared: start from an empty bank
+    await prisma.lingoTest.deleteMany()
     await prisma.lingoAttempt.deleteMany()
     await prisma.lingoItem.deleteMany()
     await prisma.lingoBatch.deleteMany()
@@ -93,12 +104,18 @@ describe('Lingo (e2e)', () => {
   it('loads the samples once', async () => {
     const first = await as(admin).post('/admin/samples').expect(200)
     expect(first.body).toMatchObject({
-      items: { succeeded: 19, failed: 0 },
+      items: { succeeded: 26, failed: 0 },
       cards: { succeeded: 30 },
     })
+    // …and a published sample test of them, made once
+    const library = (await as(learner).get('/exams/TOEIC_LR/tests').expect(200))
+      .body as { items: { id: string; title: string; questions: number }[] }
+    expect(library.items).toEqual([
+      expect.objectContaining({ title: 'Đề mẫu Lingo 01', questions: 40 }),
+    ])
     const again = await as(admin).post('/admin/samples').expect(200)
     expect(again.body).toMatchObject({
-      items: { succeeded: 0, duplicates: 19 },
+      items: { succeeded: 0, duplicates: 26 },
       cards: { succeeded: 0, duplicates: 30 },
     })
     const exam = await as(learner).get('/exams/TOEIC_LR').expect(200)
@@ -199,6 +216,47 @@ describe('Lingo (e2e)', () => {
       .post('/attempts', { exam: 'TOEIC_LR', part: 'P5', source: 'MISTAKES' })
       .expect(201)
     expect((retry.body as Attempt).total).toBe(3 - expected)
+  })
+
+  it('places a learner with a short test of every part and starts the roadmap', async () => {
+    const before = (await as(other).get('/roadmap/TOEIC_LR').expect(200))
+      .body as Roadmap
+    expect(before).toMatchObject({ target: 650, estimate: null })
+    expect(before.stages[0]).toMatchObject({
+      id: 'foundation',
+      status: 'current',
+    })
+
+    const placement = (
+      await as(other)
+        .post('/attempts', { exam: 'TOEIC_LR', placement: true })
+        .expect(201)
+    ).body as Attempt & { mode: string; parts: string[]; timeLimitSec: number }
+    expect(placement.mode).toBe('PLACEMENT')
+    // No Part 1 sample: every other part, a few questions each
+    expect(placement.parts).toEqual(['P2', 'P3', 'P4', 'P5', 'P6', 'P7'])
+    expect(placement.total).toBeGreaterThanOrEqual(20)
+    expect(placement.timeLimitSec).toBeGreaterThan(0)
+
+    for (const q of placement.questions)
+      await as(other)
+        .put(`/attempts/${placement.id}/answers/${q.id}`, { choice: 0 })
+        .expect(204)
+    const graded = (
+      await as(other).post(`/attempts/${placement.id}/submit`).expect(200)
+    ).body as { scores: Record<string, { scaled?: number }> }
+    expect(graded.scores.L?.scaled).toBeGreaterThanOrEqual(5)
+    expect(graded.scores.R?.scaled).toBeGreaterThanOrEqual(5)
+
+    const after = (await as(other).get('/roadmap/TOEIC_LR').expect(200))
+      .body as Roadmap
+    expect(after.estimate).toBe(
+      graded.scores.L!.scaled! + graded.scores.R!.scaled!,
+    )
+    expect(after.stages[0]!.tasks[0]).toMatchObject({
+      kind: 'placement',
+      done: true,
+    })
   })
 
   it('reviews vocabulary with FSRS and counts it on the dashboard', async () => {

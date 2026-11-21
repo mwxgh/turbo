@@ -51,6 +51,10 @@ export class StartAttemptDto {
   /** NEW: unseen questions first; MISTAKES: questions last answered wrong */
   @EnumField(AttemptSource, { optional: true })
   source?: AttemptSource
+
+  /** Placement test: a few published questions of every part, timed, estimated score */
+  @BooleanField({ optional: true })
+  placement?: boolean
 }
 
 export class SaveAnswerDto {

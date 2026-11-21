@@ -15,6 +15,7 @@ import { type AuthUser, CurrentUser } from '@repo/auth/nest'
 import { UpdateGoalDto } from './dto/goal.dto'
 import { ReviewQueueQueryDto } from './dto/vocab.dto'
 import { LingoService } from './lingo.service'
+import { RoadmapService } from './roadmap.service'
 import { VocabService } from './vocab.service'
 
 @UseGuards(ThrottlerGuard)
@@ -24,6 +25,7 @@ export class LingoController {
   constructor(
     private readonly lingo: LingoService,
     private readonly vocab: VocabService,
+    private readonly roadmaps: RoadmapService,
   ) {}
 
   @Get('exams')
@@ -53,6 +55,12 @@ export class LingoController {
   @Get('dashboard/:exam')
   dashboard(@CurrentUser() user: AuthUser, @Param('exam') exam: string) {
     return this.lingo.dashboard(user.id, exam)
+  }
+
+  /** Stages and tasks toward the learner's target score, progress from their activity */
+  @Get('roadmap/:exam')
+  roadmap(@CurrentUser() user: AuthUser, @Param('exam') exam: string) {
+    return this.roadmaps.roadmap(user.id, exam)
   }
 
   @Get('decks')

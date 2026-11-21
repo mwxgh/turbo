@@ -12,6 +12,7 @@ import { LingoController } from './lingo.controller'
 import { LingoService } from './lingo.service'
 import { PracticeController } from './practice.controller'
 import { PracticeService } from './practice.service'
+import { RoadmapService } from './roadmap.service'
 import { TestsController } from './tests.controller'
 import { TestsService } from './tests.service'
 import { VocabService } from './vocab.service'
@@ -36,6 +37,7 @@ import { VocabService } from './vocab.service'
     TestsService,
     GeneratorService,
     ArkModel,
+    RoadmapService,
   ],
 })
 export class LingoModule {}

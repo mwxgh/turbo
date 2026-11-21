@@ -15,13 +15,14 @@ import { PrismaService } from '@repo/db/nest'
 import { type ListQuery, paginated } from '@repo/utils'
 
 import { FilesService } from '../files/files.service'
-import { shuffle, timeLimitSec } from './assemble'
+import { pickItems, shuffle, timeLimitSec } from './assemble'
 import {
   type SaveAnswerDto,
   type StartAttemptDto,
   TestMode,
 } from './dto/attempt.dto'
 import { attemptListSpec } from './lingo.list-spec'
+import { PLACEMENT_COUNTS } from './roadmap'
 import { type ExamSpec, getExam, getPart } from './specs'
 import type { ScriptLine } from './specs/schemas'
 import { scaledScore } from './specs/score'
@@ -72,9 +73,10 @@ export class PracticeService {
     private readonly files: FilesService,
   ) {}
 
-  /** A quick practice of one part, or (parts of) a published test. */
+  /** A quick practice of one part, (parts of) a published test, or the placement test. */
   start(userId: string, body: StartAttemptDto) {
     const exam = getExam(body.exam)
+    if (body.placement) return this.startPlacement(userId, exam)
     if (body.testId) return this.startTest(userId, exam, body.testId, body)
     if (!body.part) throw new BadRequestException('part or testId is required')
     return this.startQuick(userId, exam, body.part, body)
@@ -135,6 +137,62 @@ export class PracticeService {
         mode: full ? LingoAttemptMode.FULL_TEST : LingoAttemptMode.PRACTICE,
         parts: Object.keys(perPart),
         timeLimitSec: full ? timeLimitSec(exam, perPart) : body.timeLimitSec,
+        total: questionIds.length,
+        answers: {
+          create: questionIds.map((questionId, order) => ({
+            questionId,
+            order,
+          })),
+        },
+      },
+    })
+    return this.view(userId, attempt.id)
+  }
+
+  /**
+   * Placement test: PLACEMENT_COUNTS questions of each part from published items (parts without
+   * content are left out), in exam order, timed like the same share of the real exam.
+   */
+  private async startPlacement(userId: string, exam: ExamSpec) {
+    const items = await this.prisma.lingoItem.findMany({
+      where: { exam: exam.code, status: LingoContentStatus.PUBLISHED },
+      select: {
+        id: true,
+        part: true,
+        questions: { select: { id: true }, orderBy: { order: 'asc' } },
+      },
+    })
+    const perPart: Record<string, number> = {}
+    const questionIds: string[] = []
+    for (const section of exam.sections)
+      for (const part of section.parts) {
+        const target = PLACEMENT_COUNTS[part.code] ?? 0
+        const pool = shuffle(items.filter((i) => i.part === part.code))
+        const picked = new Set(
+          pickItems(
+            pool.map((i) => ({
+              id: i.id,
+              size: i.questions.length,
+              used: false,
+            })),
+            target,
+          ),
+        )
+        for (const item of pool.filter((i) => picked.has(i.id))) {
+          questionIds.push(...item.questions.map((q) => q.id))
+          perPart[part.code] = (perPart[part.code] ?? 0) + item.questions.length
+        }
+      }
+    if (!questionIds.length)
+      throw new NotFoundException('No published questions for a placement test')
+
+    const attempt = await this.prisma.lingoAttempt.create({
+      data: {
+        userId,
+        exam: exam.code,
+        mode: LingoAttemptMode.PLACEMENT,
+        parts: Object.keys(perPart),
+        timeLimitSec: timeLimitSec(exam, perPart),
         total: questionIds.length,
         answers: {
           create: questionIds.map((questionId, order) => ({
@@ -336,7 +394,11 @@ export class PracticeService {
       s.total++
       if (g.correct) s.correct++
     }
-    if (attempt.mode === LingoAttemptMode.FULL_TEST)
+    // Scaled only where every part is sampled: a full test or the placement test
+    if (
+      attempt.mode === LingoAttemptMode.FULL_TEST ||
+      attempt.mode === LingoAttemptMode.PLACEMENT
+    )
       for (const section of exam.sections) {
         const s = scores[section.code]
         if (s) s.scaled = scaledScore(section.score, s.correct, s.total)

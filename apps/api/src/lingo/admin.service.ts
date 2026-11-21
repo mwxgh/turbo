@@ -7,6 +7,7 @@ import {
 import {
   LingoBatchSource,
   LingoContentStatus,
+  LingoTestKind,
   type Prisma,
   toPrismaListArgs,
 } from '@repo/db'
@@ -15,6 +16,7 @@ import { type ListQuery, paginated } from '@repo/utils'
 
 import { itemCreateData, itemHash } from './content'
 import type { CreateDeckDto } from './dto/admin.dto'
+import { TOEIC_EXTRA_SAMPLES } from './fixtures/toeic-extra'
 import { TOEIC_MORE_SAMPLES } from './fixtures/toeic-more'
 import { TOEIC_PART5_SAMPLES, TOEIC_STARTER_DECK } from './fixtures/toeic-part5'
 import { itemListSpec } from './lingo.list-spec'
@@ -35,6 +37,8 @@ export interface ImportResult {
   failed: number
   errors: RowError[]
 }
+
+const SAMPLE_TEST_TITLE = 'Đề mẫu Lingo 01'
 
 @Injectable()
 export class AdminService {
@@ -249,7 +253,10 @@ export class AdminService {
    * environment has something to practise. Safe to run twice.
    */
   async loadSamples(userId: string) {
-    const samples = { P5: TOEIC_PART5_SAMPLES, ...TOEIC_MORE_SAMPLES }
+    const samples: Record<string, object[]> = { P5: TOEIC_PART5_SAMPLES }
+    for (const more of [TOEIC_MORE_SAMPLES, TOEIC_EXTRA_SAMPLES])
+      for (const [part, partItems] of Object.entries(more))
+        samples[part] = [...(samples[part] ?? []), ...partItems]
     const results = []
     for (const [part, partItems] of Object.entries(samples))
       results.push(
@@ -280,7 +287,41 @@ export class AdminService {
         },
       }))
     const cards = await this.insertCards(deck.id, TOEIC_STARTER_DECK.cards, 1)
-    return { items, cards }
+    const test = await this.sampleTest(userId)
+    return { items, cards, test }
+  }
+
+  /** A short published test of every sample item, so the library is not empty (made once). */
+  private async sampleTest(userId: string) {
+    const existing = await this.prisma.lingoTest.findFirst({
+      where: { exam: 'TOEIC_LR', title: SAMPLE_TEST_TITLE },
+      select: { id: true },
+    })
+    if (existing) return existing
+    const items = await this.prisma.lingoItem.findMany({
+      where: {
+        exam: 'TOEIC_LR',
+        status: LingoContentStatus.PUBLISHED,
+        batch: { fileName: 'samples' },
+      },
+      orderBy: [{ part: 'asc' }, { createdAt: 'asc' }],
+      select: { id: true },
+    })
+    return this.prisma.lingoTest.create({
+      data: {
+        exam: 'TOEIC_LR',
+        kind: LingoTestKind.MINI,
+        title: SAMPLE_TEST_TITLE,
+        description:
+          'Đề mẫu rút gọn từ các câu mẫu của Lingo (chưa có Part 1).',
+        status: LingoContentStatus.PUBLISHED,
+        createdById: userId,
+        items: {
+          create: items.map((item, order) => ({ itemId: item.id, order })),
+        },
+      },
+      select: { id: true },
+    })
   }
 
   /** Validated CSV / AI rows → cards of a deck; existing terms are skipped. */
