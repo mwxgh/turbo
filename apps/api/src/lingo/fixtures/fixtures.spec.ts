@@ -45,20 +45,24 @@ describe('built-in content', () => {
     expect(problems).toEqual([])
   })
 
-  it('fills every sample test with its parts', () => {
-    for (const test of SAMPLE_TESTS) {
-      expect(test.title).not.toBe('')
-      for (const section of exam.sections)
-        for (const part of section.parts) {
-          if (part.code === 'P1') continue // needs real photos
-          const questions = (test.items[part.code] ?? []).reduce<number>(
-            (sum, item) =>
-              sum + (item as { questions: unknown[] }).questions.length,
-            0,
-          )
-          expect(questions, `${test.title} ${part.code}`).toBe(part.miniCount)
-        }
-    }
+  // One case per test and part, so a part still being written fails on its own
+  const partCases = SAMPLE_TESTS.flatMap((test) =>
+    exam.sections.flatMap((section) =>
+      section.parts
+        .filter((part) => part.code !== 'P1') // needs real photos
+        .map((part) => ({
+          name: `${test.title} ${part.code}`,
+          items: test.items[part.code] ?? [],
+          expected: test.kind === 'FULL' ? part.count : part.miniCount,
+        })),
+    ),
+  )
+  it.each(partCases)('$name has the part’s question count', (c) => {
+    const questions = c.items.reduce<number>(
+      (sum, item) => sum + (item as { questions: unknown[] }).questions.length,
+      0,
+    )
+    expect(questions).toBe(c.expected)
   })
 
   it('has valid cards with terms unique across every deck', () => {

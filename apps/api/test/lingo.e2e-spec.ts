@@ -109,7 +109,7 @@ describe('Lingo (e2e)', () => {
   it('loads the samples once', async () => {
     const first = await as(admin).post('/admin/samples').expect(200)
     expect(first.body).toMatchObject({
-      items: { succeeded: 121, failed: 0 },
+      items: { succeeded: 218, failed: 0 },
       // Starter deck 30 + fifteen topic decks of 40
       cards: { succeeded: 790, failed: 0, decks: 20 },
     })
@@ -117,13 +117,14 @@ describe('Lingo (e2e)', () => {
       .body as { items: { id: string; title: string; questions: number }[] }
     // …and the published sample tests, each made once
     expect(library.items.map((t) => [t.title, t.questions]).sort()).toEqual([
+      ['Lingo Full Test 01', 194],
       ['Lingo Mini Test 01', 93],
       ['Lingo Mini Test 02', 93],
       ['Đề mẫu Lingo 01', 40],
     ])
     const again = await as(admin).post('/admin/samples').expect(200)
     expect(again.body).toMatchObject({
-      items: { succeeded: 0, duplicates: 121 },
+      items: { succeeded: 0, duplicates: 218 },
       cards: { succeeded: 0, duplicates: 790 },
     })
     const exam = await as(learner).get('/exams/TOEIC_LR').expect(200)
@@ -132,7 +133,7 @@ describe('Lingo (e2e)', () => {
         sections: { parts: { code: string; published: number }[] }[]
       }
     ).sections.flatMap((s) => s.parts)
-    expect(parts.find((p) => p.code === 'P5')?.published).toBe(42)
+    expect(parts.find((p) => p.code === 'P5')?.published).toBe(72)
   })
 
   it('imports valid items as drafts and reports invalid rows', async () => {

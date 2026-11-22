@@ -375,7 +375,7 @@ export class AdminService {
     return this.prisma.lingoTest.create({
       data: {
         exam: exam.code,
-        kind: LingoTestKind.MINI,
+        kind: fixture.kind === 'FULL' ? LingoTestKind.FULL : LingoTestKind.MINI,
         title: fixture.title,
         description: fixture.description,
         status: LingoContentStatus.PUBLISHED,

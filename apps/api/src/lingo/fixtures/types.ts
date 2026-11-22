@@ -18,5 +18,7 @@ export interface DeckFixture {
 export interface TestFixture {
   title: string
   description: string
+  /** MINI (default): half of each part; FULL: every part at its ETS count (Part 1 waits for photos) */
+  kind?: 'MINI' | 'FULL'
   items: Record<string, object[]>
 }
