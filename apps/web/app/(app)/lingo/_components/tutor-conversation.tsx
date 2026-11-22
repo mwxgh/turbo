@@ -32,11 +32,11 @@ interface Pending {
 
 function errorMessage(error: unknown) {
   if (error instanceof ApiError) {
-    if (error.status === 503) return 'AI tutor chưa được bật trên server.'
-    if (error.status === 429) return 'Bạn hỏi nhanh quá, chờ một phút nhé.'
+    if (error.status === 503) return 'AI tutor chưa được bật trên server'
+    if (error.status === 429) return 'Bạn hỏi nhanh quá, chờ một phút nhé'
     return error.message
   }
-  return 'Không kết nối được tới server.'
+  return 'Không kết nối được tới server'
 }
 
 function Bubble({
@@ -51,7 +51,7 @@ function Bubble({
     <li className={cn('flex', mine ? 'justify-end' : 'justify-start')}>
       <div
         className={cn(
-          `max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed
+          `max-w-[85%] rounded-xl px-4 py-2.5 text-sm leading-relaxed
           whitespace-pre-wrap`,
           mine ? 'bg-primary text-primary-foreground' : 'bg-muted',
         )}
@@ -156,11 +156,17 @@ export function TutorConversation({
             className="flex h-full flex-col items-center justify-center gap-4
               text-center"
           >
-            <Bot aria-hidden className="size-10 text-muted-foreground" />
-            <div>
+            <span
+              className="flex size-11 items-center justify-center rounded-lg
+                bg-rose-500/10 text-rose-700 dark:bg-rose-400/15
+                dark:text-rose-300"
+            >
+              <Bot aria-hidden className="size-5.5" />
+            </span>
+            <div className="flex flex-col gap-1">
               <p className="font-medium">Hỏi gia sư AI về tiếng Anh và TOEIC</p>
               <p className="text-sm text-muted-foreground">
-                Ngữ pháp, từ vựng, sửa câu, giải thích đáp án.
+                Ngữ pháp, từ vựng, sửa câu, giải thích đáp án
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
@@ -198,7 +204,7 @@ export function TutorConversation({
       <form onSubmit={submit} className="flex items-end gap-2 border-t p-3">
         <Textarea
           aria-label="Câu hỏi"
-          placeholder="Nhập câu hỏi… (Enter để gửi, Shift+Enter xuống dòng)"
+          placeholder="Nhập câu hỏi · Enter để gửi, Shift+Enter xuống dòng"
           value={text}
           maxLength={MAX_LENGTH}
           rows={1}

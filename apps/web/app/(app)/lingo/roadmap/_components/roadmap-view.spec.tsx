@@ -100,7 +100,7 @@ describe('RoadmapView', () => {
     // Nothing cached: the (mocked) api call fails
     renderWithQuery(<RoadmapView exam="TOEIC_LR" />)
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Không tải được lộ trình.',
+      'Không tải được lộ trình',
     )
   })
 })

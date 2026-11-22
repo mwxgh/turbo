@@ -17,7 +17,9 @@ export default async function TeachLayout({ children }: LayoutProps<'/teach'>) {
         lg:gap-6"
     >
       <TeachNav />
-      <main className="flex min-w-0 flex-col gap-6 px-4 py-8">{children}</main>
+      <main className="flex min-w-0 flex-col gap-8 px-4 py-8 sm:py-10">
+        {children}
+      </main>
     </div>
   )
 }

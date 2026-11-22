@@ -11,7 +11,7 @@ export default function TeachPage() {
     <>
       <TeachHeader
         title="Khu ra đề"
-        description="Soạn câu hỏi, để AI sinh nội dung, duyệt và xuất bản đề cho học viên."
+        description="Soạn câu hỏi, để AI sinh nội dung, duyệt và xuất bản đề cho học viên"
       />
       <TeachOverview exam={DEFAULT_EXAM} />
       <BatchesPanel />

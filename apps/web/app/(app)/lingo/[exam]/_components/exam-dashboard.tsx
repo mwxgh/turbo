@@ -34,13 +34,13 @@ function Stat({
   children?: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border bg-card p-4">
+    <div className="flex flex-col gap-3 rounded-xl border bg-card p-5 shadow-xs">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Icon aria-hidden="true" className="size-4" />
         {label}
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-semibold tabular-nums">{value}</span>
+        <span className="text-2xl font-medium tabular-nums">{value}</span>
         {hint && <span className="text-sm text-muted-foreground">{hint}</span>}
       </div>
       {children}
@@ -71,16 +71,18 @@ export function ExamDashboard({
 
   return (
     <>
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-3xl font-bold tracking-tight">{spec.name}</h1>
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-medium tracking-tight text-balance">
+          {spec.name}
+        </h1>
         <p className="text-muted-foreground">
           {dash.goal.targetScore
             ? `Mục tiêu ${dash.goal.targetScore} điểm${
                 dash.goal.examDate
                   ? `, thi ngày ${formatDate(dash.goal.examDate)}`
                   : ''
-              }.`
-            : 'Đặt mục tiêu để theo dõi tiến độ.'}
+              }`
+            : 'Đặt mục tiêu để theo dõi tiến độ'}
         </p>
       </div>
 
@@ -131,10 +133,10 @@ export function ExamDashboard({
       <section
         aria-labelledby="tests-cta-heading"
         className="flex flex-wrap items-center justify-between gap-4 rounded-xl
-          border bg-card p-5"
+          border bg-card p-5 shadow-xs"
       >
         <div className="flex flex-col gap-1">
-          <h2 id="tests-cta-heading" className="font-semibold">
+          <h2 id="tests-cta-heading" className="font-medium">
             Thi thử theo đề
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -155,11 +157,14 @@ export function ExamDashboard({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section aria-labelledby="weak-heading" className="flex flex-col gap-3">
-          <h2 id="weak-heading" className="text-lg font-semibold">
+          <h2 id="weak-heading" className="text-lg font-medium">
             Điểm yếu
           </h2>
           {dash.weakTags.length ? (
-            <ul className="flex flex-col gap-3 rounded-xl border bg-card p-4">
+            <ul
+              className="flex flex-col gap-4 rounded-xl border bg-card p-5
+                shadow-xs"
+            >
               {dash.weakTags.map((tag) => (
                 <li key={tag.tag} className="flex flex-col gap-1.5">
                   <div className="flex justify-between gap-2 text-sm">
@@ -174,7 +179,7 @@ export function ExamDashboard({
                     aria-valuenow={Math.round(tag.accuracy * 100)}
                     aria-valuemin={0}
                     aria-valuemax={100}
-                    className="h-2 overflow-hidden rounded-full bg-muted"
+                    className="h-1.5 overflow-hidden rounded-full bg-muted"
                   >
                     <div
                       className="h-full rounded-full bg-primary"
@@ -189,7 +194,7 @@ export function ExamDashboard({
               className="rounded-xl border border-dashed p-4 text-sm
                 text-muted-foreground"
             >
-              Làm thêm vài bài (mỗi kỹ năng từ 3 câu) để thấy điểm yếu.
+              Làm thêm vài bài (mỗi kỹ năng từ 3 câu) để thấy điểm yếu
             </p>
           )}
         </section>
@@ -198,18 +203,22 @@ export function ExamDashboard({
           aria-labelledby="recent-heading"
           className="flex flex-col gap-3"
         >
-          <h2 id="recent-heading" className="text-lg font-semibold">
+          <h2 id="recent-heading" className="text-lg font-medium">
             Bài gần đây
           </h2>
           {dash.recentAttempts.length ? (
-            <ul className="divide-y rounded-xl border bg-card">
+            <ul
+              className="divide-y overflow-hidden rounded-xl border bg-card
+                shadow-xs"
+            >
               {dash.recentAttempts.map((a) => (
                 <li key={a.id}>
                   <Link
                     href={`/lingo/attempts/${a.id}`}
                     className="flex items-center justify-between gap-3 px-4 py-3
                       text-sm transition-colors outline-none hover:bg-muted/50
-                      focus-visible:ring-3 focus-visible:ring-ring/50"
+                      focus-visible:ring-3 focus-visible:ring-ring/50
+                      focus-visible:ring-inset"
                   >
                     <span>
                       {a.parts.map(partName).join(', ')}
@@ -218,7 +227,9 @@ export function ExamDashboard({
                         {formatDate(a.submittedAt)}
                       </span>
                     </span>
-                    <span className="font-medium tabular-nums">
+                    <span
+                      className="font-mono text-muted-foreground tabular-nums"
+                    >
                       {a.correct ?? 0}/{a.total}
                     </span>
                   </Link>

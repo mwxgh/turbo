@@ -47,12 +47,12 @@ const OUTCOME = {
   correct: {
     label: 'Đúng',
     icon: Check,
-    cell: 'border-emerald-600/50 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200',
+    cell: 'border-emerald-600/30 bg-emerald-500/10 text-emerald-800 dark:border-emerald-400/30 dark:text-emerald-300',
   },
   wrong: {
     label: 'Sai',
     icon: X,
-    cell: 'border-destructive/50 bg-destructive/10 text-destructive',
+    cell: 'border-destructive/30 bg-destructive/10 text-destructive',
   },
   blank: {
     label: 'Bỏ trống',
@@ -85,7 +85,7 @@ function tally<K extends string>(
 
 function Bar({ ratio }: { ratio: number }) {
   return (
-    <div className="h-2 w-full min-w-16 overflow-hidden rounded-full bg-muted">
+    <div className="h-1.5 w-full min-w-16 overflow-hidden rounded-full bg-muted">
       <div
         className="h-full rounded-full bg-primary"
         style={{ width: `${Math.round(ratio * 100)}%` }}
@@ -102,13 +102,13 @@ function QuestionReview({ q }: { q: AttemptQuestion }) {
       <div className="flex items-start gap-3">
         <span
           className="flex size-8 shrink-0 items-center justify-center
-            rounded-full bg-muted text-sm font-semibold tabular-nums"
+            rounded-full bg-muted text-sm font-medium tabular-nums"
         >
           {q.order + 1}
         </span>
         <p className="flex-1 pt-1 leading-relaxed">
           {q.text ?? (
-            <span className="text-muted-foreground">(Câu hỏi nghe)</span>
+            <span className="text-muted-foreground">Câu hỏi nghe</span>
           )}
         </p>
         <Badge
@@ -132,11 +132,16 @@ function QuestionReview({ q }: { q: AttemptQuestion }) {
               key={i}
               className={cn(
                 'flex items-center gap-3 rounded-lg border px-3 py-2 text-sm',
-                isAnswer && 'border-emerald-600/50 bg-emerald-500/10',
-                isWrongChoice && 'border-destructive/50 bg-destructive/10',
+                isAnswer &&
+                  `border-emerald-600/30 bg-emerald-500/10
+                  dark:border-emerald-400/30`,
+                isWrongChoice && 'border-destructive/30 bg-destructive/10',
               )}
             >
-              <span aria-hidden="true" className="w-4 font-semibold">
+              <span
+                aria-hidden="true"
+                className="w-4 font-mono text-muted-foreground"
+              >
                 {LETTERS[i]}
               </span>
               <span className="flex-1">{option}</span>
@@ -186,7 +191,7 @@ function QuestionReview({ q }: { q: AttemptQuestion }) {
 function GroupReview({ questions }: { questions: AttemptQuestion[] }) {
   const first = questions[0]!
   return (
-    <li className="flex flex-col gap-4 rounded-xl border bg-card p-5">
+    <li className="flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-xs">
       <span className="text-sm text-muted-foreground">
         {partLabel(first.part)}
       </span>
@@ -289,9 +294,9 @@ export function AttemptResult({
     <>
       <section
         aria-labelledby="result-heading"
-        className="flex flex-col gap-6 rounded-xl border bg-card p-6"
+        className="flex flex-col gap-6 rounded-xl border bg-card p-6 shadow-xs"
       >
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <p className="text-sm text-muted-foreground">
             Kết quả ·{' '}
             {attempt.mode === 'FULL_TEST'
@@ -302,18 +307,26 @@ export function AttemptResult({
             {attempt.submittedAt &&
               ` · nộp lúc ${formatDateTime(attempt.submittedAt)}`}
           </p>
-          <h1 id="result-heading" className="text-2xl font-semibold">
+          <h1
+            id="result-heading"
+            className="text-3xl font-medium tracking-tight text-balance"
+          >
             {attempt.test?.title ??
               (placement ? 'Bài kiểm tra đầu vào' : `Luyện ${exam.name}`)}
           </h1>
         </div>
 
-        <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <dl
+          className="grid grid-cols-2 items-end gap-x-6 gap-y-4 sm:grid-cols-3
+            lg:grid-cols-6"
+        >
           {total !== null ? (
             <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
               <dt className="text-sm text-muted-foreground">Điểm ước tính</dt>
-              <dd className="text-4xl font-bold tabular-nums">{total}</dd>
-              <dd className="text-xs text-muted-foreground">
+              <dd className="text-5xl font-medium tracking-tight tabular-nums">
+                {total}
+              </dd>
+              <dd className="text-xs text-muted-foreground tabular-nums">
                 {exam.sections
                   .filter((s) => attempt.scores?.[s.code]?.scaled != null)
                   .map((s) => `${s.name} ${attempt.scores![s.code]!.scaled}`)
@@ -323,9 +336,12 @@ export function AttemptResult({
           ) : (
             <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
               <dt className="text-sm text-muted-foreground">Số câu đúng</dt>
-              <dd className="text-4xl font-bold tabular-nums">
+              <dd className="text-5xl font-medium tracking-tight tabular-nums">
                 {counts.correct}
-                <span className="text-lg font-normal text-muted-foreground">
+                <span
+                  className="text-xl font-normal tracking-normal
+                    text-muted-foreground"
+                >
                   /{attempt.total}
                 </span>
               </dd>
@@ -333,7 +349,7 @@ export function AttemptResult({
           )}
           <div className="flex flex-col gap-1">
             <dt className="text-sm text-muted-foreground">Độ chính xác</dt>
-            <dd className="text-2xl font-semibold tabular-nums">
+            <dd className="text-2xl font-medium tabular-nums">
               {percent(ratio)}
             </dd>
           </div>
@@ -348,7 +364,7 @@ export function AttemptResult({
                   <Icon aria-hidden="true" className="size-3.5" />
                   {OUTCOME[key].label}
                 </dt>
-                <dd className="text-2xl font-semibold tabular-nums">
+                <dd className="text-2xl font-medium tabular-nums">
                   {counts[key]}
                 </dd>
               </div>
@@ -363,7 +379,7 @@ export function AttemptResult({
                 <Clock aria-hidden="true" className="size-3.5" />
                 Thời gian
               </dt>
-              <dd className="text-2xl font-semibold tabular-nums">
+              <dd className="text-2xl font-medium tabular-nums">
                 {duration(
                   Date.parse(attempt.submittedAt) -
                     Date.parse(attempt.startedAt),
@@ -413,31 +429,31 @@ export function AttemptResult({
           aria-labelledby="parts-heading"
           className="flex flex-col gap-3"
         >
-          <h2 id="parts-heading" className="text-lg font-semibold">
+          <h2 id="parts-heading" className="text-lg font-medium">
             Theo Part
           </h2>
-          <div className="overflow-x-auto rounded-xl border bg-card">
+          <div className="overflow-x-auto rounded-xl border bg-card shadow-xs">
             <table className="w-full text-sm">
               <thead className="text-left text-muted-foreground">
                 <tr className="border-b">
-                  <th className="px-3 py-2 font-medium">Part</th>
-                  <th className="px-3 py-2 text-right font-medium">Đúng</th>
-                  <th className="w-2/5 px-3 py-2 font-medium">Tỉ lệ</th>
+                  <th className="px-4 py-2 font-medium">Part</th>
+                  <th className="px-4 py-2 text-right font-medium">Đúng</th>
+                  <th className="w-2/5 px-4 py-2 font-medium">Tỉ lệ</th>
                 </tr>
               </thead>
               <tbody>
                 {byPart.map((row) => (
                   <tr key={row.key} className="border-b last:border-0">
-                    <td className="px-3 py-2">
+                    <td className="px-4 py-2">
                       <span className="font-medium">{partLabel(row.key)}</span>
                       <span className="block text-xs text-muted-foreground">
                         {partNames.get(row.key)}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums">
+                    <td className="px-4 py-2 text-right font-mono tabular-nums">
                       {row.correct}/{row.total}
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-4 py-2">
                       <div className="flex items-center gap-2">
                         <Bar ratio={row.correct / row.total} />
                         <span className="w-10 text-right tabular-nums">
@@ -453,7 +469,7 @@ export function AttemptResult({
         </section>
 
         <section aria-labelledby="tags-heading" className="flex flex-col gap-3">
-          <h2 id="tags-heading" className="text-lg font-semibold">
+          <h2 id="tags-heading" className="text-lg font-medium">
             Kỹ năng cần luyện
           </h2>
           {weakTags.length === 0 ? (
@@ -461,10 +477,13 @@ export function AttemptResult({
               className="rounded-xl border border-dashed p-6 text-center text-sm
                 text-muted-foreground"
             >
-              Không có kỹ năng nào sai trong bài này.
+              Không có kỹ năng nào sai trong bài này
             </p>
           ) : (
-            <ul className="flex flex-col gap-2 rounded-xl border bg-card p-4">
+            <ul
+              className="flex flex-col gap-3 rounded-xl border bg-card p-4
+                shadow-xs"
+            >
               {weakTags.map((tag) => (
                 <li
                   key={tag.key}
@@ -475,7 +494,7 @@ export function AttemptResult({
                     {exam.skillTags[tag.key] ?? tag.key}
                   </span>
                   <Bar ratio={tag.correct / tag.total} />
-                  <span className="text-right tabular-nums">
+                  <span className="text-right font-mono tabular-nums">
                     {tag.correct}/{tag.total}
                   </span>
                 </li>
@@ -486,10 +505,13 @@ export function AttemptResult({
       </div>
 
       <section aria-labelledby="sheet-heading" className="flex flex-col gap-3">
-        <h2 id="sheet-heading" className="text-lg font-semibold">
+        <h2 id="sheet-heading" className="text-lg font-medium">
           Phiếu trả lời
         </h2>
-        <div className="flex flex-col gap-3 rounded-xl border bg-card p-4">
+        <div
+          className="flex flex-col gap-4 rounded-xl border bg-card p-4
+            shadow-xs"
+        >
           {[...new Set(questions.map((q) => q.part))].map((code) => (
             <div key={code} className="flex flex-col gap-1.5">
               <h3 className="text-xs font-medium text-muted-foreground">
@@ -517,7 +539,7 @@ export function AttemptResult({
                         )}
                       >
                         {q.order + 1}
-                        <span aria-hidden="true" className="font-semibold">
+                        <span aria-hidden="true" className="font-medium">
                           {chosen == null ? '–' : LETTERS[chosen]}
                         </span>
                       </button>
@@ -535,10 +557,14 @@ export function AttemptResult({
 
       <section aria-labelledby="review-heading" className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="review-heading" className="text-lg font-semibold">
+          <h2 id="review-heading" className="text-lg font-medium">
             Xem lại và giải thích
           </h2>
-          <div role="radiogroup" aria-label="Lọc câu" className="flex gap-1.5">
+          <div
+            role="radiogroup"
+            aria-label="Lọc câu"
+            className="flex gap-1 rounded-lg bg-muted p-1 text-sm"
+          >
             {FILTERS.map((option) => (
               <button
                 key={option.value}
@@ -547,12 +573,12 @@ export function AttemptResult({
                 aria-checked={filter === option.value}
                 onClick={() => setFilter(option.value)}
                 className={cn(
-                  `min-h-8 cursor-pointer rounded-lg border px-3 text-sm
-                  transition-colors outline-none focus-visible:ring-3
-                  focus-visible:ring-ring/50`,
+                  `min-h-7 cursor-pointer rounded-md px-3 font-medium
+                  tabular-nums transition-colors outline-none
+                  focus-visible:ring-3 focus-visible:ring-ring/50`,
                   filter === option.value
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'hover:bg-muted',
+                    ? 'bg-background text-foreground ring-1 ring-foreground/10'
+                    : 'text-muted-foreground hover:text-foreground',
                 )}
               >
                 {option.label}
@@ -566,7 +592,7 @@ export function AttemptResult({
             className="rounded-xl border border-dashed p-6 text-center text-sm
               text-muted-foreground"
           >
-            Không có câu nào ở mục này.
+            Không có câu nào ở mục này
           </p>
         ) : (
           <ol className="flex flex-col gap-4">

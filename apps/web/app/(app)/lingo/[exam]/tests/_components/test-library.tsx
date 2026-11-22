@@ -5,9 +5,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 import { useQuery } from '@tanstack/react-query'
-import { CircleCheck, Clock, FileText, ListChecks, Users } from 'lucide-react'
+import { CircleCheck } from 'lucide-react'
 
-import { Badge } from '@repo/ui/components/badge'
 import { cn } from '@repo/ui/lib/utils'
 
 import { examQueryOptions, testsQueryOptions } from '@/lib/queries/lingo'
@@ -32,14 +31,18 @@ export function TestLibrary({ exam }: { exam: string }) {
 
   return (
     <>
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">Thư viện đề</h1>
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-medium tracking-tight">Thư viện đề</h1>
         <p className="text-muted-foreground">
           {spec?.name}: làm full test có điểm quy đổi, hoặc luyện từng Part.
         </p>
       </div>
 
-      <div role="radiogroup" aria-label="Loại đề" className="flex gap-2">
+      <div
+        role="radiogroup"
+        aria-label="Loại đề"
+        className="flex gap-1 self-start rounded-lg bg-muted p-1 text-sm"
+      >
         {KINDS.map((option) => (
           <button
             key={option.value}
@@ -48,12 +51,12 @@ export function TestLibrary({ exam }: { exam: string }) {
             aria-checked={kind === option.value}
             onClick={() => setKind(option.value)}
             className={cn(
-              `min-h-9 cursor-pointer rounded-lg border px-3 text-sm
+              `min-h-7 cursor-pointer rounded-md px-3 font-medium
               transition-colors outline-none focus-visible:ring-3
               focus-visible:ring-ring/50`,
               kind === option.value
-                ? 'border-primary bg-primary text-primary-foreground'
-                : 'hover:bg-muted',
+                ? 'bg-background text-foreground ring-1 ring-foreground/10'
+                : 'text-muted-foreground hover:text-foreground',
             )}
           >
             {option.label}
@@ -76,16 +79,16 @@ export function TestLibrary({ exam }: { exam: string }) {
               <Link
                 href={`/lingo/tests/${test.id}`}
                 className="flex h-full flex-col gap-3 rounded-xl border bg-card
-                  p-4 transition-colors outline-none hover:bg-muted/40
-                  focus-visible:ring-3 focus-visible:ring-ring/50"
+                  p-5 shadow-xs transition-[border-color,box-shadow]
+                  outline-none hover:border-foreground/20 hover:shadow-sm
+                  focus-visible:border-ring focus-visible:ring-3
+                  focus-visible:ring-ring/50"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <h2 className="font-semibold">{test.title}</h2>
-                  <Badge
-                    variant={test.kind === 'FULL' ? 'default' : 'secondary'}
-                  >
+                <div className="flex items-baseline justify-between gap-3">
+                  <h2 className="font-medium">{test.title}</h2>
+                  <span className="shrink-0 text-xs text-muted-foreground">
                     {test.kind === 'FULL' ? 'Full' : 'Mini'}
-                  </Badge>
+                  </span>
                 </div>
                 {test.description && (
                   <p className="line-clamp-2 text-sm text-muted-foreground">
@@ -93,27 +96,15 @@ export function TestLibrary({ exam }: { exam: string }) {
                   </p>
                 )}
                 <div
-                  className="mt-auto flex flex-wrap gap-x-4 gap-y-1 text-sm
-                    text-muted-foreground"
+                  className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1
+                    text-sm text-muted-foreground tabular-nums"
                 >
-                  <span className="flex items-center gap-1">
-                    <ListChecks aria-hidden className="size-4" />
-                    {test.questions} câu
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock aria-hidden className="size-4" />
-                    {minutes(test.timeLimitSec)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <FileText aria-hidden className="size-4" />
-                    {test.parts.length} Part
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Users aria-hidden className="size-4" />
-                    {test.takers} lượt làm
+                  <span>
+                    {test.questions} câu · {minutes(test.timeLimitSec)} ·{' '}
+                    {test.parts.length} Part · {test.takers} lượt làm
                   </span>
                   {test.attempts > 0 && (
-                    <span className="flex items-center gap-1 text-foreground">
+                    <span className="flex items-center gap-1.5 text-foreground">
                       <CircleCheck aria-hidden className="size-4" />
                       Bạn đã làm {test.attempts} lần
                     </span>

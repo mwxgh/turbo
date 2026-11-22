@@ -15,7 +15,7 @@ export default function TeachAiPage() {
         title="Sinh bằng AI"
         description="AI soạn câu theo Part hoặc điền thẻ từ vựng. Kết quả vào ngân hàng câu hỏi ở trạng thái nháp để bạn duyệt."
       />
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="grid items-start gap-6 xl:grid-cols-2">
         <GenerateItemsPanel exam={DEFAULT_EXAM} />
         <GenerateCardsPanel exam={DEFAULT_EXAM} />
       </div>

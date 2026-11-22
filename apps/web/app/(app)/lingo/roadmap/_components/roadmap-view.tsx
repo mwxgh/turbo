@@ -13,10 +13,8 @@ import {
   FileText,
   Loader2,
   Play,
-  Target,
 } from 'lucide-react'
 
-import { Badge } from '@repo/ui/components/badge'
 import { Button, buttonVariants } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'
 import { cn } from '@repo/ui/lib/utils'
@@ -30,14 +28,11 @@ import {
   roadmapQueryOptions,
 } from '@/lib/queries/lingo'
 
-const STATUS: Record<
-  RoadmapStage['status'],
-  { label: string; variant: 'default' | 'secondary' | 'outline' }
-> = {
-  done: { label: 'Đã xong', variant: 'secondary' },
-  passed: { label: 'Đã vượt qua', variant: 'secondary' },
-  current: { label: 'Đang học', variant: 'default' },
-  upcoming: { label: 'Sắp tới', variant: 'outline' },
+const STATUS: Record<RoadmapStage['status'], string> = {
+  done: 'Đã xong',
+  passed: 'Đã vượt qua',
+  current: 'Đang học',
+  upcoming: 'Sắp tới',
 }
 
 /** Starts an attempt and opens the exam room. */
@@ -141,11 +136,11 @@ function TaskRow({
       <span
         aria-hidden="true"
         className={cn(
-          'flex size-6 shrink-0 items-center justify-center rounded-full border',
-          task.done && 'border-primary bg-primary text-primary-foreground',
+          'flex size-5 shrink-0 items-center justify-center rounded-full border',
+          task.done && 'border-foreground bg-foreground text-background',
         )}
       >
-        {task.done && <Check className="size-3.5" />}
+        {task.done && <Check className="size-3" />}
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <span
@@ -164,7 +159,7 @@ function TaskRow({
             aria-valuenow={Math.round(task.progress * 100)}
             aria-valuemin={0}
             aria-valuemax={100}
-            className="h-1.5 w-full max-w-56 overflow-hidden rounded-full
+            className="h-1 w-full max-w-56 overflow-hidden rounded-full
               bg-muted"
           >
             <div
@@ -207,10 +202,11 @@ function StageCard({
       <div className="flex flex-col items-center">
         <span
           className={cn(
-            `flex size-9 shrink-0 items-center justify-center rounded-full
-            border-2 text-sm font-semibold`,
-            current && 'border-primary bg-primary text-primary-foreground',
-            finished && 'border-primary text-primary',
+            `flex size-8 shrink-0 items-center justify-center rounded-full
+            border bg-background text-sm font-medium tabular-nums`,
+            current && 'border-foreground bg-foreground text-background',
+            finished && 'text-foreground',
+            stage.status === 'upcoming' && 'text-muted-foreground',
           )}
         >
           {finished ? <Check aria-hidden className="size-4" /> : index + 1}
@@ -220,17 +216,25 @@ function StageCard({
       <section
         aria-labelledby={`stage-${stage.id}`}
         className={cn(
-          `mb-6 flex min-w-0 flex-1 flex-col gap-3 rounded-xl border bg-card
-          p-5`,
-          current && 'border-primary/50 shadow-sm',
-          finished && 'bg-card/60',
+          `mb-6 flex min-w-0 flex-1 flex-col gap-3 rounded-xl border bg-card p-5
+          shadow-xs`,
+          current && 'border-foreground/20 shadow-sm',
         )}
       >
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 id={`stage-${stage.id}`} className="text-lg font-semibold">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h2 id={`stage-${stage.id}`} className="text-lg font-medium">
             Giai đoạn {index + 1}: {stage.title}
           </h2>
-          <Badge variant={status.variant}>{status.label}</Badge>
+          <span
+            className={cn(
+              'text-sm',
+              current
+                ? 'font-medium text-rose-700 dark:text-rose-300'
+                : 'text-muted-foreground',
+            )}
+          >
+            {status}
+          </span>
           <span className="ml-auto text-sm text-muted-foreground tabular-nums">
             {done}/{stage.tasks.length} nhiệm vụ
           </span>
@@ -242,7 +246,10 @@ function StageCard({
             ` Điểm ước tính của bạn đã từ ${stage.passScore}, có thể bỏ qua hoặc làm để củng cố.`}
         </p>
         <details open={current} className="group">
-          <summary className="cursor-pointer text-sm font-medium">
+          <summary
+            className="cursor-pointer text-sm font-medium outline-none
+              focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
             Nhiệm vụ và lời khuyên
           </summary>
           <ul className="mt-1 flex flex-col divide-y">
@@ -285,10 +292,10 @@ export function RoadmapView({ exam }: { exam: string }) {
     return isError ? (
       <div
         role="alert"
-        className="flex flex-col items-start gap-3 rounded-xl border
-          border-destructive/40 p-6"
+        className="flex flex-col items-start gap-3 rounded-xl border bg-card p-6
+          shadow-xs"
       >
-        <p className="font-medium">Không tải được lộ trình.</p>
+        <p className="font-medium">Không tải được lộ trình</p>
         <p className="text-sm text-muted-foreground">
           Máy chủ chưa trả lời. Thử lại sau ít phút.
         </p>
@@ -314,8 +321,8 @@ export function RoadmapView({ exam }: { exam: string }) {
 
   return (
     <>
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-semibold">Lộ trình TOEIC</h1>
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-medium tracking-tight">Lộ trình TOEIC</h1>
         <p className="text-muted-foreground">
           Đi lần lượt từng giai đoạn. Tiến độ tự cập nhật từ bài làm và thẻ từ
           vựng bạn đã ôn.
@@ -323,45 +330,55 @@ export function RoadmapView({ exam }: { exam: string }) {
       </div>
 
       <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
-          <dt className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Target aria-hidden className="size-3.5" />
-            Mục tiêu
-          </dt>
-          <dd className="text-2xl font-semibold tabular-nums">
+        <div
+          className="flex flex-col gap-1 rounded-xl border bg-card p-5
+            shadow-xs"
+        >
+          <dt className="text-sm text-muted-foreground">Mục tiêu</dt>
+          <dd className="text-2xl font-medium tabular-nums">
             {roadmap.target}
           </dd>
           <dd>
             <Link
               href={`/lingo/${exam}`}
-              className="text-xs text-muted-foreground underline
-                hover:text-foreground"
+              className="rounded-sm text-xs text-muted-foreground underline
+                underline-offset-2 outline-none hover:text-foreground
+                focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               Đổi mục tiêu
             </Link>
           </dd>
         </div>
-        <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
+        <div
+          className="flex flex-col gap-1 rounded-xl border bg-card p-5
+            shadow-xs"
+        >
           <dt className="text-sm text-muted-foreground">Điểm ước tính</dt>
-          <dd className="text-2xl font-semibold tabular-nums">
+          <dd className="text-2xl font-medium tabular-nums">
             {roadmap.estimate ?? '–'}
           </dd>
           <dd className="text-xs text-muted-foreground">
             Từ bài đầu vào hoặc full test gần nhất
           </dd>
         </div>
-        <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
+        <div
+          className="flex flex-col gap-1 rounded-xl border bg-card p-5
+            shadow-xs"
+        >
           <dt className="text-sm text-muted-foreground">Tỉ lệ đúng cần đạt</dt>
-          <dd className="text-2xl font-semibold tabular-nums">
+          <dd className="text-2xl font-medium tabular-nums">
             {percent(roadmap.accuracy)}
           </dd>
-          <dd className="text-xs text-muted-foreground">
+          <dd className="text-xs text-muted-foreground tabular-nums">
             Khoảng {Math.round(roadmap.accuracy * 200)}/200 câu
           </dd>
         </div>
-        <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
+        <div
+          className="flex flex-col gap-1 rounded-xl border bg-card p-5
+            shadow-xs"
+        >
           <dt className="text-sm text-muted-foreground">Ngày thi</dt>
-          <dd className="text-2xl font-semibold tabular-nums">
+          <dd className="text-2xl font-medium tabular-nums">
             {daysLeft === null
               ? '–'
               : daysLeft >= 0
@@ -377,11 +394,11 @@ export function RoadmapView({ exam }: { exam: string }) {
       {placement && !placement.done ? (
         <section
           aria-labelledby="placement-heading"
-          className="flex flex-wrap items-center gap-4 rounded-xl border
-            border-primary/50 bg-primary/5 p-5"
+          className="flex flex-wrap items-center gap-4 rounded-xl border bg-card
+            p-5 shadow-xs"
         >
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <h2 id="placement-heading" className="font-semibold">
+            <h2 id="placement-heading" className="font-medium">
               Bắt đầu bằng bài kiểm tra đầu vào
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -394,9 +411,10 @@ export function RoadmapView({ exam }: { exam: string }) {
       ) : (
         <section
           aria-labelledby="today-heading"
-          className="flex flex-col gap-3 rounded-xl border bg-card p-5"
+          className="flex flex-col gap-3 rounded-xl border bg-card p-5
+            shadow-xs"
         >
-          <h2 id="today-heading" className="font-semibold">
+          <h2 id="today-heading" className="font-medium">
             Hôm nay
           </h2>
           <ul className="flex flex-col gap-3 text-sm">

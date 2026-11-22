@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import {
-  Bot,
   ExternalLink,
+  FilePlus2,
   FileStack,
   LayoutDashboard,
   ListChecks,
@@ -18,7 +18,7 @@ const LINKS = [
   { href: '/teach', label: 'Tổng quan', icon: LayoutDashboard },
   { href: '/teach/tests', label: 'Bộ đề', icon: FileStack },
   { href: '/teach/items', label: 'Ngân hàng câu hỏi', icon: ListChecks },
-  { href: '/teach/ai', label: 'Sinh bằng AI', icon: Bot },
+  { href: '/teach/ai', label: 'Sinh bằng AI', icon: FilePlus2 },
   { href: '/teach/import', label: 'Nhập dữ liệu', icon: Upload },
 ] as const
 
@@ -33,8 +33,8 @@ export function TeachNav() {
     <nav
       aria-label="Ra đề"
       className="flex gap-1 overflow-x-auto border-b px-4 py-2 lg:sticky
-        lg:top-0 lg:h-fit lg:flex-col lg:overflow-visible lg:border-r
-        lg:border-b-0 lg:px-3 lg:py-6"
+        lg:top-0 lg:h-fit lg:flex-col lg:overflow-visible lg:border-b-0 lg:px-3
+        lg:py-6"
     >
       <p
         className="hidden px-3 pb-3 text-xs font-medium text-muted-foreground

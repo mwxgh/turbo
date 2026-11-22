@@ -10,6 +10,8 @@ import {
   adminTestsQueryOptions,
 } from '@/lib/queries/lingo'
 
+import { sectionHeadingClass } from './panel'
+
 /** One count: only the total of a one-row page is read. */
 const one = { page: 1, pageSize: 1 }
 
@@ -27,20 +29,25 @@ function Stat({
   return (
     <Link
       href={href}
-      className="group flex flex-col gap-1 rounded-xl border bg-card p-4
-        transition-colors outline-none hover:bg-muted/40 focus-visible:ring-3
+      className="group flex flex-col gap-2 rounded-xl border bg-card p-5
+        shadow-xs transition-colors outline-none hover:border-foreground/20
+        focus-visible:border-ring focus-visible:ring-3
         focus-visible:ring-ring/50"
     >
       <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-3xl font-semibold tabular-nums">
+      <span className="text-3xl font-medium tracking-tight tabular-nums">
         {value ?? '–'}
       </span>
       <span
         className="mt-auto flex items-center gap-1 text-sm text-muted-foreground
-          group-hover:text-foreground"
+          transition-colors group-hover:text-foreground"
       >
         {hint}
-        <ChevronRight aria-hidden="true" className="size-4" />
+        <ChevronRight
+          aria-hidden="true"
+          className="size-4 transition-transform group-hover:translate-x-0.5
+            motion-reduce:transition-none"
+        />
       </span>
     </Link>
   )
@@ -63,10 +70,10 @@ export function TeachOverview({ exam }: { exam: string }) {
 
   return (
     <section aria-labelledby="todo-heading" className="flex flex-col gap-3">
-      <h2 id="todo-heading" className="text-lg font-semibold">
+      <h2 id="todo-heading" className={sectionHeadingClass}>
         Việc cần làm
       </h2>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Stat
           label="Câu nháp chờ duyệt"
           value={draft}

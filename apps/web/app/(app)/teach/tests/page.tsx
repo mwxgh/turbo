@@ -13,9 +13,9 @@ export default function TeachTestsPage() {
     <>
       <TeachHeader
         title="Bộ đề"
-        description="Ghép đề từ câu đã duyệt hoặc để AI sinh trọn bộ, rồi xem lại và xuất bản cho học viên."
+        description="Ghép đề từ câu đã duyệt hoặc để AI sinh trọn bộ, rồi xem lại và xuất bản cho học viên"
       />
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="grid items-start gap-6 xl:grid-cols-2">
         <AssembleTestPanel exam={DEFAULT_EXAM} />
         <GenerateTestPanel exam={DEFAULT_EXAM} />
       </div>

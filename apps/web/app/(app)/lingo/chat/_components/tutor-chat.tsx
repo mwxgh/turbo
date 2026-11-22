@@ -59,7 +59,7 @@ export function TutorChat() {
                 aria-current={item.id === chatId ? 'true' : undefined}
                 className={cn(
                   `min-w-0 flex-1 truncate rounded-md px-2.5 py-1.5 text-left
-                  text-sm outline-none focus-visible:ring-3
+                  text-sm transition-colors outline-none focus-visible:ring-3
                   focus-visible:ring-ring/50 disabled:opacity-50`,
                   item.id === chatId
                     ? 'bg-muted font-medium'
@@ -86,7 +86,7 @@ export function TutorChat() {
         chatId={chatId}
         onChatId={setChatId}
         onBusyChange={setBusy}
-        className="h-[70vh] rounded-xl border"
+        className="h-[70vh] rounded-xl border bg-card shadow-xs"
       />
     </div>
   )

@@ -13,7 +13,6 @@ import {
   X,
 } from 'lucide-react'
 
-import { Badge } from '@repo/ui/components/badge'
 import { Button } from '@repo/ui/components/button'
 import { FileUploadDialog } from '@repo/ui/components/file-upload'
 import { Input } from '@repo/ui/components/input'
@@ -45,7 +44,16 @@ import {
 } from '@/lib/queries/lingo'
 import { deleteFromStorage, uploadToStorage } from '@/lib/storage'
 
-import { Panel, ResultSummary, selectClass } from './panel'
+import {
+  DIFFICULTY_LABEL,
+  Panel,
+  ResultSummary,
+  STATUS_LABEL,
+  StatusDot,
+  emptyClass,
+  sectionHeadingClass,
+  selectClass,
+} from './panel'
 
 const ITEM_EXAMPLE = `[
   {
@@ -201,7 +209,7 @@ export function ImportItemsPanel({ exam }: { exam: string }) {
             text-xs outline-none focus-visible:border-ring focus-visible:ring-3
             focus-visible:ring-ring/50 dark:bg-input/30"
         />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs leading-relaxed text-muted-foreground">
           Theo Part: P1 có <code>scene</code> (mô tả ảnh), không có{' '}
           <code>text</code>; P2 có <code>text</code> + 3 lựa chọn,{' '}
           <code>accent</code>; P3/P4 có <code>transcript</code> (
@@ -210,7 +218,10 @@ export function ImportItemsPanel({ exam }: { exam: string }) {
           [4], P7 nhiều văn bản ngăn bằng dòng <code>---</code>).
         </p>
         <p className="text-xs text-muted-foreground">
-          Tag kỹ năng hợp lệ: {Object.keys(spec?.skillTags ?? {}).join(', ')}
+          Tag kỹ năng hợp lệ:{' '}
+          <span className="font-mono">
+            {Object.keys(spec?.skillTags ?? {}).join(', ')}
+          </span>
         </p>
       </div>
       <Button
@@ -325,7 +336,10 @@ export function ImportCardsPanel({ exam }: { exam: string }) {
           />
         </div>
       </div>
-      <pre className="overflow-x-auto rounded-lg bg-muted/40 p-3 text-xs">
+      <pre
+        className="overflow-x-auto rounded-lg bg-muted/40 p-3 font-mono text-xs
+          text-muted-foreground"
+      >
         {CSV_EXAMPLE}
       </pre>
       <Button
@@ -400,8 +414,8 @@ function ItemCard({
   return (
     <li
       className={cn(
-        'flex gap-3 rounded-xl border p-4',
-        selected && 'border-primary bg-primary/5',
+        'flex gap-3 rounded-xl border bg-card p-5 shadow-xs transition-colors',
+        selected && 'border-primary/40 bg-primary/5',
       )}
     >
       <input
@@ -412,15 +426,18 @@ function ItemCard({
         className="mt-1 size-4 cursor-pointer accent-primary"
       />
       <div className="flex flex-1 flex-col gap-3">
-        <div className="flex flex-wrap gap-1.5">
-          <Badge variant="outline">{item.part}</Badge>
-          <Badge variant="outline">{item.difficulty}</Badge>
-          {item.topic && <Badge variant="secondary">{item.topic}</Badge>}
-          <Badge
-            variant={item.status === 'NEEDS_REVIEW' ? 'destructive' : 'outline'}
-          >
-            {item.status}
-          </Badge>
+        <div
+          className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm
+            text-muted-foreground"
+        >
+          <span className="tabular-nums">
+            {item.part} · {DIFFICULTY_LABEL[item.difficulty]}
+            {item.topic && ` · ${item.topic}`}
+          </span>
+          <StatusDot
+            status={item.status}
+            label={STATUS_LABEL[item.status] ?? item.status}
+          />
         </div>
         {content.scene && (
           <div className="flex flex-col gap-2 text-sm">
@@ -510,10 +527,10 @@ export function ReviewQueuePanel({ exam }: { exam: string }) {
     <section aria-labelledby="queue-heading" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h2 id="queue-heading" className="text-lg font-semibold">
+          <h2 id="queue-heading" className={sectionHeadingClass}>
             Hàng duyệt
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground tabular-nums">
             {data ? `${data.total} item` : '…'}
             {isFetching && ' · đang tải'}
           </p>
@@ -578,7 +595,7 @@ export function ReviewQueuePanel({ exam }: { exam: string }) {
               onClick={() => void apply('PUBLISHED')}
             >
               <Check aria-hidden="true" />
-              Xuất bản ({selected.size})
+              Xuất bản <span className="tabular-nums">({selected.size})</span>
             </Button>
           )}
           {status !== 'REJECTED' && (
@@ -589,7 +606,7 @@ export function ReviewQueuePanel({ exam }: { exam: string }) {
               onClick={() => void apply('REJECTED')}
             >
               <X aria-hidden="true" />
-              Loại ({selected.size})
+              Loại <span className="tabular-nums">({selected.size})</span>
             </Button>
           )}
         </div>
@@ -613,12 +630,7 @@ export function ReviewQueuePanel({ exam }: { exam: string }) {
           ))}
         </ul>
       ) : (
-        <p
-          className="rounded-xl border border-dashed p-6 text-center text-sm
-            text-muted-foreground"
-        >
-          Không có item nào ở trạng thái này.
-        </p>
+        <p className={emptyClass}>Không có item nào ở trạng thái này</p>
       )}
     </section>
   )
@@ -640,12 +652,12 @@ export function BatchesPanel() {
   if (!batches.length) return null
   return (
     <section aria-labelledby="batches-heading" className="flex flex-col gap-3">
-      <h2 id="batches-heading" className="text-lg font-semibold">
+      <h2 id="batches-heading" className={sectionHeadingClass}>
         Lịch sử nhập và sinh AI
       </h2>
-      <div className="overflow-x-auto rounded-xl border">
+      <div className="overflow-x-auto rounded-xl border bg-card shadow-xs">
         <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-left text-muted-foreground">
+          <thead className="bg-muted/40 text-left text-muted-foreground">
             <tr>
               <th className="px-3 py-2 font-medium">Thời gian</th>
               <th className="px-3 py-2 font-medium">Nguồn</th>
@@ -659,20 +671,30 @@ export function BatchesPanel() {
           <tbody className="divide-y">
             {batches.map((b) => (
               <tr key={b.id}>
-                <td className="px-3 py-2 whitespace-nowrap">
+                <td
+                  className="px-3 py-2 whitespace-nowrap text-muted-foreground
+                    tabular-nums"
+                >
                   {formatDateTime(b.createdAt)}
                 </td>
-                <td className="px-3 py-2">{b.source}</td>
+                <td className="px-3 py-2 font-mono text-xs">{b.source}</td>
                 <td className="px-3 py-2" title={b.message ?? undefined}>
                   <span className="flex items-center gap-1.5">
-                    {b.status === 'RUNNING' && (
-                      <Loader2
-                        aria-hidden
-                        className="size-3.5 animate-spin
-                          motion-reduce:animate-none"
+                    {b.status === 'RUNNING' ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Loader2
+                          aria-hidden
+                          className="size-3.5 animate-spin text-muted-foreground
+                            motion-reduce:animate-none"
+                        />
+                        {BATCH_STATUS[b.status]}
+                      </span>
+                    ) : (
+                      <StatusDot
+                        status={b.status}
+                        label={BATCH_STATUS[b.status] ?? b.status}
                       />
                     )}
-                    {BATCH_STATUS[b.status] ?? b.status}
                     {b.message && (
                       <span className="text-xs text-destructive">
                         {b.message.slice(0, 60)}

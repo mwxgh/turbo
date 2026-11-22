@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { PartyPopper, RotateCcw, Volume2 } from 'lucide-react'
+import { CircleCheck, RotateCcw, Volume2 } from 'lucide-react'
 
 import { Button } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'
@@ -33,14 +33,15 @@ function DeckList({ decks }: { decks: DeckWithStats[] }) {
   if (!decks.length) return null
   return (
     <section aria-labelledby="decks-heading" className="flex flex-col gap-3">
-      <h2 id="decks-heading" className="text-lg font-semibold">
+      <h2 id="decks-heading" className="text-lg font-medium">
         Bộ thẻ
       </h2>
       <ul className="grid gap-3 sm:grid-cols-2">
         {decks.map((deck) => (
           <li
             key={deck.id}
-            className="flex flex-col gap-2 rounded-xl border bg-card p-4"
+            className="flex flex-col gap-2 rounded-xl border bg-card p-5
+              shadow-xs"
           >
             <span className="font-medium">{deck.title}</span>
             {deck.description && (
@@ -48,7 +49,7 @@ function DeckList({ decks }: { decks: DeckWithStats[] }) {
                 {deck.description}
               </span>
             )}
-            <span className="text-sm text-muted-foreground tabular-nums">
+            <span className="mt-auto text-xs text-muted-foreground tabular-nums">
               {deck.cards} thẻ · đã học {deck.started} · thuộc {deck.learned}
             </span>
           </li>
@@ -127,8 +128,8 @@ export function ReviewSession({ exam }: { exam?: string }) {
 
   return (
     <>
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-3xl font-bold tracking-tight">Ôn từ vựng</h1>
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-medium tracking-tight">Ôn từ vựng</h1>
         <p className="text-muted-foreground">
           Nhớ nghĩa trước, rồi lật thẻ và tự chấm. Lịch ôn tự giãn ra khi bạn
           nhớ tốt.
@@ -141,11 +142,13 @@ export function ReviewSession({ exam }: { exam?: string }) {
             className="flex items-center justify-between text-sm
               text-muted-foreground"
           >
-            <span className="tabular-nums">
+            <span className="text-xs tabular-nums">
               {done}/{total} thẻ
             </span>
             {card.isNew && (
-              <span className="font-medium text-primary">Thẻ mới</span>
+              <span className="font-medium text-rose-700 dark:text-rose-300">
+                Thẻ mới
+              </span>
             )}
           </div>
           <div
@@ -154,7 +157,7 @@ export function ReviewSession({ exam }: { exam?: string }) {
             aria-valuenow={done}
             aria-valuemin={0}
             aria-valuemax={total}
-            className="h-1.5 overflow-hidden rounded-full bg-muted"
+            className="h-1 overflow-hidden rounded-full bg-muted"
           >
             <div
               className="h-full rounded-full bg-primary"
@@ -164,10 +167,10 @@ export function ReviewSession({ exam }: { exam?: string }) {
 
           <div
             className="flex min-h-72 flex-col items-center justify-center gap-4
-              rounded-2xl border bg-card p-8 text-center"
+              rounded-2xl border bg-card p-8 text-center shadow-xs"
           >
             <div className="flex items-center gap-2">
-              <span className="text-3xl font-semibold sm:text-4xl">
+              <span className="text-4xl font-medium tracking-tight sm:text-5xl">
                 {card.term}
               </span>
               <Button
@@ -179,11 +182,11 @@ export function ReviewSession({ exam }: { exam?: string }) {
                 <Volume2 aria-hidden="true" />
               </Button>
             </div>
-            <span className="text-muted-foreground">
+            <span className="text-sm text-muted-foreground">
               {[card.reading, card.pos].filter(Boolean).join(' · ')}
             </span>
             {flipped ? (
-              <div className="flex max-w-prose flex-col gap-3 border-t pt-4">
+              <div className="flex max-w-prose flex-col gap-3 border-t pt-6">
                 <p className="text-xl font-medium">{card.meaningVi}</p>
                 {card.example && (
                   <p className="leading-relaxed">
@@ -198,8 +201,13 @@ export function ReviewSession({ exam }: { exam?: string }) {
               </div>
             ) : (
               <Button variant="outline" onClick={() => setFlipped(true)}>
-                Lật thẻ{' '}
-                <kbd className="ml-1 text-xs text-muted-foreground">Space</kbd>
+                Lật thẻ
+                <kbd
+                  className="ml-1 rounded border bg-muted px-1.5 font-mono
+                    text-[11px] font-normal text-muted-foreground"
+                >
+                  Space
+                </kbd>
               </Button>
             )}
           </div>
@@ -222,7 +230,9 @@ export function ReviewSession({ exam }: { exam?: string }) {
                 className="h-12 flex-col gap-0"
               >
                 <span>{r.label}</span>
-                <span className="text-xs opacity-70">phím {r.key}</span>
+                <span className="text-xs font-normal opacity-70">
+                  phím {r.key}
+                </span>
               </Button>
             ))}
           </div>
@@ -230,13 +240,17 @@ export function ReviewSession({ exam }: { exam?: string }) {
       ) : (
         <section
           className="flex flex-col items-center gap-3 rounded-2xl border bg-card
-            p-10 text-center"
+            p-10 text-center shadow-xs"
         >
-          <PartyPopper aria-hidden="true" className="size-10 text-primary" />
-          <h2 className="text-xl font-semibold">
-            {done
-              ? `Xong ${done} thẻ hôm nay!`
-              : 'Hôm nay không còn thẻ cần ôn'}
+          <span
+            className="flex size-11 items-center justify-center rounded-lg
+              bg-rose-500/10 text-rose-700 dark:bg-rose-400/15
+              dark:text-rose-300"
+          >
+            <CircleCheck aria-hidden="true" className="size-5.5" />
+          </span>
+          <h2 className="text-xl font-medium">
+            {done ? `Xong ${done} thẻ hôm nay` : 'Hôm nay không còn thẻ cần ôn'}
           </h2>
           <p className="text-sm text-muted-foreground">
             {decks.length

@@ -3,7 +3,7 @@
 import { type FormEvent, useState } from 'react'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { BookA, Loader2, Sparkles, WandSparkles } from 'lucide-react'
+import { BookA, FilePlus2, FileStack, Loader2 } from 'lucide-react'
 
 import { Button } from '@repo/ui/components/button'
 import { Input } from '@repo/ui/components/input'
@@ -21,20 +21,18 @@ import {
   lingoKeys,
 } from '@/lib/queries/lingo'
 
-import { Panel, ResultSummary, selectClass } from './panel'
-
-type Difficulty = 'EASY' | 'MEDIUM' | 'HARD'
-
-const DIFFICULTY_LABEL: Record<Difficulty, string> = {
-  EASY: 'Dễ',
-  MEDIUM: 'Vừa',
-  HARD: 'Khó',
-}
+import {
+  DIFFICULTY_LABEL,
+  type Difficulty,
+  Panel,
+  ResultSummary,
+  selectClass,
+} from './panel'
 
 function aiError(errors: string[] | undefined) {
   const text = errors?.join(' · ')
   return text?.includes('not configured')
-    ? 'AI chưa được bật: đặt ARK_API_KEY và ARK_MODEL trong .env của api.'
+    ? 'AI chưa được bật: đặt ARK_API_KEY và ARK_MODEL trong .env của api'
     : text
 }
 
@@ -76,7 +74,7 @@ function SelfCheck({
   onChange: (checked: boolean) => void
 }) {
   return (
-    <label htmlFor={id} className="flex items-start gap-2 text-sm">
+    <label htmlFor={id} className="flex items-start gap-3 text-sm">
       <input
         id={id}
         type="checkbox"
@@ -86,7 +84,7 @@ function SelfCheck({
       />
       <span>
         AI tự kiểm đáp án
-        <span className="block text-xs text-muted-foreground">
+        <span className="mt-1 block text-xs text-muted-foreground">
           Model làm lại câu vừa sinh; lệch đáp án → “Cần xem lại”. Tốn gấp đôi
           lượt gọi.
         </span>
@@ -137,7 +135,7 @@ export function GenerateItemsPanel({ exam }: { exam: string }) {
   const selected = parts.find((p) => p.code === part)
   return (
     <Panel
-      icon={Sparkles}
+      icon={FilePlus2}
       title="Sinh câu bằng AI"
       description="BytePlus viết item theo cấu trúc Part. Item vào hàng chờ duyệt, không tự xuất bản. Part 1 cần tải ảnh lên trước khi duyệt."
     >
@@ -188,20 +186,18 @@ export function GenerateItemsPanel({ exam }: { exam: string }) {
           </div>
         </div>
         {selected && selected.questionsPerItem[1] > 1 && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground tabular-nums">
             Mỗi item {selected.code} có {selected.questionsPerItem.join('–')}{' '}
-            câu hỏi.
+            câu hỏi
           </p>
         )}
         <SelfCheck id="gen-check" checked={selfCheck} onChange={setSelfCheck} />
         <Button type="submit" className="self-start" disabled={busy}>
-          {busy ? (
+          {busy && (
             <Loader2
               aria-hidden
               className="animate-spin motion-reduce:animate-none"
             />
-          ) : (
-            <Sparkles aria-hidden />
           )}
           Sinh câu
         </Button>
@@ -258,7 +254,7 @@ export function GenerateTestPanel({ exam }: { exam: string }) {
 
   return (
     <Panel
-      icon={WandSparkles}
+      icon={FileStack}
       title="Sinh trọn bộ đề bằng AI"
       description="Sinh đủ 7 Part theo cấu trúc rồi ghép thành đề nháp. Mini ≈ 96 câu, Full = 200 câu (nhiều lượt gọi, tốn token hơn)."
     >
@@ -333,13 +329,11 @@ export function GenerateTestPanel({ exam }: { exam: string }) {
           className="self-start"
           disabled={busy || !title.trim()}
         >
-          {busy ? (
+          {busy && (
             <Loader2
               aria-hidden
               className="animate-spin motion-reduce:animate-none"
             />
-          ) : (
-            <WandSparkles aria-hidden />
           )}
           Sinh đề
         </Button>
@@ -420,7 +414,7 @@ export function GenerateCardsPanel({ exam }: { exam: string }) {
             placeholder={'invoice\nreimburse\nquarterly'}
             onChange={(e) => setTerms(e.target.value)}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground tabular-nums">
             {list.length} từ{list.length > 50 && ' (chỉ lấy 50 từ đầu)'}
           </p>
         </div>
@@ -429,13 +423,11 @@ export function GenerateCardsPanel({ exam }: { exam: string }) {
           className="self-start"
           disabled={busy || !deckId || !list.length}
         >
-          {busy ? (
+          {busy && (
             <Loader2
               aria-hidden
               className="animate-spin motion-reduce:animate-none"
             />
-          ) : (
-            <Sparkles aria-hidden />
           )}
           Điền thẻ
         </Button>

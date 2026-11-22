@@ -49,29 +49,34 @@ export function MistakesList({ exam }: { exam: string }) {
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="text-3xl font-bold tracking-tight">Sổ câu sai</h1>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-medium tracking-tight">Sổ câu sai</h1>
           <p className="text-muted-foreground">
             Câu bạn làm sai ở lần gần nhất. Làm đúng lại thì câu tự rời sổ.
           </p>
         </div>
-        {parts.map((part) => (
-          <Button
-            key={part}
-            onClick={() => void retry(part)}
-            disabled={starting}
-          >
-            {starting ? (
-              <Loader2
-                aria-hidden="true"
-                className="animate-spin motion-reduce:animate-none"
-              />
-            ) : (
-              <RotateCcw aria-hidden="true" />
-            )}
-            Làm lại {part.replace('P', 'Part ')}
-          </Button>
-        ))}
+        {parts.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {parts.map((part) => (
+              <Button
+                key={part}
+                variant="outline"
+                onClick={() => void retry(part)}
+                disabled={starting}
+              >
+                {starting ? (
+                  <Loader2
+                    aria-hidden="true"
+                    className="animate-spin motion-reduce:animate-none"
+                  />
+                ) : (
+                  <RotateCcw aria-hidden="true" />
+                )}
+                Làm lại {part.replace('P', 'Part ')}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
 
       {mistakes.length === 0 ? (
@@ -79,18 +84,19 @@ export function MistakesList({ exam }: { exam: string }) {
           className="rounded-xl border border-dashed p-6 text-center
             text-muted-foreground"
         >
-          Chưa có câu sai nào. Tuyệt!
+          Chưa có câu sai nào
         </p>
       ) : (
         <ol className="flex flex-col gap-3">
           {mistakes.map((m) => (
             <li
               key={m.id}
-              className="flex flex-col gap-2 rounded-xl border bg-card p-4"
+              className="flex flex-col gap-3 rounded-xl border bg-card p-5
+                shadow-xs"
             >
               <div
                 className="flex justify-between gap-2 text-xs
-                  text-muted-foreground"
+                  text-muted-foreground tabular-nums"
               >
                 <span>{m.part.replace('P', 'Part ')}</span>
                 <span>{formatDate(m.answeredAt)}</span>
@@ -104,14 +110,19 @@ export function MistakesList({ exam }: { exam: string }) {
                 />
               )}
               {m.text && <p className="leading-relaxed">{m.text}</p>}
-              <p className="text-sm">
+              <p className="flex flex-col gap-1 text-sm sm:flex-row sm:gap-2">
                 <span className="text-destructive">
                   Bạn chọn:{' '}
                   {m.response
                     ? `${LETTERS[m.response.choice]}. ${m.options[m.response.choice]}`
                     : 'bỏ trống'}
                 </span>
-                {' · '}
+                <span
+                  aria-hidden="true"
+                  className="hidden text-muted-foreground sm:inline"
+                >
+                  ·
+                </span>
                 <span
                   className="font-medium text-emerald-700 dark:text-emerald-300"
                 >

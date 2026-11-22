@@ -55,9 +55,9 @@ export function TutorBubble() {
             open ? 'flex' : 'hidden',
           )}
         >
-          <header className="flex items-center gap-1 border-b px-3 py-2">
-            <Bot aria-hidden className="size-4 text-primary" />
-            <h2 className="mr-auto text-sm font-semibold">Gia sư AI</h2>
+          <header className="flex items-center gap-2 border-b py-2 pr-2 pl-4">
+            <Bot aria-hidden className="size-4 text-muted-foreground" />
+            <h2 className="mr-auto text-sm font-medium">Gia sư AI</h2>
             <IconButton
               label="Cuộc trò chuyện mới"
               variant="ghost"

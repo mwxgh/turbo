@@ -38,7 +38,7 @@ export function LingoNav({ isAdmin }: { isAdmin: boolean }) {
                   font-medium whitespace-nowrap transition-colors outline-none
                   focus-visible:ring-3 focus-visible:ring-ring/50`,
                   active
-                    ? 'border-primary text-foreground'
+                    ? 'border-rose-600 text-foreground dark:border-rose-400'
                     : `border-transparent text-muted-foreground
                       hover:text-foreground`,
                 )}

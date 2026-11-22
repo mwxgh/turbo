@@ -7,9 +7,11 @@ export function TeachHeader({
   description: string
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-      <p className="text-muted-foreground">{description}</p>
+    <div className="flex flex-col gap-2">
+      <h1 className="text-3xl font-medium tracking-tight text-balance">
+        {title}
+      </h1>
+      <p className="text-pretty text-muted-foreground">{description}</p>
     </div>
   )
 }

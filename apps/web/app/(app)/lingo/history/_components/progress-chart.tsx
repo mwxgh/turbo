@@ -69,7 +69,8 @@ export function ProgressChart({
               y={y(t)}
               dy="0.32em"
               textAnchor="end"
-              className="fill-muted-foreground text-[11px] tabular-nums"
+              className="fill-muted-foreground font-mono text-[11px]
+                tabular-nums"
             >
               {format(t)}
             </text>
@@ -102,7 +103,7 @@ export function ProgressChart({
                 textAnchor={
                   points.length === 1 ? 'middle' : i === 0 ? 'start' : 'end'
                 }
-                className="fill-muted-foreground text-[11px]"
+                className="fill-muted-foreground font-mono text-[11px]"
               >
                 {p.label}
               </text>
@@ -143,7 +144,7 @@ export function ProgressChart({
             top: `calc(${(y(point.value) / H) * 100}% - 10px)`,
           }}
         >
-          <span className="text-sm font-semibold tabular-nums">
+          <span className="text-sm font-medium tabular-nums">
             {format(point.value)}
           </span>
           <span className="text-muted-foreground">{point.label}</span>

@@ -64,7 +64,7 @@ export function GoalForm({
         <DialogHeader>
           <DialogTitle>Mục tiêu</DialogTitle>
           <DialogDescription>
-            Điểm muốn đạt, ngày thi và số thẻ từ vựng mới mỗi ngày.
+            Điểm muốn đạt, ngày thi và số thẻ từ vựng mới mỗi ngày
           </DialogDescription>
         </DialogHeader>
         <form

@@ -131,7 +131,7 @@ function QuestionBlock({
         <span
           className={cn(
             `flex size-8 shrink-0 items-center justify-center rounded-full
-            text-sm font-semibold tabular-nums`,
+            text-sm font-medium tabular-nums`,
             active ? 'bg-primary text-primary-foreground' : 'bg-muted',
           )}
         >
@@ -182,7 +182,7 @@ function QuestionBlock({
                 aria-hidden="true"
                 className={cn(
                   `flex size-7 shrink-0 items-center justify-center rounded-full
-                  border text-sm font-semibold`,
+                  border text-sm font-medium`,
                   selected &&
                     'border-primary bg-primary text-primary-foreground',
                 )}
@@ -416,7 +416,7 @@ export function ExamRoom({
             <span className="max-sm:sr-only">Thoát</span>
           </Link>
           <div className="flex min-w-0 flex-col">
-            <span className="truncate text-sm font-semibold">
+            <span className="truncate text-sm font-medium">
               {attempt.test?.title ?? exam.name}
             </span>
             <span className="truncate text-xs text-muted-foreground">
@@ -496,7 +496,7 @@ export function ExamRoom({
               {partLabel(group.part)}
               {part && ` · ${part.nameVi}`}
             </span>
-            <h1 className="text-lg font-semibold">
+            <h1 className="text-lg font-medium">
               {group.end - group.start > 1
                 ? `Câu ${questions[group.start]!.order + 1}–${questions[group.end - 1]!.order + 1}`
                 : `Câu ${first.order + 1}`}
@@ -561,7 +561,7 @@ export function ExamRoom({
             lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto"
         >
           <div className="flex items-baseline justify-between gap-2">
-            <h2 className="font-semibold">Danh sách câu</h2>
+            <h2 className="font-medium">Danh sách câu</h2>
             <span className="text-sm text-muted-foreground tabular-nums">
               {answered}/{questions.length} đã làm
             </span>
@@ -575,9 +575,9 @@ export function ExamRoom({
             className="h-1.5 overflow-hidden rounded-full bg-muted"
           >
             <div
-              className="h-full rounded-full bg-primary transition-[width]
-                motion-reduce:transition-none"
-              style={{ width: `${(answered / questions.length) * 100}%` }}
+              className="h-full origin-left rounded-full bg-primary
+                transition-transform motion-reduce:transition-none"
+              style={{ transform: `scaleX(${answered / questions.length})` }}
             />
           </div>
           {[...new Set(questions.map((q) => q.part))].map((code) => (

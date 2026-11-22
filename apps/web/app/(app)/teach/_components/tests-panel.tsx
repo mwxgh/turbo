@@ -13,7 +13,6 @@ import {
   Undo2,
 } from 'lucide-react'
 
-import { Badge } from '@repo/ui/components/badge'
 import { Button } from '@repo/ui/components/button'
 import { Input } from '@repo/ui/components/input'
 import { Label } from '@repo/ui/components/label'
@@ -33,16 +32,16 @@ import {
   lingoKeys,
 } from '@/lib/queries/lingo'
 
-import { Panel, selectClass } from './panel'
+import {
+  Panel,
+  STATUS_LABEL,
+  StatusDot,
+  emptyClass,
+  sectionHeadingClass,
+  selectClass,
+} from './panel'
 
 const TESTS_QUERY = { page: 1, pageSize: 50 }
-
-const STATUS_LABEL: Record<string, string> = {
-  DRAFT: 'Nháp',
-  NEEDS_REVIEW: 'Cần xem lại',
-  PUBLISHED: 'Đã xuất bản',
-  REJECTED: 'Đã loại',
-}
 
 /** Builds a DRAFT test from published items. */
 export function AssembleTestPanel({ exam }: { exam: string }) {
@@ -61,7 +60,7 @@ export function AssembleTestPanel({ exam }: { exam: string }) {
         toast.success('Đã ghép đề nháp', {
           description: short.length
             ? `Thiếu câu: ${short.map(([p, n]) => `${p} ${n}`).join(', ')}`
-            : 'Đủ câu ở mọi Part.',
+            : 'Đủ câu ở mọi Part',
         })
         setTitle('')
         await queryClient.invalidateQueries({ queryKey: lingoKeys.all })
@@ -156,7 +155,7 @@ function TestReview({ id, status }: { id: string; status: string }) {
 
   return (
     <div className="flex flex-col gap-3 border-t pt-3 text-sm">
-      <p className="text-muted-foreground">
+      <p className="text-muted-foreground tabular-nums">
         {test.items.length} item ·{' '}
         {Object.entries(counts)
           .map(([s, n]) => `${STATUS_LABEL[s] ?? s} ${n}`)
@@ -226,35 +225,33 @@ export function TestsListPanel() {
 
   return (
     <section aria-labelledby="tests-heading" className="flex flex-col gap-3">
-      <h2 id="tests-heading" className="text-lg font-semibold">
+      <h2 id="tests-heading" className={sectionHeadingClass}>
         Bộ đề
       </h2>
       {tests.length === 0 ? (
-        <p
-          className="rounded-xl border border-dashed p-6 text-center text-sm
-            text-muted-foreground"
-        >
+        <p className={emptyClass}>
           Chưa có đề nào. Ghép đề từ câu đã duyệt hoặc sinh đề bằng AI.
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-3">
           {tests.map((test) => (
             <li
               key={test.id}
-              className="flex flex-col gap-2 rounded-xl border p-4"
+              className="flex flex-col gap-3 rounded-xl border bg-card p-5
+                shadow-xs"
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium">{test.title}</span>
-                <Badge variant="outline">{test.kind}</Badge>
-                <Badge
-                  variant={
-                    test.status === 'PUBLISHED' ? 'default' : 'secondary'
-                  }
-                >
-                  {STATUS_LABEL[test.status] ?? test.status}
-                </Badge>
-                <span className="text-sm text-muted-foreground">
-                  {test.questions} câu ·{' '}
+              <div className="flex flex-col gap-1">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="font-medium">{test.title}</span>
+                  <StatusDot
+                    status={test.status}
+                    label={STATUS_LABEL[test.status] ?? test.status}
+                    className="text-sm text-muted-foreground"
+                  />
+                </div>
+                <span className="text-sm text-muted-foreground tabular-nums">
+                  {test.kind === 'FULL' ? 'Full' : 'Mini'} · {test.questions}{' '}
+                  câu ·{' '}
                   {test.parts
                     .map((p) =>
                       p.questions < p.target
@@ -265,7 +262,7 @@ export function TestsListPanel() {
                   · {formatDateTime(test.createdAt)}
                 </span>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="-ml-2.5 flex flex-wrap gap-2">
                 <Button
                   size="sm"
                   variant="ghost"

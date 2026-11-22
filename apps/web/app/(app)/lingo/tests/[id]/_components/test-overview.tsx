@@ -6,9 +6,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import { useQuery } from '@tanstack/react-query'
-import { Loader2, Play, Timer } from 'lucide-react'
+import { ArrowLeft, Loader2, Play, Timer } from 'lucide-react'
 
-import { Badge } from '@repo/ui/components/badge'
 import { Button } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'
 import { cn } from '@repo/ui/lib/utils'
@@ -65,27 +64,29 @@ export function TestOverview({ id }: { id: string }) {
       <div className="flex flex-col gap-2">
         <Link
           href={`/lingo/${test.exam}/tests`}
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="mb-2 flex items-center gap-1.5 self-start rounded-sm
+            text-sm text-muted-foreground transition-colors outline-none
+            hover:text-foreground focus-visible:ring-3
+            focus-visible:ring-ring/50"
         >
-          ← Thư viện đề
+          <ArrowLeft aria-hidden className="size-4" />
+          Thư viện đề
         </Link>
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-semibold">{test.title}</h1>
-          <Badge variant={test.kind === 'FULL' ? 'default' : 'secondary'}>
-            {test.kind === 'FULL' ? 'Full test' : 'Mini test'}
-          </Badge>
-        </div>
+        <h1 className="text-3xl font-medium tracking-tight text-balance">
+          {test.title}
+        </h1>
         <p className="text-muted-foreground">
-          {test.questions} câu · {minutes(test.timeLimitSec)}
+          {test.kind === 'FULL' ? 'Full test' : 'Mini test'} · {test.questions}{' '}
+          câu · {minutes(test.timeLimitSec)}
           {test.description ? ` · ${test.description}` : ''}
         </p>
       </div>
 
       <section
         aria-labelledby="full-heading"
-        className="flex flex-col gap-3 rounded-xl border bg-card p-5"
+        className="flex flex-col gap-3 rounded-xl border bg-card p-5 shadow-xs"
       >
-        <h2 id="full-heading" className="font-semibold">
+        <h2 id="full-heading" className="font-medium">
           Thi thử
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -111,9 +112,9 @@ export function TestOverview({ id }: { id: string }) {
 
       <section
         aria-labelledby="practice-heading"
-        className="flex flex-col gap-4 rounded-xl border bg-card p-5"
+        className="flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-xs"
       >
-        <h2 id="practice-heading" className="font-semibold">
+        <h2 id="practice-heading" className="font-medium">
           Luyện tập
         </h2>
         <fieldset className="flex flex-col gap-2">
@@ -129,7 +130,7 @@ export function TestOverview({ id }: { id: string }) {
                   border px-3 text-sm transition-colors has-focus-visible:ring-3
                   has-focus-visible:ring-ring/50`,
                   parts.includes(part.code)
-                    ? 'border-primary bg-primary/10'
+                    ? 'border-foreground bg-muted ring-1 ring-foreground'
                     : 'hover:bg-muted/60',
                 )}
               >
@@ -142,7 +143,7 @@ export function TestOverview({ id }: { id: string }) {
                 <span className="flex-1">
                   {part.code.replace('P', 'Part ')} · {part.nameVi}
                 </span>
-                <span className="text-muted-foreground tabular-nums">
+                <span className="text-xs text-muted-foreground tabular-nums">
                   {part.questions} câu
                 </span>
               </label>
@@ -154,8 +155,10 @@ export function TestOverview({ id }: { id: string }) {
           <select
             value={limit}
             onChange={(event) => setLimit(Number(event.target.value))}
-            className="h-9 w-48 rounded-lg border bg-background px-2
-              font-normal"
+            className="h-9 w-48 rounded-lg border border-input bg-transparent
+              px-2.5 font-normal transition-[border-color,box-shadow]
+              outline-none focus-visible:border-ring focus-visible:ring-3
+              focus-visible:ring-ring/50 dark:bg-input/30"
           >
             {LIMITS.map((value) => (
               <option key={value} value={value}>
@@ -187,10 +190,13 @@ export function TestOverview({ id }: { id: string }) {
           aria-labelledby="history-heading"
           className="flex flex-col gap-3"
         >
-          <h2 id="history-heading" className="font-semibold">
+          <h2 id="history-heading" className="font-medium">
             Lần làm gần đây
           </h2>
-          <ul className="flex flex-col divide-y rounded-xl border">
+          <ul
+            className="flex flex-col divide-y overflow-hidden rounded-xl border
+              bg-card shadow-xs"
+          >
             {test.attempts.map((a) => {
               const scaled = a.scores
                 ? Object.values(a.scores).reduce(
@@ -203,7 +209,9 @@ export function TestOverview({ id }: { id: string }) {
                   <Link
                     href={`/lingo/attempts/${a.id}`}
                     className="flex flex-wrap items-center justify-between gap-2
-                      px-4 py-3 text-sm hover:bg-muted/40"
+                      px-4 py-3 text-sm transition-colors outline-none
+                      hover:bg-muted/50 focus-visible:ring-3
+                      focus-visible:ring-ring/50 focus-visible:ring-inset"
                   >
                     <span>
                       {a.mode === 'FULL_TEST'
@@ -215,7 +223,7 @@ export function TestOverview({ id }: { id: string }) {
                         tabular-nums"
                     >
                       {a.mode === 'FULL_TEST' && (
-                        <span className="font-semibold text-foreground">
+                        <span className="font-medium text-foreground">
                           {scaled} điểm
                         </span>
                       )}

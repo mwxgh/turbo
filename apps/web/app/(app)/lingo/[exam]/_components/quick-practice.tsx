@@ -54,8 +54,8 @@ function Chips<T extends string | number>({
                 rounded-lg border px-3 text-sm transition-colors
                 has-focus-visible:ring-3 has-focus-visible:ring-ring/50`,
                 checked
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'hover:bg-muted',
+                  ? 'border-foreground bg-muted ring-1 ring-foreground'
+                  : 'hover:bg-muted/60',
                 option.disabled &&
                   'cursor-not-allowed opacity-50 hover:bg-transparent',
               )}
@@ -70,12 +70,7 @@ function Chips<T extends string | number>({
               />
               {option.label}
               {option.hint && (
-                <span
-                  className={cn(
-                    'text-xs',
-                    checked ? 'opacity-80' : 'text-muted-foreground',
-                  )}
-                >
+                <span className="text-xs text-muted-foreground tabular-nums">
                   {option.hint}
                 </span>
               )}
@@ -129,10 +124,10 @@ export function QuickPractice({
   return (
     <section
       aria-labelledby="practice-heading"
-      className="flex flex-col gap-5 rounded-xl border bg-card p-5"
+      className="flex flex-col gap-6 rounded-xl border bg-card p-5 shadow-xs"
     >
       <div className="flex flex-col gap-1">
-        <h2 id="practice-heading" className="text-lg font-semibold">
+        <h2 id="practice-heading" className="text-lg font-medium">
           Luyện nhanh
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -175,7 +170,7 @@ export function QuickPractice({
               hint: p.available ? `${p.published} câu` : 'sắp có',
             }))}
           />
-          <div className="flex flex-wrap gap-6">
+          <div className="flex flex-wrap gap-x-8 gap-y-6">
             <Chips
               label="Số câu"
               value={count}

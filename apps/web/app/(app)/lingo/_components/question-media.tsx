@@ -60,7 +60,7 @@ export function ListeningPlayer({
   return (
     <div
       className="flex flex-wrap items-center gap-3 rounded-xl border bg-muted/30
-        p-3"
+        p-2 pr-4"
     >
       <Button
         type="button"
@@ -72,7 +72,7 @@ export function ListeningPlayer({
         {playing ? 'Dừng' : locked ? 'Đã nghe' : 'Nghe'}
       </Button>
       <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Headphones aria-hidden className="size-3.5" />
+        <Headphones aria-hidden className="size-4" />
         Giọng đọc của trình duyệt
       </span>
     </div>

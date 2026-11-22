@@ -13,9 +13,9 @@ export default function TeachImportPage() {
     <>
       <TeachHeader
         title="Nhập dữ liệu"
-        description="Nhập câu hỏi từ JSON, từ vựng từ CSV, hoặc nạp dữ liệu mẫu."
+        description="Nhập câu hỏi từ JSON, từ vựng từ CSV, hoặc nạp dữ liệu mẫu"
       />
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="grid items-start gap-6 xl:grid-cols-2">
         <ImportItemsPanel exam={DEFAULT_EXAM} />
         <div className="flex flex-col gap-6">
           <ImportCardsPanel exam={DEFAULT_EXAM} />
