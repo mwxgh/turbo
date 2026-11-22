@@ -34,6 +34,11 @@ interface Roadmap {
     status: string
     tasks: { kind: string; done: boolean }[]
   }[]
+  plan: {
+    start: string | null
+    currentWeek: number | null
+    weeks: { week: number; status: string }[]
+  }
 }
 
 describe('Lingo (e2e)', () => {
@@ -106,7 +111,7 @@ describe('Lingo (e2e)', () => {
     expect(first.body).toMatchObject({
       items: { succeeded: 121, failed: 0 },
       // Starter deck 30 + fifteen topic decks of 40
-      cards: { succeeded: 630, failed: 0, decks: 16 },
+      cards: { succeeded: 790, failed: 0, decks: 20 },
     })
     const library = (await as(learner).get('/exams/TOEIC_LR/tests').expect(200))
       .body as { items: { id: string; title: string; questions: number }[] }
@@ -119,7 +124,7 @@ describe('Lingo (e2e)', () => {
     const again = await as(admin).post('/admin/samples').expect(200)
     expect(again.body).toMatchObject({
       items: { succeeded: 0, duplicates: 121 },
-      cards: { succeeded: 0, duplicates: 630 },
+      cards: { succeeded: 0, duplicates: 790 },
     })
     const exam = await as(learner).get('/exams/TOEIC_LR').expect(200)
     const parts = (
@@ -229,6 +234,9 @@ describe('Lingo (e2e)', () => {
       id: 'foundation',
       status: 'current',
     })
+    // The 12-week plan starts with the placement test
+    expect(before.plan).toMatchObject({ start: null, currentWeek: null })
+    expect(before.plan.weeks).toHaveLength(12)
 
     const placement = (
       await as(other)
@@ -260,6 +268,9 @@ describe('Lingo (e2e)', () => {
       kind: 'placement',
       done: true,
     })
+    expect(after.plan.currentWeek).toBe(1)
+    expect(after.plan.weeks[0]).toMatchObject({ week: 1, status: 'current' })
+    expect(Date.parse(after.plan.start!)).toBeLessThanOrEqual(Date.now())
   })
 
   it('reviews vocabulary with FSRS and counts it on the dashboard', async () => {

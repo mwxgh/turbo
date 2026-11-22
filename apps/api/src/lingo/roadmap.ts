@@ -74,7 +74,7 @@ export const accuracyFor = (target: number) =>
 const pct = (ratio: number) => `${Math.round(ratio * 100)}%`
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n))
 
-type TaskSpec =
+export type TaskSpec =
   | { kind: 'placement' }
   | { kind: 'words'; count: number }
   | { kind: 'part'; part: string; answered: number; accuracy: number }
@@ -111,8 +111,11 @@ const PART_MIN: Record<string, number> = {
   P7: 30,
 }
 
-const part = (code: string, accuracy: number, answered = PART_MIN[code]!) =>
-  ({ kind: 'part', part: code, answered, accuracy }) as const
+export const part = (
+  code: string,
+  accuracy: number,
+  answered = PART_MIN[code]!,
+) => ({ kind: 'part', part: code, answered, accuracy }) as const
 
 export const TOEIC_STAGES: StageSpec[] = [
   {
@@ -185,7 +188,12 @@ export const TOEIC_STAGES: StageSpec[] = [
   },
 ]
 
-function task(spec: TaskSpec, stats: RoadmapStats, stage: string): RoadmapTask {
+/** One task with its progress; `stage` prefixes the id (a stage id or a plan week). */
+export function task(
+  spec: TaskSpec,
+  stats: RoadmapStats,
+  stage: string,
+): RoadmapTask {
   switch (spec.kind) {
     case 'placement':
       return {
