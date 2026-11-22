@@ -125,6 +125,6 @@ describe('HellosView', () => {
     renderWithQuery(<HellosView />)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Retry' }))
-    expect(await screen.findByText('No hellos yet.')).toBeInTheDocument()
+    expect(await screen.findByText('No hellos yet')).toBeInTheDocument()
   })
 })
