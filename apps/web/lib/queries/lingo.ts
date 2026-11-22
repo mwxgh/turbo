@@ -194,6 +194,7 @@ export interface PlanWeek {
   end: string | null
   status: 'done' | 'missed' | 'current' | 'upcoming'
   tasks: RoadmapTask[]
+  lessons: { id: string; title: string }[]
 }
 
 export interface StudyPlan {
@@ -209,6 +210,53 @@ export interface Roadmap {
   accuracy: number
   stages: RoadmapStage[]
   plan: StudyPlan
+}
+
+/** Progress of a lesson's skill from the learner's latest answers (apps/api/src/lingo/lessons.service.ts). */
+export interface LessonProgress {
+  answered: number
+  correct: number
+  accuracy: number
+  done: boolean
+}
+
+export interface LessonPractice {
+  part: string
+  skillTag?: string
+}
+
+export interface LessonSummary {
+  id: string
+  title: string
+  summary: string
+  minutes: number
+  parts: string[]
+  practice: LessonPractice | null
+  progress: LessonProgress | null
+}
+
+/** GET /lingo/lessons/:exam */
+export interface Course {
+  modules: {
+    id: string
+    title: string
+    description: string
+    lessons: LessonSummary[]
+  }[]
+}
+
+/** GET /lingo/lessons/:exam/:id */
+export interface Lesson extends LessonSummary {
+  module: string
+  sections: {
+    heading: string
+    paragraphs: string[]
+    bullets?: string[]
+    examples?: { en: string; vi: string; note?: string }[]
+  }[]
+  keyPoints: string[]
+  previous: { id: string; title: string } | null
+  next: { id: string; title: string } | null
 }
 
 /** GET /lingo/attempts: one row of the learner's history. */
@@ -250,6 +298,9 @@ export const lingoKeys = {
   decks: (exam?: string) => [...lingoKeys.all, 'decks', exam ?? 'all'] as const,
   mistakes: (code: string) => [...lingoKeys.all, 'mistakes', code] as const,
   roadmap: (code: string) => [...lingoKeys.all, 'roadmap', code] as const,
+  lessons: (code: string) => [...lingoKeys.all, 'lessons', code] as const,
+  lesson: (code: string, id: string) =>
+    [...lingoKeys.all, 'lessons', code, id] as const,
   attempts: (query: ListQuery) =>
     [...lingoKeys.all, 'attempts', query] as const,
   adminItems: (query: ListQuery) =>
@@ -319,6 +370,21 @@ export const roadmapQueryOptions = (code: string) =>
   queryOptions({
     queryKey: lingoKeys.roadmap(code),
     queryFn: () => get<Roadmap>(`/lingo/roadmap/${encodeURIComponent(code)}`),
+  })
+
+export const lessonsQueryOptions = (code: string) =>
+  queryOptions({
+    queryKey: lingoKeys.lessons(code),
+    queryFn: () => get<Course>(`/lingo/lessons/${encodeURIComponent(code)}`),
+  })
+
+export const lessonQueryOptions = (code: string, id: string) =>
+  queryOptions({
+    queryKey: lingoKeys.lesson(code, id),
+    queryFn: () =>
+      get<Lesson>(
+        `/lingo/lessons/${encodeURIComponent(code)}/${encodeURIComponent(id)}`,
+      ),
   })
 
 /** The learner's attempts, newest first. */

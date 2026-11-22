@@ -39,6 +39,8 @@ export async function startAttempt(input: {
   count?: number
   difficulty?: string
   source?: 'NEW' | 'MISTAKES'
+  /** Quick practice: only questions of this skill (a lesson's practice) */
+  skillTag?: string
   /** (Parts of) a published test */
   testId?: string
   mode?: 'PRACTICE' | 'FULL_TEST'

@@ -46,6 +46,7 @@ const week = (
   end: '2026-11-23T00:00:00.000Z',
   status,
   tasks: [task(`w${n}.P3`, 'part', false, 'P3')],
+  lessons: [{ id: `lesson-${n}`, title: `Bài ${n}` }],
 })
 
 const roadmap = (placementDone: boolean): Roadmap => ({
@@ -129,6 +130,10 @@ describe('RoadmapView', () => {
     const plan = screen.getByRole('region', { name: 'Lịch 12 tuần' })
     expect(plan).toHaveTextContent('Tuần 2/12')
     expect(plan).toHaveTextContent('Tuần 2: Chủ đề 2')
+    expect(within(plan).getByRole('link', { name: 'Bài 2' })).toHaveAttribute(
+      'href',
+      '/lingo/lessons/lesson-2',
+    )
     await user.click(
       within(plan).getByRole('button', { name: /Tuần 3: Chủ đề 3/ }),
     )

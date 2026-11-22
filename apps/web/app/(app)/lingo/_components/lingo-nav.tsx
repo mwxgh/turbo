@@ -9,6 +9,7 @@ import { DEFAULT_EXAM } from '@/lib/lingo'
 
 const LINKS = [
   { href: '/lingo/roadmap', label: 'Lộ trình' },
+  { href: '/lingo/lessons', label: 'Bài học' },
   { href: `/lingo/${DEFAULT_EXAM}/tests`, label: 'Đề thi' },
   { href: `/lingo/${DEFAULT_EXAM}`, label: 'Luyện tập' },
   { href: '/lingo/history', label: 'Lịch sử' },
@@ -27,7 +28,10 @@ export function LingoNav({ isAdmin }: { isAdmin: boolean }) {
     <nav aria-label="Lingo" className="border-b">
       <ul className="mx-auto flex w-full max-w-5xl gap-1 overflow-x-auto px-4">
         {links.map((link) => {
-          const active = pathname === link.href
+          // Lessons have sub-pages; the exam pages share a prefix, so only lessons match by prefix
+          const active =
+            pathname === link.href ||
+            (link.href === '/lingo/lessons' && pathname.startsWith(link.href))
           return (
             <li key={link.href}>
               <Link

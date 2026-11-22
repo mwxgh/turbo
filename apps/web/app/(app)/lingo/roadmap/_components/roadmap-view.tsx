@@ -407,6 +407,24 @@ function PlanSection({
           />
         ))}
       </ul>
+      {week.lessons.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h4 className="text-sm font-medium">Bài học tuần này</h4>
+          <ul className="flex flex-wrap gap-2">
+            {week.lessons.map((lesson) => (
+              <li key={lesson.id}>
+                <Link
+                  href={`/lingo/lessons/${lesson.id}`}
+                  className={buttonVariants({ size: 'sm', variant: 'outline' })}
+                >
+                  <BookOpen aria-hidden />
+                  {lesson.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <ul
         className="flex list-disc flex-col gap-1 pl-5 text-sm
           text-muted-foreground"
