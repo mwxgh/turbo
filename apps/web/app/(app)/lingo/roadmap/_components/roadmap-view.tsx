@@ -18,12 +18,15 @@ import {
 import { Button, buttonVariants } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'
 import { cn } from '@repo/ui/lib/utils'
+import { formatDate } from '@repo/utils'
 
 import { percent, takeHref } from '@/lib/lingo'
 import { startAttempt } from '@/lib/lingo-actions'
 import {
+  type PlanWeek,
   type RoadmapStage,
   type RoadmapTask,
+  type StudyPlan,
   dashboardQueryOptions,
   roadmapQueryOptions,
 } from '@/lib/queries/lingo'
@@ -277,7 +280,146 @@ function StageCard({
   )
 }
 
-/** The learner's roadmap: target, today's work, then the stages with their tasks. */
+const WEEK_STATUS: Record<PlanWeek['status'], string> = {
+  done: 'Đã xong',
+  missed: 'Chưa đạt',
+  current: 'Tuần này',
+  upcoming: 'Sắp tới',
+}
+
+/** "16/11 – 22/11" for a plan week (`end` is excluded, so the last day is the day before). */
+function weekDates(week: PlanWeek) {
+  if (!week.start || !week.end) return null
+  const sunday = Date.parse(week.end) - 86_400_000
+  return `${formatDate(week.start, 'dd/MM')} – ${formatDate(sunday, 'dd/MM')}`
+}
+
+/**
+ * The 12-week plan: one cell per week (status at a glance), then the chosen week's focus, tasks
+ * measured on that week only, and tips. Opens on the current week.
+ */
+function PlanSection({
+  plan,
+  exam,
+  starter,
+}: {
+  plan: StudyPlan
+  exam: string
+  starter: ReturnType<typeof useStart>
+}) {
+  const [picked, setPicked] = useState(plan.currentWeek ?? 1)
+  const week = plan.weeks[picked - 1] ?? plan.weeks[0]
+  if (!week) return null
+  const dates = weekDates(week)
+  const done = week.tasks.filter((t) => t.done).length
+  return (
+    <section
+      aria-labelledby="plan-heading"
+      className="flex flex-col gap-5 rounded-xl border bg-card p-5 shadow-xs"
+    >
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h2 id="plan-heading" className="text-lg font-medium">
+          Lịch 12 tuần
+        </h2>
+        <span className="text-sm text-muted-foreground tabular-nums">
+          {plan.currentWeek
+            ? `Tuần ${plan.currentWeek}/12`
+            : plan.start
+              ? 'Đã đi hết 12 tuần'
+              : 'Bắt đầu từ tuần bạn làm bài đầu vào'}
+        </span>
+      </div>
+
+      <div
+        role="group"
+        aria-label="Chọn tuần"
+        className="grid grid-cols-6 gap-1.5 sm:grid-cols-12"
+      >
+        {plan.weeks.map((w) => {
+          const selected = w.week === week.week
+          return (
+            <button
+              key={w.week}
+              type="button"
+              aria-pressed={selected}
+              aria-label={`Tuần ${w.week}: ${w.title} (${WEEK_STATUS[w.status]})`}
+              onClick={() => setPicked(w.week)}
+              className={cn(
+                `relative flex h-10 cursor-pointer items-center justify-center
+                rounded-md border text-sm tabular-nums transition-colors
+                outline-none focus-visible:ring-3 focus-visible:ring-ring/50`,
+                w.status === 'done' &&
+                  'border-foreground bg-foreground text-background',
+                w.status === 'current' &&
+                  `border-rose-600 font-medium text-rose-700
+                  dark:border-rose-400 dark:text-rose-300`,
+                w.status === 'missed' && 'text-muted-foreground',
+                w.status === 'upcoming' &&
+                  'text-muted-foreground hover:bg-muted',
+                selected && w.status !== 'done' && 'bg-muted',
+                selected && 'ring-2 ring-foreground/20',
+              )}
+            >
+              {w.status === 'done' ? (
+                <Check aria-hidden className="size-4" />
+              ) : (
+                w.week
+              )}
+              {w.status === 'missed' && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1 right-1 size-1.5 rounded-full
+                    bg-destructive/70"
+                />
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h3 className="font-medium">
+            Tuần {week.week}: {week.title}
+          </h3>
+          <span className="text-sm text-muted-foreground">
+            {week.phase}
+            {dates && <span className="tabular-nums"> · {dates}</span>}
+          </span>
+          <span className="ml-auto text-sm text-muted-foreground tabular-nums">
+            {WEEK_STATUS[week.status]} · {done}/{week.tasks.length} nhiệm vụ
+          </span>
+        </div>
+        <p className="text-sm text-muted-foreground">{week.focus}</p>
+      </div>
+
+      <ul
+        aria-label={`Nhiệm vụ tuần ${week.week}`}
+        className="flex flex-col divide-y"
+      >
+        {week.tasks.map((task) => (
+          <TaskRow
+            key={task.id}
+            task={task}
+            exam={exam}
+            starter={starter}
+            actionable={week.status === 'current'}
+          />
+        ))}
+      </ul>
+      <ul
+        className="flex list-disc flex-col gap-1 pl-5 text-sm
+          text-muted-foreground"
+      >
+        {week.tips.map((tip) => (
+          <li key={tip}>{tip}</li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+/** The learner's roadmap: target, today's work, the 12-week plan, then the stages. */
 export function RoadmapView({ exam }: { exam: string }) {
   const {
     data: roadmap,
@@ -308,7 +450,13 @@ export function RoadmapView({ exam }: { exam: string }) {
     )
 
   const stage = roadmap.stages.find((s) => s.status === 'current')
-  const next = stage?.tasks.find((t) => !t.done)
+  const thisWeek = roadmap.plan.currentWeek
+    ? roadmap.plan.weeks[roadmap.plan.currentWeek - 1]
+    : undefined
+  // This week's plan first, then the current stage
+  const next =
+    thisWeek?.tasks.find((t) => !t.done && t.kind !== 'words') ??
+    stage?.tasks.find((t) => !t.done)
   const placement = roadmap.stages[0]?.tasks.find((t) => t.kind === 'placement')
   const examDate = dashboard?.goal.examDate
   const daysLeft = examDate
@@ -451,6 +599,8 @@ export function RoadmapView({ exam }: { exam: string }) {
           </ul>
         </section>
       )}
+
+      <PlanSection plan={roadmap.plan} exam={exam} starter={starter} />
 
       <ol aria-label="Các giai đoạn" className="flex flex-col">
         {roadmap.stages.map((s, i) => (

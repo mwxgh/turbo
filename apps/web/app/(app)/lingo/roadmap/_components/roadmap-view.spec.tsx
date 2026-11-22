@@ -33,6 +33,21 @@ const task = (
   part?: string,
 ) => ({ id, kind, label: id, detail: '', progress: done ? 1 : 0, done, part })
 
+const week = (
+  n: number,
+  status: Roadmap['plan']['weeks'][number]['status'],
+) => ({
+  week: n,
+  phase: 'Chắc từng Part',
+  title: `Chủ đề ${n}`,
+  focus: `Trọng tâm ${n}`,
+  tips: [`Mẹo ${n}`],
+  start: '2026-11-16T00:00:00.000Z',
+  end: '2026-11-23T00:00:00.000Z',
+  status,
+  tasks: [task(`w${n}.P3`, 'part', false, 'P3')],
+})
+
 const roadmap = (placementDone: boolean): Roadmap => ({
   target: 650,
   estimate: placementDone ? 400 : null,
@@ -57,6 +72,17 @@ const roadmap = (placementDone: boolean): Roadmap => ({
       tasks: [task('parts.P5', 'part', false, 'P5')],
     },
   ],
+  plan: placementDone
+    ? {
+        start: '2026-11-16T00:00:00.000Z',
+        currentWeek: 2,
+        weeks: [week(1, 'done'), week(2, 'current'), week(3, 'upcoming')],
+      }
+    : {
+        start: null,
+        currentWeek: null,
+        weeks: [week(1, 'upcoming'), week(2, 'upcoming')],
+      },
 })
 
 function renderRoadmap(placementDone: boolean) {
@@ -86,14 +112,38 @@ describe('RoadmapView', () => {
     expect(push).toHaveBeenCalledWith('/lingo/attempts/p1/take')
   })
 
-  it('plans today from the current stage', () => {
+  it('plans today from this week of the plan', () => {
     renderRoadmap(true)
     const today = screen.getByRole('region', { name: 'Hôm nay' })
     expect(today).toHaveTextContent('Ôn 4 thẻ đến hạn và học 20 từ mới')
+    expect(today).toHaveTextContent('w2.P3')
     expect(
       within(today).getByRole('button', { name: 'Luyện 10 câu' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Đã vượt qua')).toBeInTheDocument()
+  })
+
+  it('opens the plan on this week and shows another week on click', async () => {
+    const user = userEvent.setup()
+    renderRoadmap(true)
+    const plan = screen.getByRole('region', { name: 'Lịch 12 tuần' })
+    expect(plan).toHaveTextContent('Tuần 2/12')
+    expect(plan).toHaveTextContent('Tuần 2: Chủ đề 2')
+    await user.click(
+      within(plan).getByRole('button', { name: /Tuần 3: Chủ đề 3/ }),
+    )
+    expect(plan).toHaveTextContent('Trọng tâm 3')
+    // Only the current week's tasks can be started
+    expect(
+      within(plan).queryByRole('button', { name: 'Luyện 10 câu' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('waits for the placement test before starting the plan', () => {
+    renderRoadmap(false)
+    expect(
+      screen.getByRole('region', { name: 'Lịch 12 tuần' }),
+    ).toHaveTextContent('Bắt đầu từ tuần bạn làm bài đầu vào')
   })
 
   it('says so when the roadmap cannot be loaded', async () => {

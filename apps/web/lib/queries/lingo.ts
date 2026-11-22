@@ -183,11 +183,32 @@ export interface RoadmapStage {
   tasks: RoadmapTask[]
 }
 
+/** One week of the 12-week plan (apps/api/src/lingo/study-plan.ts). */
+export interface PlanWeek {
+  week: number
+  phase: string
+  title: string
+  focus: string
+  tips: string[]
+  start: string | null
+  end: string | null
+  status: 'done' | 'missed' | 'current' | 'upcoming'
+  tasks: RoadmapTask[]
+}
+
+export interface StudyPlan {
+  /** Day of the first placement test, null before it */
+  start: string | null
+  currentWeek: number | null
+  weeks: PlanWeek[]
+}
+
 export interface Roadmap {
   target: number
   estimate: number | null
   accuracy: number
   stages: RoadmapStage[]
+  plan: StudyPlan
 }
 
 /** GET /lingo/attempts: one row of the learner's history. */
