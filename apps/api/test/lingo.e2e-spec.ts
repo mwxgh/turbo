@@ -136,6 +136,58 @@ describe('Lingo (e2e)', () => {
     expect(parts.find((p) => p.code === 'P5')?.published).toBe(72)
   })
 
+  it('serves the course and practises one lesson’s skill', async () => {
+    const course = (await as(learner).get('/lessons/TOEIC_LR').expect(200))
+      .body as { modules: { id: string; lessons: { id: string }[] }[] }
+    expect(course.modules.map((m) => m.id)).toEqual([
+      'grammar',
+      'vocab',
+      'listening',
+      'reading',
+      'strategy',
+    ])
+    expect(course.modules.flatMap((m) => m.lessons)).toHaveLength(26)
+
+    const lesson = (
+      await as(learner).get('/lessons/TOEIC_LR/word-form').expect(200)
+    ).body as {
+      sections: unknown[]
+      practice: { part: string; skillTag: string }
+      progress: { answered: number } | null
+      previous: unknown
+      next: { id: string }
+    }
+    expect(lesson.sections.length).toBeGreaterThan(1)
+    expect(lesson.practice).toEqual({
+      part: 'P5',
+      skillTag: 'grammar.word-form',
+    })
+    expect(lesson).toMatchObject({ previous: null, next: { id: 'verb-tense' } })
+    await as(learner).get('/lessons/TOEIC_LR/nope').expect(404)
+
+    const quick = (
+      await as(learner)
+        .post('/attempts', {
+          exam: 'TOEIC_LR',
+          part: 'P5',
+          skillTag: 'grammar.word-form',
+          count: 5,
+        })
+        .expect(201)
+    ).body as Attempt
+    expect(quick.total).toBeGreaterThan(0)
+    const tagged = await prisma.lingoQuestion.findMany({
+      where: { id: { in: quick.questions.map((q) => q.id) } },
+      select: { skillTags: true, item: { select: { questions: true } } },
+    })
+    // Every item drawn has a word-form question
+    expect(
+      tagged.every((q) =>
+        q.item.questions.some((x) => x.skillTags.includes('grammar.word-form')),
+      ),
+    ).toBe(true)
+  })
+
   it('imports valid items as drafts and reports invalid rows', async () => {
     const res = await as(admin)
       .post('/admin/items/import', {

@@ -8,6 +8,7 @@ import { ArkModel } from './ark-model'
 import { ChatController } from './chat.controller'
 import { ChatService } from './chat.service'
 import { GeneratorService } from './generator.service'
+import { LessonsService } from './lessons.service'
 import { LingoController } from './lingo.controller'
 import { LingoService } from './lingo.service'
 import { PracticeController } from './practice.controller'
@@ -38,6 +39,7 @@ import { VocabService } from './vocab.service'
     GeneratorService,
     ArkModel,
     RoadmapService,
+    LessonsService,
   ],
 })
 export class LingoModule {}

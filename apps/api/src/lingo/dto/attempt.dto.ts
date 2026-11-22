@@ -48,6 +48,10 @@ export class StartAttemptDto {
   @EnumField(LingoDifficulty, { optional: true })
   difficulty?: LingoDifficulty
 
+  /** Quick practice: only items with a question of this skill tag (a lesson's practice) */
+  @StringField({ maxLength: 64, optional: true, example: 'grammar.word-form' })
+  skillTag?: string
+
   /** NEW: unseen questions first; MISTAKES: questions last answered wrong */
   @EnumField(AttemptSource, { optional: true })
   source?: AttemptSource

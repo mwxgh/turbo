@@ -14,6 +14,7 @@ import { type AuthUser, CurrentUser } from '@repo/auth/nest'
 
 import { UpdateGoalDto } from './dto/goal.dto'
 import { ReviewQueueQueryDto } from './dto/vocab.dto'
+import { LessonsService } from './lessons.service'
 import { LingoService } from './lingo.service'
 import { RoadmapService } from './roadmap.service'
 import { VocabService } from './vocab.service'
@@ -26,6 +27,7 @@ export class LingoController {
     private readonly lingo: LingoService,
     private readonly vocab: VocabService,
     private readonly roadmaps: RoadmapService,
+    private readonly lessons: LessonsService,
   ) {}
 
   @Get('exams')
@@ -61,6 +63,21 @@ export class LingoController {
   @Get('roadmap/:exam')
   roadmap(@CurrentUser() user: AuthUser, @Param('exam') exam: string) {
     return this.roadmaps.roadmap(user.id, exam)
+  }
+
+  /** The course: modules and lessons, each with progress from the learner's answers */
+  @Get('lessons/:exam')
+  lessonList(@CurrentUser() user: AuthUser, @Param('exam') exam: string) {
+    return this.lessons.list(user.id, exam)
+  }
+
+  @Get('lessons/:exam/:id')
+  lesson(
+    @CurrentUser() user: AuthUser,
+    @Param('exam') exam: string,
+    @Param('id') id: string,
+  ) {
+    return this.lessons.get(user.id, exam, id)
   }
 
   @Get('decks')

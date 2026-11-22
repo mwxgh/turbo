@@ -3,6 +3,7 @@
  * measured on that week's activity only. Like the roadmap, nothing is stored: the plan starts on
  * the day (UTC) of the learner's first placement test, in 7-day weeks, recomputed on every request.
  */
+import { lessonById } from './lessons'
 import {
   type RoadmapStats,
   type RoadmapTask,
@@ -30,6 +31,8 @@ export interface PlanWeek {
   /** done: every task done; missed: the week is over without it */
   status: 'done' | 'missed' | 'current' | 'upcoming'
   tasks: RoadmapTask[]
+  /** Lessons to read this week (course in `lessons/`) */
+  lessons: { id: string; title: string }[]
 }
 
 export interface StudyPlan {
@@ -58,6 +61,8 @@ interface WeekSpec {
   /** Questions of each part to answer this week */
   parts: Record<string, number>
   tests?: { MINI?: number; FULL?: number }
+  /** Lesson ids (lessons/plan.ts) to read this week */
+  lessons: string[]
 }
 
 const BUILD = 'Chắc từng Part'
@@ -77,6 +82,7 @@ export const TOEIC_PLAN: WeekSpec[] = [
     ],
     words: 80,
     level: 'warmup',
+    lessons: ['word-form', 'verb-tense', 'verb-form', 'agreement'],
     parts: { P5: 60, P2: 25 },
   },
   {
@@ -91,6 +97,7 @@ export const TOEIC_PLAN: WeekSpec[] = [
     ],
     words: 80,
     level: 'warmup',
+    lessons: ['p2-wh-questions', 'p2-yes-no', 'p2-indirect', 'pronoun'],
     parts: { P2: 50, P5: 40 },
   },
   {
@@ -105,6 +112,7 @@ export const TOEIC_PLAN: WeekSpec[] = [
     ],
     words: 80,
     level: 'warmup',
+    lessons: ['p3-preview', 'p34-speaker-intent', 'p4-talks'],
     parts: { P3: 39, P4: 30 },
   },
   {
@@ -119,6 +127,7 @@ export const TOEIC_PLAN: WeekSpec[] = [
     ],
     words: 80,
     level: 'warmup',
+    lessons: ['p6-insertion', 'p7-not-true', 'p7-vocab-in-context'],
     parts: { P6: 16, P7: 40 },
     tests: { MINI: 1 },
   },
@@ -133,6 +142,12 @@ export const TOEIC_PLAN: WeekSpec[] = [
     ],
     words: 80,
     level: 'build',
+    lessons: [
+      'preposition',
+      'conjunction',
+      'relative-clause',
+      'inversion-conditional',
+    ],
     parts: { P5: 60, P6: 16 },
   },
   {
@@ -146,6 +161,7 @@ export const TOEIC_PLAN: WeekSpec[] = [
     ],
     words: 80,
     level: 'build',
+    lessons: ['comparison', 'word-meaning', 'p1-photos'],
     parts: { P3: 39, P4: 30, P2: 25 },
   },
   {
@@ -160,6 +176,7 @@ export const TOEIC_PLAN: WeekSpec[] = [
     ],
     words: 80,
     level: 'build',
+    lessons: ['p7-multi-passage', 'p7-inference', 'collocation'],
     parts: { P7: 54, P5: 30 },
     tests: { MINI: 1 },
   },
@@ -174,6 +191,7 @@ export const TOEIC_PLAN: WeekSpec[] = [
     ],
     words: 80,
     level: 'build',
+    lessons: ['review-mistakes'],
     parts: { P3: 26, P4: 20, P7: 30 },
     tests: { MINI: 2 },
   },
@@ -188,6 +206,7 @@ export const TOEIC_PLAN: WeekSpec[] = [
     ],
     words: 60,
     level: 'target',
+    lessons: ['time-management'],
     parts: { P3: 26, P4: 20 },
     tests: { FULL: 1 },
   },
@@ -202,6 +221,7 @@ export const TOEIC_PLAN: WeekSpec[] = [
     ],
     words: 60,
     level: 'target',
+    lessons: [],
     parts: { P7: 54 },
     tests: { FULL: 1 },
   },
@@ -216,6 +236,7 @@ export const TOEIC_PLAN: WeekSpec[] = [
     ],
     words: 60,
     level: 'target',
+    lessons: [],
     parts: {},
     tests: { FULL: 2 },
   },
@@ -230,6 +251,7 @@ export const TOEIC_PLAN: WeekSpec[] = [
     ],
     words: 40,
     level: 'target',
+    lessons: [],
     parts: { P5: 30 },
     tests: { FULL: 1 },
   },
@@ -318,6 +340,10 @@ export function buildStudyPlan(
         tips: spec.tips,
         start: range?.from.toISOString() ?? null,
         end: range?.to.toISOString() ?? null,
+        lessons: spec.lessons.flatMap((id) => {
+          const lesson = lessonById(id)
+          return lesson ? [{ id, title: lesson.title }] : []
+        }),
         status: done
           ? 'done'
           : past

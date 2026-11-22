@@ -221,6 +221,9 @@ export class PracticeService {
         part: part.code,
         status: LingoContentStatus.PUBLISHED,
         ...(body.difficulty && { difficulty: body.difficulty }),
+        ...(body.skillTag && {
+          questions: { some: { skillTags: { has: body.skillTag } } },
+        }),
       },
       select: {
         id: true,

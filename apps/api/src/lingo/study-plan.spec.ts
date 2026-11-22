@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { LESSON_IDS } from './lessons/plan'
 import {
   PLAN_WEEKS,
   TOEIC_PLAN,
@@ -42,6 +43,12 @@ describe('study plan', () => {
         Object.keys(week.parts).length + Object.keys(week.tests ?? {}).length,
       ).toBeGreaterThan(0)
     }
+  })
+
+  it('links only lessons of the course', () => {
+    const known = new Set(Object.values(LESSON_IDS).flat())
+    for (const week of TOEIC_PLAN)
+      for (const id of week.lessons) expect(known.has(id), id).toBe(true)
   })
 
   it('starts on the day of the placement test, 00:00 UTC', () => {
