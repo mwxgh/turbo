@@ -19,8 +19,8 @@ const geistMono = localFont({
 })
 
 export const metadata: Metadata = {
-  title: 'Web',
-  description: 'Turborepo base web app',
+  title: { default: 'Turbo Dev', template: '%s · Turbo Dev' },
+  description: 'Build faster with Studio, keep learning with Lingo',
 }
 
 /**
