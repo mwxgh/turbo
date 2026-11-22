@@ -7,10 +7,12 @@ export interface DeckFixture {
     term: string
     pos: string
     /** IPA */
-    reading: string
+    reading?: string
     meaningVi: string
-    example: string
-    exampleVi: string
+    example?: string
+    exampleVi?: string
+    /** "Từ mở rộng": related words and phrases; no term = usage note */
+    extensions?: { term?: string; pos?: string; meaningVi?: string }[]
   }[]
 }
 

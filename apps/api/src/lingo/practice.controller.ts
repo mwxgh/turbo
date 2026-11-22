@@ -73,6 +73,15 @@ export class PracticeController {
     return this.practice.mistakes(user.id, exam)
   }
 
+  @Post('cards/:id/extensions')
+  @HttpCode(HttpStatus.OK)
+  learnExtensions(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.vocab.learnExtensions(user.id, id)
+  }
+
   @Post('cards/:id/review')
   @HttpCode(HttpStatus.OK)
   review(

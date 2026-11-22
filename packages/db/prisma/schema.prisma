@@ -315,19 +315,21 @@ model LingoDeck {
 }
 
 model LingoCard {
-  id        String    @id @default(uuid(7)) @db.Uuid
-  deckId    String    @map("deck_id") @db.Uuid
-  deck      LingoDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
-  term      String    @db.VarChar(100)
-  pos       String?   @db.VarChar(20)
+  id         String    @id @default(uuid(7)) @db.Uuid
+  deckId     String    @map("deck_id") @db.Uuid
+  deck       LingoDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  term       String    @db.VarChar(100)
+  pos        String?   @db.VarChar(20)
   /// IPA (en) or pinyin (zh)
-  reading   String?   @db.VarChar(100)
-  meaningVi String    @map("meaning_vi") @db.VarChar(500)
-  example   String?   @db.VarChar(500)
-  exampleVi String?   @map("example_vi") @db.VarChar(500)
-  topic     String?   @db.VarChar(50)
-  audioKey  String?   @map("audio_key") @db.VarChar(255)
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  reading    String?   @db.VarChar(100)
+  meaningVi  String    @map("meaning_vi") @db.VarChar(500)
+  example    String?   @db.VarChar(500)
+  exampleVi  String?   @map("example_vi") @db.VarChar(500)
+  topic      String?   @db.VarChar(50)
+  /// "Từ mở rộng": word family and phrases, `{ term?, pos?, meaningVi }[]` (no term = usage note)
+  extensions Json?
+  audioKey   String?   @map("audio_key") @db.VarChar(255)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
 
   states LingoCardState[]
 
