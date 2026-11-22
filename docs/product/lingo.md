@@ -6,7 +6,7 @@ applies-to: api, web, db
 
 # Lingo – app học ngoại ngữ và luyện thi
 
-App thứ năm trong launcher (`/lingo`), cạnh Hellos, Chat, Files và Studio. App học ngoại ngữ và luyện thi
+App trong launcher (`/lingo`), cạnh Studio (Hellos, Chat, Files là code tham khảo: ẩn khỏi launcher, vẫn mở bằng URL). App học ngoại ngữ và luyện thi
 chứng chỉ, dùng chung cho nhiều kỳ thi. **TOEIC Listening & Reading** làm đầu tiên. Thiết kế phải thêm được **IELTS**,
 **HSK** (và về sau TOPIK, JLPT…) mà không đổi schema hay viết lại màn làm bài.
 
