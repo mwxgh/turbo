@@ -20,16 +20,20 @@ import { toast } from '@repo/ui/components/sonner'
 import { cn } from '@repo/ui/lib/utils'
 import { formatDate } from '@repo/utils'
 
+import { GoalForm } from '@/components/goal-form'
 import { percent, takeHref } from '@/lib/lingo'
 import { startAttempt } from '@/lib/lingo-actions'
 import {
   type PlanWeek,
+  type Roadmap,
   type RoadmapStage,
   type RoadmapTask,
   type StudyPlan,
   dashboardQueryOptions,
   roadmapQueryOptions,
 } from '@/lib/queries/lingo'
+
+import { ProgressDonut } from './progress-donut'
 
 const STATUS: Record<RoadmapStage['status'], string> = {
   done: 'Đã xong',
@@ -437,7 +441,100 @@ function PlanSection({
   )
 }
 
-/** The learner's roadmap: target, today's work, the 12-week plan, then the stages. */
+/** Three rings: the whole roadmap by task status, the estimate against the target, this week. */
+function ProgressSection({
+  roadmap,
+  thisWeek,
+}: {
+  roadmap: Roadmap
+  thisWeek: PlanWeek | undefined
+}) {
+  const tasks = roadmap.stages.flatMap((s) =>
+    s.tasks.map((t) => ({ done: t.done, current: s.status === 'current' })),
+  )
+  const done = tasks.filter((t) => t.done).length
+  const current = tasks.filter((t) => !t.done && t.current).length
+  const reached =
+    roadmap.estimate === null ? 0 : Math.min(roadmap.estimate, roadmap.target)
+  const weekDone = thisWeek?.tasks.filter((t) => t.done).length ?? 0
+  return (
+    <section aria-labelledby="progress-heading" className="flex flex-col gap-3">
+      <h2 id="progress-heading" className="sr-only">
+        Tiến độ
+      </h2>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <ProgressDonut
+          title="Hoàn thành lộ trình"
+          caption={`${done}/${tasks.length} nhiệm vụ`}
+          legend
+          segments={[
+            { label: 'Đã xong', value: done, className: 'stroke-foreground' },
+            {
+              label: 'Đang học',
+              value: current,
+              className: 'stroke-rose-600 dark:stroke-rose-400',
+            },
+            {
+              label: 'Còn lại',
+              value: tasks.length - done - current,
+              className: 'stroke-muted',
+            },
+          ]}
+        />
+        <ProgressDonut
+          title="Tiến tới mục tiêu"
+          caption={
+            roadmap.estimate === null
+              ? 'Làm bài đầu vào để có điểm ước tính'
+              : `${roadmap.estimate}/${roadmap.target} điểm`
+          }
+          segments={
+            roadmap.estimate === null
+              ? []
+              : [
+                  {
+                    label: 'Đã đạt',
+                    value: reached,
+                    className: 'stroke-foreground',
+                  },
+                  {
+                    label: 'Còn thiếu',
+                    value: roadmap.target - reached,
+                    className: 'stroke-muted',
+                  },
+                ]
+          }
+        />
+        <ProgressDonut
+          title="Tuần này"
+          caption={
+            thisWeek
+              ? `Tuần ${thisWeek.week}/12 · ${weekDone}/${thisWeek.tasks.length} nhiệm vụ`
+              : 'Chưa vào lịch 12 tuần'
+          }
+          segments={
+            thisWeek
+              ? [
+                  {
+                    label: 'Đã xong',
+                    value: weekDone,
+                    className: 'stroke-foreground',
+                  },
+                  {
+                    label: 'Còn lại',
+                    value: thisWeek.tasks.length - weekDone,
+                    className: 'stroke-muted',
+                  },
+                ]
+              : []
+          }
+        />
+      </div>
+    </section>
+  )
+}
+
+/** The learner's roadmap: target, progress rings, today's work, the 12-week plan, then the stages. */
 export function RoadmapView({ exam }: { exam: string }) {
   const {
     data: roadmap,
@@ -504,16 +601,14 @@ export function RoadmapView({ exam }: { exam: string }) {
           <dd className="text-2xl font-medium tabular-nums">
             {roadmap.target}
           </dd>
-          <dd>
-            <Link
-              href={`/lingo/${exam}`}
-              className="rounded-sm text-xs text-muted-foreground underline
-                underline-offset-2 outline-none hover:text-foreground
-                focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              Đổi mục tiêu
-            </Link>
+          <dd className="text-xs text-muted-foreground">
+            {dashboard?.goal.targetScore ? 'điểm' : 'Mặc định, chưa đặt'}
           </dd>
+          {dashboard && (
+            <dd className="mt-auto pt-1">
+              <GoalForm exam={exam} goal={dashboard.goal} />
+            </dd>
+          )}
         </div>
         <div
           className="flex flex-col gap-1 rounded-xl border bg-card p-5
@@ -552,10 +647,12 @@ export function RoadmapView({ exam }: { exam: string }) {
                 : 'Đã qua'}
           </dd>
           <dd className="text-xs text-muted-foreground">
-            {daysLeft === null ? 'Đặt ngày thi ở trang Luyện tập' : 'còn lại'}
+            {daysLeft === null ? 'Đặt ở ô Mục tiêu' : 'còn lại'}
           </dd>
         </div>
       </dl>
+
+      <ProgressSection roadmap={roadmap} thisWeek={thisWeek} />
 
       {placement && !placement.done ? (
         <section

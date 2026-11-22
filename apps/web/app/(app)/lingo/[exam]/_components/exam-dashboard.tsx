@@ -14,10 +14,10 @@ import {
 import { buttonVariants } from '@repo/ui/components/button'
 import { formatDate } from '@repo/utils'
 
+import { GoalForm } from '@/components/goal-form'
 import { percent } from '@/lib/lingo'
 import { dashboardQueryOptions, examQueryOptions } from '@/lib/queries/lingo'
 
-import { GoalForm } from './goal-form'
 import { QuickPractice } from './quick-practice'
 
 function Stat({

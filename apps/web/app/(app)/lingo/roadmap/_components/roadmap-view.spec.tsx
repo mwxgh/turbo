@@ -93,7 +93,7 @@ function renderRoadmap(placementDone: boolean) {
     roadmap(placementDone),
   )
   queryClient.setQueryData(dashboardQueryOptions('TOEIC_LR').queryKey, {
-    goal: { targetScore: 650, examDate: null, newCardsPerDay: 20 },
+    goal: { targetScore: null, examDate: null, newCardsPerDay: 20 },
     review: { due: 4, new: 30 },
   } as Dashboard)
   return renderWithQuery(<RoadmapView exam="TOEIC_LR" />, queryClient)
@@ -142,6 +142,35 @@ describe('RoadmapView', () => {
     expect(
       within(plan).queryByRole('button', { name: 'Luyện 10 câu' }),
     ).not.toBeInTheDocument()
+  })
+
+  it('charts the roadmap, the target and this week as percentages', () => {
+    renderRoadmap(true)
+    // 1 of 2 roadmap tasks done; 400 of 650 points; 0 of 1 task this week
+    expect(
+      screen.getByRole('img', { name: /^Hoàn thành lộ trình: 50%/ }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('img', { name: /^Tiến tới mục tiêu: 62%/ }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('img', { name: /^Tuần này: 0%/ }),
+    ).toBeInTheDocument()
+  })
+
+  it('sets the target in a dialog on the page, and marks the default one', async () => {
+    const user = userEvent.setup()
+    renderRoadmap(true)
+    expect(screen.getByText('Mặc định, chưa đặt')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Đặt mục tiêu' }))
+    expect(screen.getByRole('dialog', { name: 'Mục tiêu' })).toBeInTheDocument()
+  })
+
+  it('leaves the target ring empty until there is an estimate', () => {
+    renderRoadmap(false)
+    expect(
+      screen.getByRole('img', { name: /^Tiến tới mục tiêu: chưa có dữ liệu/ }),
+    ).toBeInTheDocument()
   })
 
   it('waits for the placement test before starting the plan', () => {
