@@ -62,7 +62,8 @@ function FolderItems({
               />
               <span className="font-mono text-[13px]">{sub.name}</span>
             </summary>
-            <div className="ml-3 border-l pl-1.5">
+            {/* Guide line under the folder icon's centre */}
+            <div className="ml-3.5 border-l pl-1">
               <FolderItems
                 folder={sub}
                 selected={selected}
@@ -79,9 +80,10 @@ function FolderItems({
             onClick={() => onSelect(file.path)}
             aria-current={file.path === selected ? 'true' : undefined}
             className="flex w-full cursor-pointer items-center gap-1.5
-              rounded-md px-2 py-1 text-left text-sm outline-none hover:bg-muted
+              rounded-md px-2 py-1 text-left text-sm text-muted-foreground
+              outline-none hover:bg-muted hover:text-foreground
               focus-visible:ring-3 focus-visible:ring-ring/50
-              aria-[current]:bg-primary/10 aria-[current]:font-medium"
+              aria-[current]:bg-muted aria-[current]:text-foreground"
           >
             <FileText
               aria-hidden="true"
@@ -118,7 +120,7 @@ export function FilePreview({
   return (
     <div
       className="grid min-h-0 overflow-hidden rounded-xl border bg-card
-        md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]"
+        shadow-xs md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]"
     >
       <nav
         aria-label="Project files"
@@ -133,11 +135,12 @@ export function FilePreview({
       </nav>
       <section aria-label="File content" className="flex min-w-0 flex-col">
         <div
-          className="flex items-center justify-between gap-2 border-b px-3 py-2"
+          className="flex items-center justify-between gap-2 border-b py-2 pr-2
+            pl-4"
         >
           <p className="min-w-0 font-mono text-xs [overflow-wrap:anywhere]">
             {selected}
-            <span className="ml-2 text-muted-foreground tabular-nums">
+            <span className="ml-3 text-muted-foreground tabular-nums">
               {lines} {lines === 1 ? 'line' : 'lines'}
             </span>
           </p>
@@ -153,9 +156,10 @@ export function FilePreview({
         <pre
           tabIndex={0}
           aria-label={`Content of ${selected}`}
-          className="max-h-[32rem] min-h-48 overflow-auto p-3 font-mono
-            text-[13px] leading-relaxed outline-none focus-visible:ring-3
-            focus-visible:ring-ring/50 focus-visible:ring-inset"
+          className="max-h-[32rem] min-h-48 flex-1 overflow-auto bg-muted/30
+            px-4 py-3 font-mono text-[13px] leading-relaxed outline-none
+            focus-visible:ring-3 focus-visible:ring-ring/50
+            focus-visible:ring-inset"
         >
           <code>{content}</code>
         </pre>

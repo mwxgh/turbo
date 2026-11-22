@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 
-import { Badge } from '@repo/ui/components/badge'
 import {
   FieldDescription,
   FieldLegend,
@@ -66,8 +65,8 @@ export function OptionGroup<T extends string>({
               className="group relative flex cursor-pointer gap-3 rounded-lg
                 border bg-card p-3 text-card-foreground
                 transition-[border-color,background-color,box-shadow]
-                duration-150 hover:border-foreground/25
-                has-checked:border-primary has-checked:bg-primary/5
+                duration-150 hover:border-foreground/20
+                has-checked:border-foreground/30 has-checked:bg-muted/60
                 has-focus-visible:border-ring has-focus-visible:ring-3
                 has-focus-visible:ring-ring/50 has-disabled:cursor-not-allowed
                 has-disabled:border-dashed has-disabled:bg-transparent
@@ -89,21 +88,27 @@ export function OptionGroup<T extends string>({
                 aria-hidden="true"
                 className="mt-0.5 flex size-4 shrink-0 items-center
                   justify-center rounded-full border border-input
-                  peer-checked:border-primary peer-disabled:opacity-50"
+                  peer-checked:border-emerald-600 peer-disabled:opacity-50
+                  dark:peer-checked:border-emerald-400"
               >
                 <span
-                  className="size-2 scale-0 rounded-full bg-primary
+                  className="size-2 scale-0 rounded-full bg-emerald-600
                     transition-transform duration-150
-                    group-has-checked:scale-100 motion-reduce:transition-none"
+                    group-has-checked:scale-100 motion-reduce:transition-none
+                    dark:bg-emerald-400"
                 />
               </span>
               <span
                 className="flex min-w-0 flex-col gap-1 peer-disabled:opacity-60"
               >
-                <span className="flex flex-wrap items-center gap-2">
+                <span
+                  className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5"
+                >
                   <span className="text-sm font-medium">{choice.label}</span>
                   {choice.unavailable && (
-                    <Badge variant="outline">{choice.unavailable}</Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {choice.unavailable}
+                    </span>
                   )}
                 </span>
                 <span
