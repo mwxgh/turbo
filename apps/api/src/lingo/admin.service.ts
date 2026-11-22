@@ -16,7 +16,7 @@ import { type ListQuery, paginated } from '@repo/utils'
 
 import { itemCreateData, itemHash } from './content'
 import type { CreateDeckDto } from './dto/admin.dto'
-import { MORE_DECKS, SAMPLE_TESTS } from './fixtures/index'
+import { MORE_DECKS, PART56_DECKS, SAMPLE_TESTS } from './fixtures/index'
 import { TOEIC_TOPIC_DECKS } from './fixtures/toeic-decks'
 import { TOEIC_EXTRA_SAMPLES } from './fixtures/toeic-extra'
 import { TOEIC_MORE_SAMPLES } from './fixtures/toeic-more'
@@ -310,7 +310,7 @@ export class AdminService {
         rows: parseCsv(d.csv),
         firstLine: 2,
       })),
-      ...MORE_DECKS.map((d) => ({
+      ...[...MORE_DECKS, ...PART56_DECKS].map((d) => ({
         ...d,
         rows: d.cards.map((c) => ({ ...c, topic: d.topic })),
         firstLine: 1,

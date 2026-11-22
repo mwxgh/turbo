@@ -4,7 +4,7 @@ import { itemHash } from '../content'
 import { getExam, getPart } from '../specs'
 import { parseCsv } from '../specs/csv'
 import { cardRowSchema, issueLines, itemSchema } from '../specs/schemas'
-import { MORE_DECKS, SAMPLE_TESTS } from './index'
+import { MORE_DECKS, PART56_DECKS, SAMPLE_TESTS } from './index'
 import { TOEIC_TOPIC_DECKS } from './toeic-decks'
 import { TOEIC_EXTRA_SAMPLES } from './toeic-extra'
 import { TOEIC_MORE_SAMPLES } from './toeic-more'
@@ -97,5 +97,26 @@ describe('built-in content', () => {
     for (const deck of MORE_DECKS)
       expect(deck.cards.length, deck.title).toBe(40)
     expect(problems).toEqual([])
+  })
+
+  // The handout's words may repeat the topic decks, so terms are unique within these decks only
+  it('has valid Part 5–6 handout cards, unique within the handout', () => {
+    const terms = new Set<string>()
+    const problems: string[] = []
+    for (const deck of PART56_DECKS)
+      deck.cards.forEach((row, i) => {
+        const parsed = cardRowSchema.safeParse(row)
+        if (!parsed.success)
+          problems.push(
+            `${deck.title}[${i}]: ${issueLines(parsed.error).join('; ')}`,
+          )
+        const key = row.term.toLowerCase()
+        if (terms.has(key)) problems.push(`"${row.term}" twice`)
+        terms.add(key)
+      })
+    expect(problems).toEqual([])
+    expect(PART56_DECKS.map((d) => d.cards.length)).toEqual([
+      41, 40, 43, 29, 36,
+    ])
   })
 })
