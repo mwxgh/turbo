@@ -11,6 +11,7 @@ import { MINI_02 } from './tests/mini-02'
 import type { DeckFixture, TestFixture } from './types'
 
 export { PART56_DECKS } from './decks/part56'
+export { TOEIC990_DECKS } from './decks/toeic990'
 
 /** Decks after the starter and topic decks (TOEIC 07…). */
 export const MORE_DECKS: DeckFixture[] = [...DECKS_A, ...DECKS_B, ...DECKS_C]

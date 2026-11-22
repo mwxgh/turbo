@@ -4,7 +4,7 @@ import { itemHash } from '../content'
 import { getExam, getPart } from '../specs'
 import { parseCsv } from '../specs/csv'
 import { cardRowSchema, issueLines, itemSchema } from '../specs/schemas'
-import { MORE_DECKS, PART56_DECKS, SAMPLE_TESTS } from './index'
+import { MORE_DECKS, PART56_DECKS, SAMPLE_TESTS, TOEIC990_DECKS } from './index'
 import { TOEIC_TOPIC_DECKS } from './toeic-decks'
 import { TOEIC_EXTRA_SAMPLES } from './toeic-extra'
 import { TOEIC_MORE_SAMPLES } from './toeic-more'
@@ -117,6 +117,29 @@ describe('built-in content', () => {
     expect(problems).toEqual([])
     expect(PART56_DECKS.map((d) => d.cards.length)).toEqual([
       41, 40, 43, 29, 36,
+    ])
+  })
+
+  // The book repeats a few words across chapters with another sense, so terms are unique per deck
+  it('has valid TOEIC 0–990 book cards, unique within each deck', () => {
+    const problems: string[] = []
+    for (const deck of TOEIC990_DECKS) {
+      const terms = new Set<string>()
+      deck.cards.forEach((row, i) => {
+        const parsed = cardRowSchema.safeParse(row)
+        if (!parsed.success)
+          problems.push(
+            `${deck.title}[${i}]: ${issueLines(parsed.error).join('; ')}`,
+          )
+        const key = row.term.toLowerCase()
+        if (terms.has(key))
+          problems.push(`"${row.term}" twice in ${deck.title}`)
+        terms.add(key)
+      })
+    }
+    expect(problems).toEqual([])
+    expect(TOEIC990_DECKS.map((d) => d.cards.length)).toEqual([
+      46, 42, 57, 43, 50, 69, 43, 42, 53, 48, 45, 42, 58, 40,
     ])
   })
 })

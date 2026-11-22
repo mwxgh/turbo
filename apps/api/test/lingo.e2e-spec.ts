@@ -110,8 +110,8 @@ describe('Lingo (e2e)', () => {
     const first = await as(admin).post('/admin/samples').expect(200)
     expect(first.body).toMatchObject({
       items: { succeeded: 606, failed: 0 },
-      // Starter deck 30 + fifteen topic decks of 40
-      cards: { succeeded: 979, failed: 0, decks: 25 },
+      // Lingo decks 790, Part 5–6 handout 189, TOEIC 0–990 book 678
+      cards: { succeeded: 1657, failed: 0, decks: 39 },
     })
     const library = (await as(learner).get('/exams/TOEIC_LR/tests').expect(200))
       .body as { items: { id: string; title: string; questions: number }[] }
@@ -129,7 +129,7 @@ describe('Lingo (e2e)', () => {
     const again = await as(admin).post('/admin/samples').expect(200)
     expect(again.body).toMatchObject({
       items: { succeeded: 0, duplicates: 606 },
-      cards: { succeeded: 0, duplicates: 979 },
+      cards: { succeeded: 0, duplicates: 1657 },
     })
     const exam = await as(learner).get('/exams/TOEIC_LR').expect(200)
     const parts = (
