@@ -177,6 +177,9 @@ catalogs:
     tailwindcss:
       specifier: 4.3.3
       version: 4.3.3
+    ts-fsrs:
+      specifier: 5.4.2
+      version: 5.4.2
     tsx:
       specifier: 4.23.15
       version: 4.23.15
@@ -189,6 +192,9 @@ catalogs:
     vitest:
       specifier: 5.0.5
       version: 5.0.5
+    zod:
+      specifier: 4.6.7
+      version: 4.6.7
 
 overrides:
   '@expo/metro-config>lightningcss': 1.30.1
@@ -252,6 +258,9 @@ importers:
       '@aws-sdk/s3-presigned-post':
         specifier: 3.1153.0
         version: 3.1153.0
+      '@aws-sdk/s3-request-presigner':
+        specifier: 3.1153.0
+        version: 3.1153.0
       '@nestjs/common':
         specifier: 'catalog:'
         version: 12.3.2(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@10.2.2)
@@ -312,6 +321,12 @@ importers:
       rxjs:
         specifier: 'catalog:'
         version: 7.8.2
+      ts-fsrs:
+        specifier: 'catalog:'
+        version: 5.4.2
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
     devDependencies:
       '@nestjs/cli':
         specifier: 'catalog:'
@@ -1303,6 +1318,10 @@ packages:
 
   '@aws-sdk/s3-presigned-post@3.1153.0':
     resolution: {integrity: sha512-FBStAdkBYsw3L/RCgWtj8B3FRq04kyO+dYpsfRz6ndNPcmukAigRj5Sf8S1oJzIR7pMoc2iUQMkHOVjee5QFxQ==}
+    engines: {node: '>=20.0.0'}
+
+  '@aws-sdk/s3-request-presigner@3.1153.0':
+    resolution: {integrity: sha512-GJIV1KbOiTGTutEzTr1Upn+mHYq4ZDXcAJahQ8+5zoajWPNDIAQCeu/fEZ4J63IoocEIMZM2xTeKiEf4ubLXVg==}
     engines: {node: '>=20.0.0'}
 
   '@aws-sdk/signature-v4-multi-region@3.996.48':
@@ -8669,6 +8688,10 @@ packages:
     peerDependencies:
       typescript: '>=4.8.4'
 
+  ts-fsrs@5.4.2:
+    resolution: {integrity: sha512-z4qop4pzTcyTzuJ566d9EaX/4bZZzhYfeaPImfVr+xcYT65c5oBgFDijUhCE/D+C78eaolHIhKRZ04/RwF+v2g==}
+    engines: {node: '>=20.0.0'}
+
   ts-morph@26.0.0:
     resolution: {integrity: sha512-ztMO++owQnz8c/gIENcM9XfCEzgoGphTv+nKpYNM1bgsdOVC/jRZuEBf6N+mLLDNg68Kl+GgUZfOySaRiG1/Ug==}
 
@@ -9382,6 +9405,15 @@ snapshots:
       '@aws-sdk/types': 3.974.6
       '@smithy/core': 3.36.1
       '@smithy/signature-v4': 5.7.4
+      '@smithy/types': 4.19.0
+      tslib: 2.8.1
+
+  '@aws-sdk/s3-request-presigner@3.1153.0':
+    dependencies:
+      '@aws-sdk/core': 3.978.4
+      '@aws-sdk/signature-v4-multi-region': 3.996.48
+      '@aws-sdk/types': 3.974.6
+      '@smithy/core': 3.36.1
       '@smithy/types': 4.19.0
       tslib: 2.8.1
 
@@ -17057,6 +17089,8 @@ snapshots:
   ts-api-utils@2.5.0(typescript@6.0.3):
     dependencies:
       typescript: 6.0.3
+
+  ts-fsrs@5.4.2: {}
 
   ts-morph@26.0.0:
     dependencies:

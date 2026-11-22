@@ -11,7 +11,8 @@ import { ProviderIcon } from '@/app/(auth)/_components/provider-icon'
 import { publicEnv } from '@/lib/env'
 
 /**
- * One link per enabled provider: a full page load to the api, which redirects there and back.
+ * One icon link per enabled provider, side by side (the name is in `aria-label` and the tooltip):
+ * a full page load to the api, which redirects there and back.
  * The chosen one shows a spinner and the others stop responding, so a slow redirect cannot start
  * two flows.
  */
@@ -36,7 +37,7 @@ export function ProviderButtons({
   }, [])
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex gap-2">
       {providers.map((provider) => {
         const busy = pending === provider.id
         return (
@@ -44,9 +45,11 @@ export function ProviderButtons({
             key={provider.id}
             variant="outline"
             size="lg"
-            className="h-10 w-full cursor-pointer gap-2.5
+            className="h-10 flex-1 cursor-pointer
               aria-disabled:pointer-events-none aria-disabled:opacity-50"
             nativeButton={false}
+            aria-label={`${verb} with ${provider.label}`}
+            title={`${verb} with ${provider.label}`}
             aria-disabled={pending !== undefined && !busy ? true : undefined}
             aria-busy={busy || undefined}
             render={
@@ -67,7 +70,6 @@ export function ProviderButtons({
             ) : (
               <ProviderIcon provider={provider} />
             )}
-            {verb} with {provider.label}
           </Button>
         )
       })}

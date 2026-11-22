@@ -58,18 +58,27 @@ export function UploadDemo() {
           }}
           onConfirm={(files) => {
             setAttached((all) => [...all, ...files])
-            toast.success(`Attached ${files.length} file(s)`)
+            toast.success(
+              `Attached ${files.length} ${files.length === 1 ? 'file' : 'files'}`,
+            )
           }}
         />
         {attached.length > 0 && (
           <ul
             aria-label="Attached files"
-            className="flex flex-col gap-1 text-sm"
+            className="flex flex-col divide-y rounded-lg border text-sm"
           >
             {attached.map(({ file, result }) => (
-              <li key={result.key} className="flex flex-wrap gap-x-2">
+              <li
+                key={result.key}
+                className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3
+                  py-2"
+              >
                 <span className="font-medium">{file.name}</span>
-                <span className="text-muted-foreground">
+                <span
+                  className="font-mono text-xs text-muted-foreground
+                    tabular-nums"
+                >
                   {formatBytes(file.size)} · <code>{result.key}</code>
                 </span>
               </li>

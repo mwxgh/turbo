@@ -11,8 +11,8 @@ import { apiFetch } from '@/lib/api'
 export function UserMenu({ user }: { user: User }) {
   const [pending, setPending] = useState(false)
   return (
-    <div className="flex items-center gap-2 text-sm">
-      <span className="text-muted-foreground">
+    <div className="flex min-w-0 items-center gap-2 text-sm">
+      <span className="hidden truncate text-muted-foreground sm:inline">
         {user.name ?? user.username ?? user.email}
       </span>
       <Button

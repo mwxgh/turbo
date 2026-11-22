@@ -4,12 +4,18 @@ test('home lists the apps and shows the API as online', async ({ page }) => {
   await page.goto('/')
 
   await expect(
-    page.getByRole('heading', { name: 'Choose an app', level: 1 }),
+    page.getByRole('heading', { name: 'Where to grow today', level: 1 }),
   ).toBeVisible()
-  for (const name of ['Hellos', 'Chat', 'Files', 'Studio'])
+  // `first()`: admins also see Lingo Teach
+  for (const name of ['Studio', 'Lingo'])
+    await expect(
+      page.getByRole('link', { name: new RegExp(name) }).first(),
+    ).toBeVisible()
+  // Reference apps stay reachable by URL only
+  for (const name of ['Hellos', 'Chat', 'Files'])
     await expect(
       page.getByRole('link', { name: new RegExp(name) }),
-    ).toBeVisible()
+    ).toHaveCount(0)
   await expect(page.getByText('online')).toBeVisible()
 })
 
@@ -17,14 +23,14 @@ test('opens an app from its card and comes back from the header', async ({
   page,
 }) => {
   await page.goto('/')
-  await page.getByRole('link', { name: /Chat/ }).click()
-  await expect(page).toHaveURL(/\/chat$/)
+  await page.getByRole('link', { name: /Studio/ }).click()
+  await expect(page).toHaveURL(/\/studio$/)
   await expect(
-    page.getByRole('heading', { name: 'Chat', level: 1 }),
+    page.getByRole('heading', { name: 'Studio', level: 1 }),
   ).toBeVisible()
   // The header names the current app
   await expect(
-    page.getByRole('navigation', { name: 'Location' }).getByText('Chat'),
+    page.getByRole('navigation', { name: 'Location' }).getByText('Studio'),
   ).toHaveAttribute('aria-current', 'page')
 
   await page.getByRole('link', { name: 'Turbo' }).click()

@@ -11,5 +11,6 @@ import { storageConfig } from './storage'
     { provide: STORAGE_CONFIG, useValue: storageConfig(env) },
     FilesService,
   ],
+  exports: [FilesService],
 })
 export class FilesModule {}

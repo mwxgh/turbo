@@ -9,6 +9,7 @@ import type { User } from '@repo/types'
 import { ModeToggle } from '@repo/ui/components/mode-toggle'
 
 import { UserMenu } from '@/components/user-menu'
+import { Wordmark } from '@/components/wordmark'
 import { appOf } from '@/lib/apps'
 
 /** Same on every signed-in page: home (launcher) link, the current app, account and theme. */
@@ -26,17 +27,10 @@ export function AppHeader({ user }: { user: User | null }) {
           <Link
             href="/"
             aria-current={app ? undefined : 'page'}
-            className="flex items-center gap-2 rounded-md font-semibold
-              outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="rounded-md outline-none focus-visible:ring-3
+              focus-visible:ring-ring/50"
           >
-            <span
-              aria-hidden="true"
-              className="flex size-7 items-center justify-center rounded-md
-                bg-primary text-xs font-bold text-primary-foreground"
-            >
-              T
-            </span>
-            Turbo
+            <Wordmark />
           </Link>
           {app && (
             <>

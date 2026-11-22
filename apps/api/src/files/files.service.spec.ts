@@ -45,6 +45,16 @@ describe('FilesService', () => {
     )
   })
 
+  it('signs a read URL on the public endpoint', async () => {
+    const url = new URL(
+      await new FilesService(config).readUrl('uploads/2026/11/x/photo.png'),
+    )
+    expect(url.origin + url.pathname).toBe(
+      'https://files.example.com/app/uploads/2026/11/x/photo.png',
+    )
+    expect(url.searchParams.get('X-Amz-Expires')).toBe('10800')
+  })
+
   it('refuses files above the limit before signing', async () => {
     await expect(
       new FilesService(config).createUpload({

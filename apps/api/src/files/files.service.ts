@@ -7,8 +7,9 @@ import {
   type OnModuleDestroy,
 } from '@nestjs/common'
 
-import { DeleteObjectCommand } from '@aws-sdk/client-s3'
+import { DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 import { formatBytes } from '@repo/utils'
 
@@ -21,6 +22,8 @@ export const STORAGE_CONFIG = Symbol('STORAGE_CONFIG')
 /** Everything uploaded through the API lives under this prefix. */
 export const UPLOAD_PREFIX = 'uploads/'
 const PRESIGN_SECONDS = 5 * 60
+/** Read URLs outlive a long test (2 h of TOEIC + margin). */
+const READ_URL_SECONDS = 3 * 60 * 60
 
 /** Keep names readable in the key but safe in URLs: "CV (final).pdf" → "CV-final-.pdf". */
 const safeName = (name: string) =>
@@ -65,6 +68,16 @@ export class FilesService implements OnModuleDestroy {
       Expires: PRESIGN_SECONDS,
     })
     return { url, fields, key }
+  }
+
+  /** Temporary browser URL to read an uploaded object (images of learning content). */
+  readUrl(key: string): Promise<string> {
+    const { config, signer } = this
+    return getSignedUrl(
+      signer,
+      new GetObjectCommand({ Bucket: config.bucket, Key: key }),
+      { expiresIn: READ_URL_SECONDS },
+    )
   }
 
   /** Only keys this API handed out (no auth yet: never delete arbitrary objects). */

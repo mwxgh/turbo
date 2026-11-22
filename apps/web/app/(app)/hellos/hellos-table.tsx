@@ -53,7 +53,10 @@ export function HellosTable() {
           meta: { filterVariant: 'dateRange' },
           // Displayed in Vietnam time
           cell: ({ getValue }) => (
-            <time dateTime={getValue()} className="text-muted-foreground">
+            <time
+              dateTime={getValue()}
+              className="text-muted-foreground tabular-nums"
+            >
               {formatDateTime(getValue())}
             </time>
           ),
@@ -90,7 +93,7 @@ export function HellosTable() {
     <DataTable
       list={list}
       searchPlaceholder="Search hellos…"
-      emptyMessage="No hellos yet."
+      emptyMessage="No hellos yet"
     />
   )
 }

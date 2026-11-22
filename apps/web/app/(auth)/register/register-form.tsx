@@ -119,7 +119,7 @@ export function RegisterForm({ next }: { next: string }) {
             label="Password"
             type="password"
             autoComplete="new-password"
-            hint={`At least ${MIN_PASSWORD} characters.`}
+            hint={`At least ${MIN_PASSWORD} characters`}
             value={field.state.value}
             errors={field.state.meta.errors}
             onBlur={field.handleBlur}

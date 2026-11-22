@@ -24,6 +24,7 @@ export default {
         'nest-common',
         'utils',
         'socket-events',
+        'lingo',
         'e2e',
         'tooling',
         'deploy',

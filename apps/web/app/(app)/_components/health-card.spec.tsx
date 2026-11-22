@@ -37,7 +37,7 @@ describe('HealthCard', () => {
 
     expect(screen.getByText('checking…')).toBeInTheDocument()
     expect(await screen.findByText('online')).toBeInTheDocument()
-    expect(screen.getByText(/"database": "up"/)).toBeInTheDocument()
+    expect(screen.getByText('database: up')).toBeInTheDocument()
     expect(apiFetch).toHaveBeenCalledWith('/health', { cache: 'no-store' })
   })
 

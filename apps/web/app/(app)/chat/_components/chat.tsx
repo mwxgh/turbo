@@ -4,10 +4,10 @@ import { type FormEvent, useEffect, useRef, useState } from 'react'
 
 import { useVirtualizer } from '@tanstack/react-virtual'
 
-import { Badge } from '@repo/ui/components/badge'
 import { Button } from '@repo/ui/components/button'
 import {
   Card,
+  CardAction,
   CardContent,
   CardHeader,
   CardTitle,
@@ -93,20 +93,35 @@ export function Chat() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          Socket
-          <Badge variant={connected ? 'default' : 'destructive'}>
-            {connected ? 'connected' : 'disconnected'}
-          </Badge>
-        </CardTitle>
+        <CardTitle>#{ROOM}</CardTitle>
+        <CardAction
+          className="flex items-center gap-2 text-sm text-muted-foreground"
+        >
+          <span
+            aria-hidden="true"
+            className={`size-2 rounded-full ${
+              connected ? 'bg-emerald-500' : 'bg-destructive'
+            }`}
+          />
+          <span>{connected ? 'connected' : 'disconnected'}</span>
+        </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div
           ref={listRef}
           role="log"
           aria-label={`Messages in #${ROOM}`}
-          className="h-48 overflow-y-auto rounded-md border bg-muted/30"
+          className="relative h-60 overflow-y-auto rounded-lg border
+            bg-muted/30"
         >
+          {messages.length === 0 && (
+            <p
+              className="absolute inset-0 flex items-center justify-center
+                text-sm text-muted-foreground"
+            >
+              No messages yet
+            </p>
+          )}
           <div
             className="relative w-full"
             style={{ height: virtualizer.getTotalSize() }}
@@ -123,10 +138,10 @@ export function Chat() {
                     transform: `translateY(${item.start}px)`,
                   }}
                 >
-                  <code className="text-xs text-muted-foreground">
+                  <code className="shrink-0 text-xs text-muted-foreground">
                     {m.senderId.slice(0, 6)}
                   </code>
-                  <span>{m.text}</span>
+                  <span className="truncate">{m.text}</span>
                 </div>
               )
             })}
