@@ -19,6 +19,8 @@ import {
   reviewQueryOptions,
 } from '@/lib/queries/lingo'
 
+import { CardExtensions, toExtensions } from './card-extensions'
+
 /** Browser speech (no server TTS yet): English / Chinese voice from the deck language. */
 function speak(text: string, lang: string) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
@@ -198,6 +200,10 @@ export function ReviewSession({ exam }: { exam?: string }) {
                     )}
                   </p>
                 )}
+                <CardExtensions
+                  cardId={card.id}
+                  extensions={toExtensions(card.extensions)}
+                />
               </div>
             ) : (
               <Button variant="outline" onClick={() => setFlipped(true)}>

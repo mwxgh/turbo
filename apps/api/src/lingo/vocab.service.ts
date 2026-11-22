@@ -6,6 +6,11 @@ import type { LingoCardState, Prisma } from '@repo/db'
 import { PrismaService } from '@repo/db/nest'
 import { dayRange } from '@repo/utils'
 
+import { cardExtensionSchema } from './specs/schemas'
+
+/** The learner's own deck that "Học từ mở rộng" adds cards to (one per exam). */
+export const EXTENSION_DECK_TITLE = 'Từ mở rộng của tôi'
+
 /** Cards in a review session at most. */
 const QUEUE_LIMIT = 100
 const DEFAULT_NEW_PER_DAY = 20
@@ -151,6 +156,55 @@ export class VocabService {
       this.newAllowance(userId, exam),
     ])
     return { due, new: Math.min(unseen, allowance) }
+  }
+
+  /**
+   * "Học từ mở rộng": the related words and phrases of a card become cards of the learner's own
+   * deck, so FSRS schedules them like any other card. Notes (no term) and known terms are skipped.
+   */
+  async learnExtensions(userId: string, cardId: string) {
+    const card = await this.prisma.lingoCard.findFirst({
+      where: { id: cardId, deck: visibleDecks(userId) },
+      select: {
+        extensions: true,
+        deck: { select: { exam: true, language: true } },
+      },
+    })
+    if (!card) throw new NotFoundException('Card not found')
+    const parsed = cardExtensionSchema.array().safeParse(card.extensions ?? [])
+    const rows = (parsed.success ? parsed.data : []).flatMap((e) =>
+      e.term && e.meaningVi
+        ? [{ term: e.term, pos: e.pos, meaningVi: e.meaningVi }]
+        : [],
+    )
+    const deck =
+      (await this.prisma.lingoDeck.findFirst({
+        where: {
+          ownerId: userId,
+          exam: card.deck.exam,
+          title: EXTENSION_DECK_TITLE,
+        },
+        select: { id: true },
+      })) ??
+      (await this.prisma.lingoDeck.create({
+        data: {
+          ownerId: userId,
+          exam: card.deck.exam,
+          language: card.deck.language,
+          title: EXTENSION_DECK_TITLE,
+          description: 'Từ và cụm từ mở rộng bạn chọn học từ các thẻ.',
+        },
+        select: { id: true },
+      }))
+    const { count } = await this.prisma.lingoCard.createMany({
+      data: rows.map((row) => ({
+        ...row,
+        deckId: deck.id,
+        topic: 'Từ mở rộng',
+      })),
+      skipDuplicates: true,
+    })
+    return { deckId: deck.id, added: count, known: rows.length - count }
   }
 
   /** Grades a card with FSRS and stores the next due date. */

@@ -72,6 +72,15 @@ export async function submitAttempt(attemptId: string) {
   )
 }
 
+/** "Học từ mở rộng": a card's related words become cards of the learner's own deck */
+export async function learnExtensions(cardId: string) {
+  return run(() =>
+    post<{ deckId: string; added: number; known: number }>(
+      `/lingo/cards/${encodeURIComponent(cardId)}/extensions`,
+    ),
+  )
+}
+
 export async function reviewCard(cardId: string, rating: 1 | 2 | 3 | 4) {
   return run(() =>
     post<unknown>(`/lingo/cards/${encodeURIComponent(cardId)}/review`, {

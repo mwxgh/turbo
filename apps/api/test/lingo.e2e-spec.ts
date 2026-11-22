@@ -111,7 +111,7 @@ describe('Lingo (e2e)', () => {
     expect(first.body).toMatchObject({
       items: { succeeded: 606, failed: 0 },
       // Starter deck 30 + fifteen topic decks of 40
-      cards: { succeeded: 790, failed: 0, decks: 20 },
+      cards: { succeeded: 979, failed: 0, decks: 25 },
     })
     const library = (await as(learner).get('/exams/TOEIC_LR/tests').expect(200))
       .body as { items: { id: string; title: string; questions: number }[] }
@@ -129,7 +129,7 @@ describe('Lingo (e2e)', () => {
     const again = await as(admin).post('/admin/samples').expect(200)
     expect(again.body).toMatchObject({
       items: { succeeded: 0, duplicates: 606 },
-      cards: { succeeded: 0, duplicates: 790 },
+      cards: { succeeded: 0, duplicates: 979 },
     })
     const exam = await as(learner).get('/exams/TOEIC_LR').expect(200)
     const parts = (
@@ -362,5 +362,29 @@ describe('Lingo (e2e)', () => {
       totals: { attempts: 1, answered: 3 },
       streak: 1,
     })
+  })
+
+  it('learns the "từ mở rộng" of a card in the learner\'s own deck', async () => {
+    const card = await prisma.lingoCard.findFirstOrThrow({
+      where: { term: 'accept', deck: { title: { startsWith: 'Part 5–6' } } },
+    })
+    const first = await as(learner)
+      .post(`/cards/${card.id}/extensions`)
+      .expect(200)
+    expect(first.body).toMatchObject({ added: 2, known: 0 })
+    const again = await as(learner)
+      .post(`/cards/${card.id}/extensions`)
+      .expect(200)
+    expect(again.body).toMatchObject({ added: 0, known: 2 })
+
+    const decks = (await as(learner).get('/decks?exam=TOEIC_LR').expect(200))
+      .body as { title: string; ownerId: string | null; cards: number }[]
+    expect(decks).toContainEqual(
+      expect.objectContaining({ title: 'Từ mở rộng của tôi', cards: 2 }),
+    )
+    // Only the learner sees it
+    const others = (await as(other).get('/decks?exam=TOEIC_LR').expect(200))
+      .body as { title: string }[]
+    expect(others.map((d) => d.title)).not.toContain('Từ mở rộng của tôi')
   })
 })

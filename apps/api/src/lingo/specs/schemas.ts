@@ -90,7 +90,18 @@ export function itemSchema(exam: ExamSpec, part: PartSpec) {
 
 export type ItemInput = z.infer<ReturnType<typeof itemSchema>>
 
-/** One row of a vocabulary CSV. */
+/** One "từ mở rộng" of a card: a related word or phrase, or a usage note (no term). */
+export const cardExtensionSchema = z
+  .object({
+    term: optionalText(100),
+    pos: optionalText(20),
+    meaningVi: optionalText(300),
+  })
+  .refine((e) => e.term || e.meaningVi, 'Needs a term or a meaning')
+
+export type CardExtension = z.infer<typeof cardExtensionSchema>
+
+/** One row of a vocabulary CSV (fixtures may add `extensions`). */
 export const cardRowSchema = z.object({
   term: z.string().trim().min(1).max(100),
   pos: optionalText(20),
@@ -99,11 +110,14 @@ export const cardRowSchema = z.object({
   example: optionalText(500),
   exampleVi: optionalText(500),
   topic: optionalText(50),
+  extensions: z.array(cardExtensionSchema).max(20).optional(),
 })
 
 export type CardRow = z.infer<typeof cardRowSchema>
 
-export const CARD_CSV_COLUMNS = Object.keys(cardRowSchema.shape)
+export const CARD_CSV_COLUMNS = Object.keys(cardRowSchema.shape).filter(
+  (key) => key !== 'extensions',
+)
 
 /** Zod issues as short `path: message` lines for the admin. */
 export const issueLines = (error: z.ZodError): string[] =>

@@ -173,6 +173,8 @@ export interface LingoCard {
   example: string | null
   exampleVi: string | null
   topic: string | null
+  /** "Từ mở rộng": word family and phrases, `{ term?, pos?, meaningVi }[]` (no term = usage note) */
+  extensions: JsonValue | null
   audioKey: string | null
   createdAt: string
   states?: LimitDepth<LingoCardState, 2>[]
