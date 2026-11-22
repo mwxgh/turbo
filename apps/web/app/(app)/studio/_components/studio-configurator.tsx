@@ -3,14 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
-import {
-  ArrowLeft,
-  Check,
-  Download,
-  FolderTree,
-  Loader2,
-  Sparkles,
-} from 'lucide-react'
+import { ArrowLeft, Check, Download, FolderTree, Loader2 } from 'lucide-react'
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
 
 import { Button } from '@repo/ui/components/button'
@@ -119,24 +112,32 @@ function Progress({
           <span
             aria-current={item.state === 'current' ? 'step' : undefined}
             className={cn(
-              `flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs
-              font-medium`,
-              item.state === 'done' && 'bg-primary/10 text-primary',
-              item.state === 'current' && 'bg-primary text-primary-foreground',
+              `flex h-7 items-center gap-1.5 rounded-md border
+              border-transparent px-2 text-xs`,
+              item.state === 'done' && 'text-foreground',
+              item.state === 'current' &&
+                'border-border bg-card font-medium text-foreground shadow-xs',
               item.state === 'todo' && 'text-muted-foreground',
             )}
           >
             {item.state === 'done' ? (
-              <Check aria-hidden className="size-3" />
+              <Check
+                aria-hidden
+                className="size-3.5 text-emerald-600 dark:text-emerald-400"
+              />
             ) : (
-              <span aria-hidden className="tabular-nums">
+              <span
+                aria-hidden
+                className="w-3.5 text-center font-mono text-muted-foreground
+                  tabular-nums"
+              >
                 {i + 1}
               </span>
             )}
             {item.label}
           </span>
           {i < items.length - 1 && (
-            <span aria-hidden className="h-px w-3 bg-border" />
+            <span aria-hidden className="h-px w-4 bg-border" />
           )}
         </li>
       ))}
@@ -409,7 +410,7 @@ function Configurator({ catalog }: { catalog: StudioCatalog }) {
             <OptionGroup
               name="layout"
               legend={legend}
-              description="Turborepo and Nx host the TypeScript api and web in one workspace."
+              description="Turborepo and Nx host the TypeScript api and web in one workspace"
               choices={LAYOUTS.map((c) => ({
                 ...c,
                 unavailable:
@@ -431,7 +432,7 @@ function Configurator({ catalog }: { catalog: StudioCatalog }) {
               <OptionGroup
                 name="repo"
                 legend="Monorepo tool"
-                description="Plain setup, as the tool's own starter makes it."
+                description="Plain setup, as the tool's own starter makes it"
                 choices={catalog.repos.filter((r) => r.value !== 'single')}
                 value={options.repo}
                 onChange={(repo) => {
@@ -448,7 +449,7 @@ function Configurator({ catalog }: { catalog: StudioCatalog }) {
           <OptionGroup
             name="database"
             legend={legend}
-            description="The backend and ORM choices follow it."
+            description="The backend and ORM choices follow it"
             choices={catalog.databases}
             value={database}
             onChange={(value) => chooseDatabase(value, false)}
@@ -460,7 +461,7 @@ function Configurator({ catalog }: { catalog: StudioCatalog }) {
           <OptionGroup
             name="backend"
             legend={legend}
-            description="Its language decides which ORMs exist."
+            description="Its language decides which ORMs exist"
             choices={backendChoices}
             value={backend}
             onChange={(value) => chooseBackend(value, false)}
@@ -512,22 +513,28 @@ function Configurator({ catalog }: { catalog: StudioCatalog }) {
         <section
           aria-labelledby="result-heading"
           className="flex flex-wrap items-center justify-between gap-4
-            rounded-xl border bg-card p-5"
+            rounded-xl border bg-card p-5 shadow-xs"
         >
-          <div className="flex min-w-0 flex-col gap-1.5">
+          <div className="flex min-w-0 flex-col gap-1">
             <h2
               id="result-heading"
               ref={resultRef}
               tabIndex={-1}
-              className="flex items-center gap-2 text-xl font-semibold
+              className="flex items-center gap-2 text-lg font-medium
                 outline-none"
             >
-              <FolderTree aria-hidden className="size-5 text-primary" />
+              <FolderTree
+                aria-hidden
+                className="size-4.5 text-muted-foreground"
+              />
               <span className="font-mono">{options.name}</span> is ready
             </h2>
             <p className="text-sm text-muted-foreground">
               {STEPS.map((step) => summaries[step]).join(' · ')}
-              <span className="tabular-nums"> · {count} files</span>
+              <span className="font-mono text-xs tabular-nums">
+                {' '}
+                · {count} files
+              </span>
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -559,7 +566,7 @@ function Configurator({ catalog }: { catalog: StudioCatalog }) {
 
   const remaining = STEPS.filter((step) => !done.has(step))
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+    <div className="flex w-full max-w-2xl flex-col gap-6">
       <Progress done={done} open={open} generated={false} />
       <form
         aria-label="Project options"
@@ -589,11 +596,11 @@ function Configurator({ catalog }: { catalog: StudioCatalog }) {
           {nameTouched && !nameOk ? (
             <FieldError>
               2–50 characters: lowercase letters, digits and dashes, starting
-              with a letter.
+              with a letter
             </FieldError>
           ) : (
             <FieldDescription id="project-name-help">
-              Folder and package name: lowercase letters, digits and dashes.
+              Folder and package name: lowercase letters, digits and dashes
             </FieldDescription>
           )}
         </Field>
@@ -631,11 +638,11 @@ function Configurator({ catalog }: { catalog: StudioCatalog }) {
       {complete && (
         <section
           aria-labelledby="review-heading"
-          className="flex flex-col gap-4 rounded-xl border border-primary/40
-            bg-card p-5 shadow-xs"
+          className="flex flex-col gap-5 rounded-xl border bg-card p-5
+            shadow-xs"
         >
           <div className="flex flex-col gap-1">
-            <h2 id="review-heading" className="text-lg font-semibold">
+            <h2 id="review-heading" className="text-lg font-medium">
               Ready to generate
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -643,15 +650,16 @@ function Configurator({ catalog }: { catalog: StudioCatalog }) {
               you can browse each file, then download it as a zip.
             </p>
           </div>
-          <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-            <div className="flex justify-between gap-3 sm:col-span-2">
-              <dt className="text-muted-foreground">Name</dt>
-              <dd className="font-mono">{options.name || '…'}</dd>
-            </div>
+          <dl
+            className="grid grid-cols-[7rem_minmax(0,1fr)] gap-x-4 gap-y-2
+              border-y py-4 text-sm"
+          >
+            <dt className="text-muted-foreground">Name</dt>
+            <dd className="font-mono">{options.name || '…'}</dd>
             {STEPS.map((step) => (
-              <div key={step} className="flex justify-between gap-3">
+              <div key={step} className="contents">
                 <dt className="text-muted-foreground">{TITLES[step]}</dt>
-                <dd className="text-right font-medium">{summaries[step]}</dd>
+                <dd>{summaries[step]}</dd>
               </div>
             ))}
           </dl>
@@ -662,13 +670,11 @@ function Configurator({ catalog }: { catalog: StudioCatalog }) {
             onClick={() => void generate()}
             disabled={!nameOk || generating}
           >
-            {generating ? (
+            {generating && (
               <Loader2
                 aria-hidden
                 className="animate-spin motion-reduce:animate-none"
               />
-            ) : (
-              <Sparkles aria-hidden />
             )}
             {generating
               ? 'Generating…'
@@ -678,7 +684,7 @@ function Configurator({ catalog }: { catalog: StudioCatalog }) {
           </Button>
           {!nameOk && (
             <p className="text-sm text-destructive">
-              Fix the project name first.
+              Fix the project name first
             </p>
           )}
         </section>

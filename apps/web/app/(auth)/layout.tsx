@@ -8,7 +8,7 @@ export default function AuthLayout({
 }>) {
   return (
     <>
-      <header className="flex items-center justify-end gap-4 px-4 pt-4">
+      <header className="absolute top-4 right-4 z-10 flex items-center gap-4">
         <ModeToggle />
       </header>
       {children}

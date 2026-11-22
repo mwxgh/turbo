@@ -133,6 +133,9 @@ services:
       OAUTH_FACEBOOK_CLIENT_SECRET: ${OAUTH_FACEBOOK_CLIENT_SECRET:-}
       OAUTH_GITHUB_CLIENT_ID: ${OAUTH_GITHUB_CLIENT_ID:-}
       OAUTH_GITHUB_CLIENT_SECRET: ${OAUTH_GITHUB_CLIENT_SECRET:-}
+      ARK_API_KEY: ${ARK_API_KEY:-}
+      ARK_MODEL: ${ARK_MODEL:-}
+      ARK_BASE_URL: ${ARK_BASE_URL:-https://ark.ap-southeast.bytepluses.com/api/v3}
     ports:
       - '${APP_BIND:-127.0.0.1}:${API_PORT:-3001}:3001'
     depends_on:

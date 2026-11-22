@@ -25,7 +25,7 @@ export function AppCard({ app }: { app: AppEntry }) {
       </span>
       <span className="flex flex-col gap-1.5">
         <span className="flex items-center gap-2">
-          <span className="text-base font-semibold">{app.name}</span>
+          <span className="text-base font-medium">{app.name}</span>
           {app.status === 'soon' && (
             <Badge variant="secondary">Coming soon</Badge>
           )}

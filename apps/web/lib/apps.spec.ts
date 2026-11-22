@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { APPS, appById, appOf } from './apps'
+import { APPS, appById, appOf, launcherApps } from './apps'
 
 describe('app registry', () => {
   it('finds the app of a path, including its sub-pages', () => {
@@ -14,6 +14,15 @@ describe('app registry', () => {
   it('has unique ids and paths', () => {
     expect(new Set(APPS.map((a) => a.id)).size).toBe(APPS.length)
     expect(new Set(APPS.map((a) => a.href)).size).toBe(APPS.length)
+  })
+
+  it('lists only the visible apps, admin-only ones for admins', () => {
+    expect(launcherApps(false).map((a) => a.id)).toEqual(['studio', 'lingo'])
+    expect(launcherApps(true).map((a) => a.id)).toEqual([
+      'studio',
+      'lingo',
+      'teach',
+    ])
   })
 
   it('throws on an unknown id', () => {

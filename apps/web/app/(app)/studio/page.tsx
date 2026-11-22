@@ -20,9 +20,12 @@ export default async function StudioPage() {
   const queryClient = getQueryClient()
   await queryClient.prefetchQuery(studioOptionsQueryOptions())
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-3xl font-bold tracking-tight">{app.name}</h1>
+    <main
+      className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-10
+        sm:py-14"
+    >
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-medium tracking-tight">{app.name}</h1>
         <p className="text-muted-foreground">
           Pick a stack step by step, database first, then generate the project:
           browse every file and download it as a zip.
@@ -33,8 +36,7 @@ export default async function StudioPage() {
         fallback={
           <div
             aria-hidden="true"
-            className="h-[36rem] animate-pulse rounded-xl bg-muted
-              motion-reduce:animate-none"
+            className="h-[36rem] w-full max-w-2xl rounded-xl bg-muted/40"
           />
         }
       >

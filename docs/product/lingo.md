@@ -6,14 +6,15 @@ applies-to: api, web, db
 
 # Lingo – app học ngoại ngữ và luyện thi
 
-App thứ năm trong launcher (`/lingo`), cạnh Hellos, Chat, Files và Studio. App học ngoại ngữ và luyện thi
+App trong launcher (`/lingo`), cạnh Studio (Hellos, Chat, Files là code tham khảo: ẩn khỏi launcher, vẫn mở bằng URL). App học ngoại ngữ và luyện thi
 chứng chỉ, dùng chung cho nhiều kỳ thi. **TOEIC Listening & Reading** làm đầu tiên. Thiết kế phải thêm được **IELTS**,
 **HSK** (và về sau TOPIK, JLPT…) mà không đổi schema hay viết lại màn làm bài.
 
 Tập thể dục (gym) là **app riêng** về sau (vd. `Fit`, `/fit`), không nằm trong Lingo. Phần có thể dùng chung
 (mục tiêu, streak, nhắc học mỗi ngày) chỉ tách thành package khi app thứ hai thật sự cần.
 
-> **Trạng thái:** bản thiết kế đã chốt các câu hỏi (mục 10), chờ duyệt PR rồi làm giai đoạn 1.
+> **Trạng thái:** đã làm giai đoạn 1, đủ 7 Part TOEIC, bộ đề trong DB, AI sinh câu / đề / thẻ (BytePlus, ADR 0017).
+> Phần Nghe tạm đọc bằng giọng của trình duyệt; TTS thật (mục 5.3) chưa làm.
 
 ## 1. Tham khảo study4.com
 
@@ -184,9 +185,16 @@ Giống study4: chỉ chế độ **Full test** mới có điểm quy đổi. Ch
 - **Duyệt:** xem, sửa, nghe audio, Duyệt / Loại. Chỉ nội dung đã duyệt mới hiện cho người học.
 - **Ghép đề:** chọn các Item đã duyệt theo cấu trúc spec thành một Test (có nút "ghép tự động đủ cấu trúc"), xuất bản.
 
+### 4.7 Hỏi AI (`/lingo/chat`)
+
+- Chat với gia sư AI về tiếng Anh / TOEIC: ngữ pháp, từ vựng, sửa câu, giải thích đáp án. Trả lời hiện dần (stream).
+- Bong bóng nổi góc phải dưới trên mọi trang Lingo (trừ `/lingo/chat`): mở khung chat nhỏ, đóng vẫn trả lời tiếp, nút mở toàn trang.
+- Hội thoại lưu lại, mỗi người chỉ thấy của mình; xoá được. Tiêu đề = câu hỏi đầu.
+- Model: BytePlus ModelArk (`ARK_API_KEY`, `ARK_MODEL`), xem ADR `0016`. Thiếu cấu hình thì trang báo AI chưa bật.
+
 ## 5. Nhập nội dung
 
-MVP **không dùng AI để tạo nội dung**. Mọi nguồn đi qua cùng một đường: kiểm tra bằng schema Zod của
+Mọi nguồn (kể cả AI) đi qua cùng một đường: kiểm tra bằng schema Zod của
 `specs` → `DRAFT` → admin duyệt → `PUBLISHED`. Thêm nguồn mới (AI) không đổi phần còn lại.
 
 ```mermaid
@@ -228,20 +236,26 @@ async importItems(exam: string, part: string, raw: unknown[], userId: string) {
 }
 ```
 
-### 5.2 AI sinh đề (sau MVP)
+### 5.2 AI sinh nội dung (BytePlus ModelArk, ADR 0017)
 
-Thêm một nguồn nữa qua interface `LlmProvider` (`generateItems(spec, brief) → item[]`), đầu ra vẫn qua schema và bước duyệt ở trên.
+`GeneratorService` (`apps/api/src/lingo/generator.service.ts`) gọi `ArkModel` (cùng model với AI tutor, ADR 0016).
+Prompt từ spec của Part (`guide`, mẫu JSON của item, tag kỹ năng) ở `generate-prompts.ts`.
 
-- **Claude API** (`claude-opus-5-5`, structured outputs, Message Batches API) khi có API key cá nhân với giới hạn chi tháng.
-- **Model local** (Ollama, chạy trên máy cá nhân, sinh ra file JSON rồi nhập) nếu không muốn tốn phí API.
-  Server hiện tại (4 CPU, 7.7 GB RAM, không GPU) không đủ để chạy model.
-- Lượt tự kiểm (model làm lại câu, lệch đáp án → `NEEDS_REVIEW`), chống trùng bằng `contentHash`.
-- Cùng giai đoạn: AI điền nghĩa / phiên âm / ví dụ cho thẻ tạo từ highlight.
-- Key (nếu có) chỉ ở `.env` server, không gửi xuống web.
+- **Sinh câu theo Part:** admin chọn Part, số item, độ khó, chủ đề. Mỗi lượt gọi ~10 câu, tối đa 3 lượt song song.
+- **Sinh trọn bộ đề:** sinh từng Part đến đủ số câu (Full / Mini), tối đa 3 vòng bù câu thiếu, rồi ghép `LingoTest` DRAFT.
+- **Tự kiểm:** model làm lại câu vừa sinh (không kèm đáp án); lệch đáp án → `NEEDS_REVIEW`. Gấp đôi số lượt gọi.
+- **Điền thẻ:** danh sách từ → nghĩa, IPA, ví dụ, dịch → thẻ của bộ hệ thống.
+- Câu và thẻ sinh ra đều chờ admin duyệt; trùng `contentHash` bỏ qua. Part 1 chỉ có mô tả cảnh: admin tải ảnh khớp
+  rồi mới duyệt được.
+- Job chạy nền, tiến độ ở `LingoBatch` (`RUNNING` → `DONE` / `FAILED`). Key chỉ ở `.env` server.
 
 ### 5.3 Audio và ảnh
 
-**Audio: Google Cloud Text-to-Speech** (đã chốt).
+**Hiện tại:** chưa có audio file. Web đọc transcript (Part 3–4) và câu hỏi / lựa chọn (Part 1–2) bằng
+`speechSynthesis` của trình duyệt, giọng theo `speaker` (M, W, M2, W2, N) và `accent` (US, GB, AU, CA). Full test chỉ
+phát mỗi đoạn một lần. Xem ADR 0017.
+
+**Audio: Google Cloud Text-to-Speech** (đã chốt, chưa làm).
 
 - Script Listening (admin viết; sau này AI viết) gán mỗi người nói một vai (`speaker`, `accent`). Worker map vai sang giọng Google, ghép bằng SSML
   (`<break>` giữa các lượt), xuất `.mp3`.
@@ -307,39 +321,56 @@ erDiagram
 
 Mọi route cần đăng nhập. Route admin có `@Roles(Role.ADMIN)`. Controller có `ThrottlerGuard`. `:exam` là mã trong spec.
 
-| Method + path                                                      | Việc                                                                         |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| `GET /lingo/exams`                                                 | Danh sách kỳ thi đang mở (từ spec)                                           |
-| `GET/PUT /lingo/goals/:exam`                                       | Mục tiêu, ngày thi, cài đặt                                                  |
-| `GET /lingo/:exam/dashboard`                                       | Thẻ cần ôn, điểm dự đoán, dạng câu yếu, streak                               |
-| `GET /lingo/:exam/tests` · `GET /lingo/tests/:id`                  | Thư viện đề (`ListQueryDto`), chi tiết đề                                    |
-| `POST /lingo/attempts`                                             | `{ exam, testId?, mode, parts?, timeLimitSec? }` → câu hỏi (không có đáp án) |
-| `PUT /lingo/attempts/:id/answers/:questionId`                      | Tự lưu đáp án, đánh dấu                                                      |
-| `POST /lingo/attempts/:id/submit`                                  | Nộp → điểm, đúng/sai, giải thích                                             |
-| `GET /lingo/attempts` · `GET /lingo/attempts/:id`                  | Lịch sử, xem lại                                                             |
-| `GET /lingo/:exam/mistakes`                                        | Sổ câu sai                                                                   |
-| `POST /lingo/highlights`                                           | Lưu highlight, tuỳ chọn tạo thẻ                                              |
-| `GET/POST /lingo/decks` · `POST /lingo/decks/:id/cards`            | Bộ thẻ, thêm thẻ                                                             |
-| `GET /lingo/review` · `POST /lingo/cards/:id/review`               | Hàng ôn hôm nay, chấm thẻ                                                    |
-| `POST /lingo/questions/:id/report`                                 | Báo câu sai                                                                  |
-| `POST /lingo/admin/imports` · `POST /lingo/admin/decks/:id/import` | Nhập file JSON đề / CSV từ vựng → kết quả từng dòng                          |
-| `/lingo/admin/items`, `/lingo/admin/tests`                         | Tạo / sửa item, duyệt, ghép đề                                               |
+| Method + path                                                      | Việc                                                                                     |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `GET /lingo/exams`                                                 | Danh sách kỳ thi đang mở (từ spec)                                                       |
+| `GET/PUT /lingo/goals/:exam`                                       | Mục tiêu, ngày thi, cài đặt                                                              |
+| `GET /lingo/:exam/dashboard`                                       | Thẻ cần ôn, điểm dự đoán, dạng câu yếu, streak                                           |
+| `GET /lingo/:exam/tests` · `GET /lingo/tests/:id`                  | Thư viện đề (`ListQueryDto`), chi tiết đề                                                |
+| `POST /lingo/attempts`                                             | `{ exam, testId?, mode, parts?, timeLimitSec?, placement? }` → câu hỏi (không có đáp án) |
+| `GET /lingo/roadmap/:exam`                                         | Lộ trình: giai đoạn, nhiệm vụ, lịch 12 tuần (`plan`), tiến độ tính từ hoạt động          |
+| `GET /lingo/lessons/:exam`, `GET /lingo/lessons/:exam/:id`         | Giáo trình: chương, bài, tiến độ theo dạng câu (ADR 0022)                                |
+| `PUT /lingo/attempts/:id/answers/:questionId`                      | Tự lưu đáp án, đánh dấu                                                                  |
+| `POST /lingo/attempts/:id/submit`                                  | Nộp → điểm, đúng/sai, giải thích                                                         |
+| `GET /lingo/attempts` · `GET /lingo/attempts/:id`                  | Lịch sử (kèm tên đề), xem lại                                                            |
+| `GET /lingo/:exam/mistakes`                                        | Sổ câu sai                                                                               |
+| `POST /lingo/highlights`                                           | Lưu highlight, tuỳ chọn tạo thẻ                                                          |
+| `GET/POST /lingo/decks` · `POST /lingo/decks/:id/cards`            | Bộ thẻ, thêm thẻ                                                                         |
+| `GET /lingo/review` · `POST /lingo/cards/:id/review`               | Hàng ôn hôm nay, chấm thẻ                                                                |
+| `POST /lingo/questions/:id/report`                                 | Báo câu sai                                                                              |
+| `POST /lingo/admin/imports` · `POST /lingo/admin/decks/:id/import` | Nhập file JSON đề / CSV từ vựng → kết quả từng dòng                                      |
+| `/lingo/admin/items`, `PUT /lingo/admin/items/:id/image`           | Item: danh sách, duyệt, gắn ảnh Part 1                                                   |
+| `GET /lingo/exams/:exam/tests` · `GET /lingo/tests/:id`            | Thư viện đề (đã xuất bản), chi tiết đề + lần làm của tôi                                 |
+| `GET/POST /lingo/admin/tests` · `POST .../tests/:id/status`        | Danh sách đề, ghép đề từ câu đã duyệt, xuất bản / gỡ (`DELETE` xoá)                      |
+| `POST /lingo/admin/generate/items` · `.../generate/test`           | AI sinh câu / trọn đề, chạy nền → 202 + batch                                            |
+| `POST /lingo/admin/decks/:id/generate`                             | AI điền thẻ từ danh sách từ                                                              |
+| `GET/POST /lingo/chats` · `GET/DELETE /lingo/chats/:id`            | Hội thoại với AI tutor (`ListQueryDto`)                                                  |
+| `POST /lingo/chats/:id/messages`                                   | `{ text }` → câu trả lời stream `text/plain` (20 lần / phút)                             |
 
 Đáp án và giải thích không trả về trước khi câu đó được nộp.
 
-## 8. Màn hình web (`apps/web/app/(app)/lingo`)
+## 8. Màn hình web
 
-| Route                            | Nội dung                                               |
-| -------------------------------- | ------------------------------------------------------ |
-| `/lingo`                         | Chọn kỳ thi (TOEIC; IELTS, HSK hiện "Sắp có")          |
-| `/lingo/[exam]`                  | Dashboard kỳ thi                                       |
-| `/lingo/[exam]/tests`            | Thư viện đề                                            |
-| `/lingo/tests/[id]`              | Trang đề: Luyện tập (chọn Part, thời gian) / Full test |
-| `/lingo/attempts/[id]`           | Làm bài                                                |
-| `/lingo/attempts/[id]/result`    | Kết quả, xem lại, highlight → flashcard                |
-| `/lingo/[exam]/mistakes`         | Sổ câu sai                                             |
-| `/lingo/decks` · `/lingo/review` | Bộ thẻ, phiên ôn (Space lật, 1–4 chấm)                 |
-| `/lingo/admin`                   | Nhập (form, JSON, CSV), duyệt, ghép đề (chỉ admin)     |
+Hai site trong `apps/web` (ADR 0019): site học viên `/lingo`, khu ra đề `/teach` (chỉ admin). Phòng thi nằm ngoài layout app.
+
+| Route                                   | Nội dung                                                                                              |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `/lingo`                                | Chọn kỳ thi (TOEIC; IELTS, HSK hiện "Sắp có")                                                         |
+| `/lingo/roadmap`                        | Lộ trình 4 giai đoạn, lịch 12 tuần, bài kiểm tra đầu vào, việc hôm nay (ADR 0020, 0021)               |
+| `/lingo/lessons`, `/lingo/lessons/[id]` | Giáo trình 26 bài, 5 chương, luyện ngay theo dạng câu (ADR 0022)                                      |
+| `/lingo/[exam]/tests`                   | Thư viện đề: lọc Full / Mini, số câu, thời gian, lượt làm                                             |
+| `/lingo/tests/[id]`                     | Trang đề: Luyện tập (chọn Part, thời gian) / Full test                                                |
+| `/lingo/attempts/[id]/take`             | Phòng thi (`app/(room)`): câu theo nhóm, bảng số câu theo Part, đồng hồ, toàn màn hình                |
+| `/lingo/attempts/[id]`                  | Kết quả: điểm quy đổi, đúng / sai / bỏ trống, theo Part, kỹ năng cần luyện, phiếu trả lời, giải thích |
+| `/lingo/history`                        | Lịch sử: biểu đồ điểm full test (hoặc độ chính xác), các lần làm, làm tiếp bài dở                     |
+| `/lingo/[exam]`                         | Luyện tập: dashboard, luyện nhanh theo Part                                                           |
+| `/lingo/[exam]/mistakes`                | Sổ câu sai                                                                                            |
+| `/lingo/review`                         | Phiên ôn thẻ (Space lật, 1–4 chấm)                                                                    |
+| `/lingo/chat?c=<id>`                    | Hỏi AI tutor, danh sách hội thoại                                                                     |
+| `/teach`                                | Khu ra đề: việc cần làm, lịch sử nhập và sinh AI                                                      |
+| `/teach/tests`                          | Ghép đề, AI sinh trọn đề, duyệt và xuất bản đề                                                        |
+| `/teach/items`                          | Ngân hàng câu hỏi: duyệt / loại, ảnh Part 1                                                           |
+| `/teach/ai` · `/teach/import`           | AI sinh câu và thẻ từ · nhập JSON / CSV, dữ liệu mẫu                                                  |
 
 Màn làm bài dựng từ spec + `type` của câu: mỗi `QuestionType` một component (`SingleChoice`, `GapFill`…).
 Thêm kỳ thi mới không cần màn mới. Giao diện theo skill `ui-ux-pro-max`, component `@repo/ui`, kiểm tra light và dark.
@@ -360,18 +391,20 @@ Mỗi giai đoạn: PR vào `develop` → tự lên **dev**, rồi theo release 
 
 ## 10. Đã chốt
 
-| Câu hỏi                      | Quyết định                                                                                                                                    |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tên app                      | Lingo, `/lingo`. Gym là app riêng về sau                                                                                                      |
-| Nguồn nội dung MVP           | Admin nhập (form, JSON, CSV), chưa dùng AI                                                                                                    |
-| Audio                        | Google Cloud TTS qua `TtsProvider`                                                                                                            |
-| Ảnh Part 1                   | OpenAI image generation qua `ImageProvider`                                                                                                   |
-| Nội dung giữa các môi trường | Không đồng bộ. Mỗi môi trường tự nhập. Repo có vài item mẫu (`POST /lingo/admin/samples` nạp từ `apps/api/src/lingo/fixtures`) cho dev và e2e |
-| Quy đổi điểm                 | Bảng ước tính trong `specs`, hiệu chỉnh sau                                                                                                   |
+| Câu hỏi                      | Quyết định                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tên app                      | Lingo, `/lingo`. Gym là app riêng về sau                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Nguồn nội dung               | Admin nhập (form, JSON, CSV) và AI (BytePlus) sinh câu / đề / thẻ, tất cả qua bước duyệt (ADR 0017)                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Audio                        | Tạm: giọng của trình duyệt đọc transcript. Sau: Google Cloud TTS qua `TtsProvider`                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Ảnh Part 1                   | OpenAI image generation qua `ImageProvider`                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Nội dung giữa các môi trường | Không đồng bộ, mỗi môi trường tự nhập. Nội dung có sẵn trong repo (`apps/api/src/lingo/fixtures`, soạn cho Lingo, không lấy từ ETS): 606 item Part 2–7, 8 đề đã xuất bản (Đề mẫu 01, Mini Test 01, 02 và Full Test 01–05: mỗi đề 194 câu Part 2–7 đúng số câu ETS, chưa có Part 1), 20 bộ thẻ (790 từ, gồm 4 bộ cho mục tiêu 800+). Nạp bằng nút "Nạp dữ liệu mẫu" (`POST /lingo/admin/samples`) hoặc `pnpm --filter api lingo:seed`; chạy lại không tạo trùng. Nội dung mới về sau: AI BytePlus ở `/teach` |
+| Quy đổi điểm                 | Bảng ước tính trong `specs`, hiệu chỉnh sau                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 ## 11. Quyết định cần ADR
 
 - `0012` Cấu trúc kỳ thi khai báo bằng code (`apps/api/src/lingo/specs`), nội dung trong DB; mã kỳ thi / Part là chuỗi, không phải enum.
 - `0013` Mọi nội dung học vào qua một đường nhập chung (kiểm tra schema `specs` → DRAFT → admin duyệt). MVP nhập tay / JSON / CSV, AI là nguồn thêm sau qua `LlmProvider`.
 - `0014` Audio học bằng Google Cloud Text-to-Speech qua interface `TtsProvider` (thay được bằng ElevenLabs), sinh một lần lúc tạo nội dung, lưu S3.
+- `0016` AI tutor chat gọi BytePlus ModelArk từ api, trả lời stream `text/plain`, hội thoại lưu DB.
+- `0017` Nội dung AI (BytePlus) qua cùng đường nhập + duyệt, chạy nền qua `LingoBatch`; phần Nghe tạm đọc bằng trình duyệt.
 - `0015` Ảnh học bằng OpenAI image generation qua interface `ImageProvider`, câu hỏi viết sau khi xem ảnh thật.

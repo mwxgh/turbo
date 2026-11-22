@@ -16,3 +16,65 @@ export const OAuthProvider = {
 } as const
 
 export type OAuthProvider = (typeof OAuthProvider)[keyof typeof OAuthProvider]
+
+/** Review state of learning content: only PUBLISHED reaches learners */
+export const LingoContentStatus = {
+  DRAFT: 'DRAFT',
+  NEEDS_REVIEW: 'NEEDS_REVIEW',
+  PUBLISHED: 'PUBLISHED',
+  REJECTED: 'REJECTED',
+} as const
+
+export type LingoContentStatus = (typeof LingoContentStatus)[keyof typeof LingoContentStatus]
+
+export const LingoDifficulty = {
+  EASY: 'EASY',
+  MEDIUM: 'MEDIUM',
+  HARD: 'HARD',
+} as const
+
+export type LingoDifficulty = (typeof LingoDifficulty)[keyof typeof LingoDifficulty]
+
+/** Where a batch of content came from */
+export const LingoBatchSource = {
+  MANUAL: 'MANUAL',
+  IMPORT: 'IMPORT',
+  AI: 'AI',
+} as const
+
+export type LingoBatchSource = (typeof LingoBatchSource)[keyof typeof LingoBatchSource]
+
+/** RUNNING: an AI run still generating in the background */
+export const LingoBatchStatus = {
+  RUNNING: 'RUNNING',
+  DONE: 'DONE',
+  FAILED: 'FAILED',
+} as const
+
+export type LingoBatchStatus = (typeof LingoBatchStatus)[keyof typeof LingoBatchStatus]
+
+/** FULL: every part at full length; MINI: every part, about half the questions */
+export const LingoTestKind = {
+  FULL: 'FULL',
+  MINI: 'MINI',
+} as const
+
+export type LingoTestKind = (typeof LingoTestKind)[keyof typeof LingoTestKind]
+
+/** QUICK: a few questions of one part; PRACTICE: chosen parts of a test; FULL_TEST: scaled score */
+export const LingoAttemptMode = {
+  QUICK: 'QUICK',
+  PRACTICE: 'PRACTICE',
+  FULL_TEST: 'FULL_TEST',
+  PLACEMENT: 'PLACEMENT',
+} as const
+
+export type LingoAttemptMode = (typeof LingoAttemptMode)[keyof typeof LingoAttemptMode]
+
+/** Who wrote a message of an AI tutor chat */
+export const LingoChatRole = {
+  USER: 'USER',
+  ASSISTANT: 'ASSISTANT',
+} as const
+
+export type LingoChatRole = (typeof LingoChatRole)[keyof typeof LingoChatRole]
