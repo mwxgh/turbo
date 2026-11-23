@@ -148,6 +148,24 @@
 
     // ---------- guards ----------
     {
+      description: 'Overrides in pnpm-workspace.yaml are pinned by hand (security patches inside the parent range, known-bad versions): never bumped, dropped when the parent is fixed',
+      matchDepNames: [
+        '@expo/metro-config>lightningcss',
+        'express>body-parser',
+        'flat-cache>flatted',
+        'picomatch@^2',
+        '@humanfs/node',
+        'node-forge@^1',
+        'ajv>fast-uri',
+        '@hono/node-server',
+        'hono',
+        '@prisma/config>effect',
+        '@trivago/prettier-plugin-sort-imports>minimatch',
+        '@swc/cli>minimatch',
+      ],
+      enabled: false,
+    },
+    {
       description: 'React is pinned by the Expo SDK: only patches, new minors come with an Expo upgrade',
       matchPackageNames: [
         'react',

@@ -91,6 +91,7 @@ catalog:
   '@testing-library/user-event': 14.6.8
   'jsdom': 30.1.3
 
+# Every override is pinned by hand: list it in renovate.json5 ("Overrides … pinned by hand") too
 overrides:
   # NativeWind 5 (react-native-css) round-trips the stylesheet through lightningcss;
   # 1.31+ fails on var() ("failed to deserialize … Specifier"). Drop once fixed upstream.
