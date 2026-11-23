@@ -82,6 +82,16 @@ export class PracticeController {
     return this.vocab.learnExtensions(user.id, id)
   }
 
+  /** "Đã biết": the card leaves the learner's review list. */
+  @Post('cards/:id/known')
+  @HttpCode(HttpStatus.OK)
+  markKnown(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.vocab.markKnown(user.id, id)
+  }
+
   @Post('cards/:id/review')
   @HttpCode(HttpStatus.OK)
   review(

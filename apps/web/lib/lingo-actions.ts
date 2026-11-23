@@ -89,6 +89,13 @@ export async function reviewCard(cardId: string, rating: 1 | 2 | 3 | 4) {
   )
 }
 
+/** "Đã biết": the card leaves the learner's review list */
+export async function markCardKnown(cardId: string) {
+  return run(() =>
+    post<unknown>(`/lingo/cards/${encodeURIComponent(cardId)}/known`),
+  )
+}
+
 export async function updateGoal(
   exam: string,
   input: {

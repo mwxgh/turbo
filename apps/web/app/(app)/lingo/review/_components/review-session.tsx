@@ -3,14 +3,24 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CircleCheck, RotateCcw, Volume2 } from 'lucide-react'
+import {
+  ChevronsRight,
+  CircleCheck,
+  Frown,
+  Info,
+  Meh,
+  Repeat2,
+  RotateCcw,
+  Smile,
+  Volume2,
+} from 'lucide-react'
 
 import { Button } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'
 import { cn } from '@repo/ui/lib/utils'
 
 import { RATINGS } from '@/lib/lingo'
-import { reviewCard } from '@/lib/lingo-actions'
+import { markCardKnown, reviewCard } from '@/lib/lingo-actions'
 import {
   type DeckWithStats,
   type ReviewCard,
@@ -30,6 +40,18 @@ function speak(text: string, lang: string) {
   utterance.rate = 0.9
   window.speechSynthesis.speak(utterance)
 }
+
+const TONE = {
+  easy: 'text-emerald-600 dark:text-emerald-400',
+  medium: 'text-amber-600 dark:text-amber-400',
+  hard: 'text-rose-600 dark:text-rose-400',
+} as const
+
+const ICON = { easy: Smile, medium: Meh, hard: Frown } as const
+
+/** "(n) /ˈɒnset/" under the term */
+const posReading = (card: ReviewCard) =>
+  [card.pos && `(${card.pos})`, card.reading].filter(Boolean).join(' ')
 
 function DeckList({ decks }: { decks: DeckWithStats[] }) {
   if (!decks.length) return null
@@ -62,8 +84,8 @@ function DeckList({ decks }: { decks: DeckWithStats[] }) {
 }
 
 /**
- * Today's queue: front (term) → Space flips → rate 1–4. FSRS on the api picks the next date; cards
- * rated "Quên" come back later in the same session.
+ * Today's queue: front (term) → Space flips → Dễ / Trung bình / Khó (keys 1–3) or "Đã biết" (4).
+ * FSRS on the api picks the next date; "Khó" cards come back later in the same session.
  */
 export function ReviewSession({ exam }: { exam?: string }) {
   const queryClient = useQueryClient()
@@ -78,22 +100,26 @@ export function ReviewSession({ exam }: { exam?: string }) {
   const card = queue[0]
   const language = decks.find((d) => d.id === card?.deckId)?.language ?? 'en'
 
-  const rate = useCallback(
-    async (rating: 1 | 2 | 3 | 4) => {
+  /** Rating (FSRS grade) or "known": saves, then moves on. "Khó" comes back at the end. */
+  const answer = useCallback(
+    async (choice: 1 | 3 | 4 | 'known') => {
       if (!card || busy) return
       setBusy(true)
       try {
-        const res = await reviewCard(card.id, rating)
+        const res =
+          choice === 'known'
+            ? await markCardKnown(card.id)
+            : await reviewCard(card.id, choice)
         if (res.errors) {
           toast.error('Không lưu được', { description: res.errors.join(' · ') })
           return
         }
         setFlipped(false)
         setDone((n) => n + 1)
-        // "Quên": once more at the end of this session
+        // "Khó": once more at the end of this session
         setQueue((q) => [
           ...q.slice(1),
-          ...(rating === 1 ? [{ ...q[0]!, isNew: false }] : []),
+          ...(choice === 1 ? [{ ...q[0]!, isNew: false }] : []),
         ])
       } catch {
         toast.error('Không kết nối được máy chủ')
@@ -110,14 +136,17 @@ export function ReviewSession({ exam }: { exam?: string }) {
       if (event.key === ' ' || event.key === 'Enter') {
         event.preventDefault()
         setFlipped((f) => !f)
-      } else if (flipped && ['1', '2', '3', '4'].includes(event.key)) {
-        event.preventDefault()
-        void rate(Number(event.key) as 1 | 2 | 3 | 4)
+      } else {
+        const pick = RATINGS.find((r) => r.key === event.key)
+        if (pick || event.key === '4') {
+          event.preventDefault()
+          void answer(pick ? pick.value : 'known')
+        }
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [card, flipped, rate])
+  }, [answer, card])
 
   async function restart() {
     await queryClient.invalidateQueries({ queryKey: lingoKeys.all })
@@ -133,62 +162,81 @@ export function ReviewSession({ exam }: { exam?: string }) {
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-medium tracking-tight">Ôn từ vựng</h1>
         <p className="text-muted-foreground">
-          Nhớ nghĩa trước, rồi lật thẻ và tự chấm. Lịch ôn tự giãn ra khi bạn
-          nhớ tốt.
+          Nhớ nghĩa trước, lật thẻ, rồi chọn từ này với bạn dễ hay khó. Lịch ôn
+          tự giãn ra khi bạn nhớ tốt.
         </p>
       </div>
 
       {card ? (
         <section aria-label="Thẻ hiện tại" className="flex flex-col gap-4">
-          <div
-            className="flex items-center justify-between text-sm
-              text-muted-foreground"
+          <p
+            className="flex items-start gap-2 rounded-lg border
+              border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm
+              text-amber-900 dark:text-amber-200"
           >
-            <span className="text-xs tabular-nums">
-              {done}/{total} thẻ
-            </span>
-            {card.isNew && (
-              <span className="font-medium text-rose-700 dark:text-rose-300">
-                Thẻ mới
-              </span>
-            )}
-          </div>
-          <div
-            role="progressbar"
-            aria-label="Tiến độ phiên ôn"
-            aria-valuenow={done}
-            aria-valuemin={0}
-            aria-valuemax={total}
-            className="h-1 overflow-hidden rounded-full bg-muted"
-          >
+            <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
+            Bạn học tối đa {data?.newPerDay ?? 20} từ mới một ngày (đổi trong
+            Mục tiêu). Học đều mỗi ngày giúp nhớ lâu hơn học dồn.
+          </p>
+
+          <div className="flex items-center gap-3">
             <div
-              className="h-full rounded-full bg-primary"
-              style={{ width: `${total ? (done / total) * 100 : 0}%` }}
-            />
+              role="progressbar"
+              aria-label="Tiến độ phiên ôn"
+              aria-valuenow={done}
+              aria-valuemin={0}
+              aria-valuemax={total}
+              className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+            >
+              <div
+                className="h-full rounded-full bg-primary transition-[width]"
+                style={{ width: `${total ? (done / total) * 100 : 0}%` }}
+              />
+            </div>
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {done}/{total}
+            </span>
           </div>
 
           <div
-            className="flex min-h-72 flex-col items-center justify-center gap-4
-              rounded-2xl border bg-card p-8 text-center shadow-xs"
+            className="relative flex min-h-80 flex-col items-center
+              justify-center gap-3 rounded-2xl border bg-card px-6 py-12
+              text-center shadow-xs"
           >
+            {card.isNew && (
+              <span
+                className="absolute top-4 right-4 rounded-full border
+                  border-amber-500/60 px-3 py-0.5 text-xs font-medium
+                  text-amber-700 dark:text-amber-300"
+              >
+                Từ mới
+              </span>
+            )}
             <div className="flex items-center gap-2">
-              <span className="text-4xl font-medium tracking-tight sm:text-5xl">
+              <span
+                className="text-4xl font-semibold tracking-tight sm:text-5xl"
+              >
                 {card.term}
               </span>
               <Button
-                variant="ghost"
-                size="icon"
+                variant="secondary"
+                size="icon-sm"
+                className="rounded-full"
                 aria-label={`Nghe phát âm ${card.term}`}
                 onClick={() => speak(card.term, language)}
               >
                 <Volume2 aria-hidden="true" />
               </Button>
             </div>
-            <span className="text-sm text-muted-foreground">
-              {[card.reading, card.pos].filter(Boolean).join(' · ')}
-            </span>
+            {posReading(card) && (
+              <span className="font-medium text-muted-foreground">
+                {posReading(card)}
+              </span>
+            )}
             {flipped ? (
-              <div className="flex max-w-prose flex-col gap-3 border-t pt-6">
+              <div
+                className="mt-3 flex max-w-prose flex-col gap-3 border-t pt-5"
+              >
                 <p className="text-xl font-medium">{card.meaningVi}</p>
                 {card.example && (
                   <p className="leading-relaxed">
@@ -206,42 +254,64 @@ export function ReviewSession({ exam }: { exam?: string }) {
                 />
               </div>
             ) : (
-              <Button variant="outline" onClick={() => setFlipped(true)}>
-                Lật thẻ
-                <kbd
-                  className="ml-1 rounded border bg-muted px-1.5 font-mono
-                    text-[11px] font-normal text-muted-foreground"
-                >
-                  Space
-                </kbd>
-              </Button>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Nhớ nghĩa trong đầu, rồi lật thẻ để kiểm tra (Space).
+              </p>
             )}
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={flipped ? 'Úp thẻ' : 'Lật thẻ'}
+              title="Lật thẻ (Space)"
+              onClick={() => setFlipped((f) => !f)}
+              className="absolute right-3 bottom-3"
+            >
+              <Repeat2 aria-hidden />
+            </Button>
           </div>
 
           <div
             role="group"
-            aria-label="Bạn nhớ thẻ này thế nào?"
-            className={cn(
-              'grid grid-cols-2 gap-2 sm:grid-cols-4',
-              !flipped && 'invisible',
-            )}
+            aria-label="Bạn thấy từ này thế nào?"
+            className="grid grid-cols-2 gap-1 rounded-2xl border bg-card p-2
+              shadow-xs sm:grid-cols-4"
           >
-            {RATINGS.map((r) => (
-              <Button
-                key={r.value}
-                size="lg"
-                variant={r.value === 3 ? 'default' : 'outline'}
-                disabled={!flipped || busy}
-                onClick={() => void rate(r.value)}
-                className="h-12 flex-col gap-0"
+            {RATINGS.map((r) => {
+              const Icon = ICON[r.tone]
+              return (
+                <Button
+                  key={r.value}
+                  variant="ghost"
+                  disabled={busy}
+                  onClick={() => void answer(r.value)}
+                  title={`Phím ${r.key}`}
+                  className={cn('h-auto flex-col gap-1 py-4', TONE[r.tone])}
+                >
+                  <Icon aria-hidden className="size-5" />
+                  <span className="font-semibold">{r.label}</span>
+                </Button>
+              )
+            })}
+            <Button
+              variant="ghost"
+              disabled={busy}
+              onClick={() => void answer('known')}
+              title="Phím 4"
+              className="h-auto flex-col gap-1 py-4 text-muted-foreground"
+            >
+              <ChevronsRight aria-hidden className="size-5" />
+              <span
+                className="text-center text-xs leading-snug font-medium
+                  whitespace-normal"
               >
-                <span>{r.label}</span>
-                <span className="text-xs font-normal opacity-70">
-                  phím {r.key}
-                </span>
-              </Button>
-            ))}
+                Đã biết, loại khỏi danh sách ôn tập
+              </span>
+            </Button>
           </div>
+          <p className="text-center text-xs text-muted-foreground">
+            Dễ: nhớ ngay · Trung bình: nhớ ra sau một lúc · Khó: chưa nhớ, gặp
+            lại cuối phiên · phím 1–4
+          </p>
         </section>
       ) : (
         <section
