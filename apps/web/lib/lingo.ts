@@ -61,9 +61,12 @@ export const percent = (ratio: number) => `${Math.round(ratio * 100)}%`
 
 export const LETTERS = ['A', 'B', 'C', 'D', 'E']
 
+/**
+ * How the learner rates a card (FSRS grade underneath; Hard = 2 has no button): "Khó" brings it
+ * back later in the session, the others space it out. "Đã biết" (key 4) is separate: markCardKnown.
+ */
 export const RATINGS = [
-  { value: 1, label: 'Quên', hint: 'Again', key: '1' },
-  { value: 2, label: 'Khó', hint: 'Hard', key: '2' },
-  { value: 3, label: 'Được', hint: 'Good', key: '3' },
-  { value: 4, label: 'Dễ', hint: 'Easy', key: '4' },
+  { value: 4, label: 'Dễ', key: '1', tone: 'easy' },
+  { value: 3, label: 'Trung bình', key: '2', tone: 'medium' },
+  { value: 1, label: 'Khó', key: '3', tone: 'hard' },
 ] as const

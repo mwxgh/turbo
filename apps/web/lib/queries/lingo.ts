@@ -356,7 +356,7 @@ export const reviewQueryOptions = (exam?: string) =>
   queryOptions({
     queryKey: lingoKeys.review(exam),
     queryFn: () =>
-      get<{ cards: ReviewCard[] }>(
+      get<{ newPerDay: number; cards: ReviewCard[] }>(
         `/lingo/review${exam ? `?exam=${encodeURIComponent(exam)}` : ''}`,
       ),
     // A session works on a snapshot: refetching mid-session would reshuffle it

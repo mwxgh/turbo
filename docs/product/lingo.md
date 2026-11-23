@@ -179,7 +179,7 @@ Giống study4: chỉ chế độ **Full test** mới có điểm quy đổi. Ch
 - **Bộ thẻ hệ thống** theo kỳ thi và chủ đề (TOEIC: Office, Finance…; IELTS: Environment, Education…; HSK: theo cấp).
 - **Bộ thẻ của tôi:** tạo bộ, thêm thẻ tay, thêm từ **highlight** ở trang kết quả (người học tự gõ nghĩa; AI điền tự động ở giai đoạn AI).
 - Mặt thẻ tuỳ ngôn ngữ: tiếng Anh có IPA; tiếng Trung có chữ Hán, **pinyin**, Hán Việt. Có audio phát âm.
-- Ôn: lật thẻ → tự chấm **Again / Hard / Good / Easy**, lịch ôn theo FSRS (`ts-fsrs`). Giới hạn thẻ mới mỗi ngày.
+- Ôn: thẻ hiện từ, loại từ, IPA, nút nghe, nhãn "Từ mới"; lật thẻ (Space) xem nghĩa, ví dụ, từ mở rộng. Chọn **Dễ** (FSRS Easy) / **Trung bình** (Good) / **Khó** (Again, gặp lại cuối phiên) – phím 1–3 – hoặc **Đã biết, loại khỏi danh sách ôn tập** (phím 4, `POST /lingo/cards/:id/known`: không ôn lại, tính là đã thuộc). Lịch ôn theo FSRS (`ts-fsrs`). Giới hạn thẻ mới mỗi ngày (mục tiêu, mặc định 20), nhắc ở đầu phiên.
 
 ### 4.6 Admin (role `ADMIN`)
 

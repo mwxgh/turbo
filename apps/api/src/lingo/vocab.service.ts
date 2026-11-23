@@ -1,6 +1,13 @@
 import { Injectable, NotFoundException, Optional } from '@nestjs/common'
 
-import { type Card, type Grade, State, createEmptyCard, fsrs } from 'ts-fsrs'
+import {
+  type Card,
+  type Grade,
+  Rating,
+  State,
+  createEmptyCard,
+  fsrs,
+} from 'ts-fsrs'
 
 import type { LingoCardState, Prisma } from '@repo/db'
 import { PrismaService } from '@repo/db/nest'
@@ -15,6 +22,8 @@ export const EXTENSION_DECK_TITLE = 'Từ mở rộng của tôi'
 /** Cards in a review session at most. */
 const QUEUE_LIMIT = 100
 const DEFAULT_NEW_PER_DAY = 20
+/** "Đã biết" cards are due this far away: out of the review list for good */
+const KNOWN_DAYS = 36_500
 
 const scheduler = fsrs({ enable_fuzz: true })
 /** `State.Review` as stored in the Int column */
@@ -90,20 +99,26 @@ export class VocabService {
     })
   }
 
-  async newAllowance(userId: string, exam?: string) {
+  /** The learner's goal for new cards a day (default without a goal). */
+  async newCardsPerDay(userId: string, exam?: string) {
     const goal = exam
       ? await this.prisma.lingoGoal.findUnique({
           where: { userId_exam: { userId, exam } },
+          select: { newCardsPerDay: true },
         })
       : null
+    return goal?.newCardsPerDay ?? DEFAULT_NEW_PER_DAY
+  }
+
+  async newAllowance(userId: string, exam?: string) {
     const { start } = dayRange(new Date())
-    const introducedToday = await this.prisma.lingoCardState.count({
-      where: { userId, createdAt: { gte: start } },
-    })
-    return Math.max(
-      0,
-      (goal?.newCardsPerDay ?? DEFAULT_NEW_PER_DAY) - introducedToday,
-    )
+    const [perDay, introducedToday] = await Promise.all([
+      this.newCardsPerDay(userId, exam),
+      this.prisma.lingoCardState.count({
+        where: { userId, createdAt: { gte: start } },
+      }),
+    ])
+    return Math.max(0, perDay - introducedToday)
   }
 
   /** Due and new cards for today's session (due first). */
@@ -132,6 +147,7 @@ export class VocabService {
           })
         : []
     return {
+      newPerDay: await this.newCardsPerDay(userId, exam),
       cards: [
         ...due.map(({ card, ...state }) => ({
           ...card,
@@ -224,6 +240,33 @@ export class VocabService {
       ? toFsrsCard(card.states[0])
       : createEmptyCard(now)
     const next = fromFsrsCard(scheduler.next(current, now, rating).card)
+    return this.prisma.lingoCardState.upsert({
+      where: { userId_cardId: { userId, cardId } },
+      create: { userId, cardId, ...next },
+      update: next,
+    })
+  }
+
+  /**
+   * "Đã biết": the learner knows the card, it leaves the review list for good. Stored as an Easy
+   * review due in KNOWN_DAYS, so it counts as learned and never comes back on its own.
+   */
+  async markKnown(userId: string, cardId: string) {
+    const card = await this.prisma.lingoCard.findFirst({
+      where: { id: cardId, deck: visibleDecks(userId) },
+      include: { states: { where: { userId } } },
+    })
+    if (!card) throw new NotFoundException('Card not found')
+    const now = new Date()
+    const current = card.states[0]
+      ? toFsrsCard(card.states[0])
+      : createEmptyCard(now)
+    const next = {
+      ...fromFsrsCard(scheduler.next(current, now, Rating.Easy).card),
+      state: REVIEW_STATE,
+      scheduledDays: KNOWN_DAYS,
+      due: new Date(now.getTime() + KNOWN_DAYS * 86_400_000),
+    }
     return this.prisma.lingoCardState.upsert({
       where: { userId_cardId: { userId, cardId } },
       create: { userId, cardId, ...next },
