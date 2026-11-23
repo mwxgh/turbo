@@ -2,15 +2,14 @@ import type { DeckFixture } from '../types'
 
 /**
  * Topic vocabulary and common phrases from the book "Full bộ từ vựng ôn thi TOEIC từ 0–990"
- * (Prep for the New TOEIC, Vietnamese edition): one deck per chapter, IPA, example, note and
+ * (Prep for the New TOEIC, Vietnamese edition), one deck per book section: IPA, example, note and
  * related words ("từ mở rộng", labelled đồng nghĩa / trái nghĩa / dễ nhầm). Transcribed as
- * printed; only clear spelling slips are fixed.
+ * printed; only clear spelling slips are fixed. Raw material for the curriculum in ../vocab.ts.
  */
 export const TOEIC990_DECKS: DeckFixture[] = [
   {
-    title: 'TOEIC 0–990 · 1. General Business · Thương mại tổng quát (1/2)',
-    description:
-      'Contracts, Negotiations, Marketing (track 01–03), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC): IPA, ví dụ, giải thích và từ liên quan.',
+    title: '1-1 Contracts',
+    description: 'Track 01',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -491,6 +490,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '1-2 Negotiations',
+    description: 'Track 02',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'accommodate',
         pos: 'v',
@@ -738,6 +744,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '1-3 Marketing',
+    description: 'Track 03',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'commercial',
         pos: 'n, adj',
@@ -1106,9 +1119,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · 1. General Business · Thương mại tổng quát (2/2)',
-    description:
-      'Sales, Conferences, Business Planning (track 04–06), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC): IPA, ví dụ, giải thích và từ liên quan.',
+    title: '1-4 Sales',
+    description: 'Track 04',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -1385,6 +1397,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '1-5 Conferences',
+    description: 'Track 05',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'address',
         pos: 'v',
@@ -1595,6 +1614,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '1-6 Business Planning',
+    description: 'Track 06',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'arrangement',
         pos: 'n',
@@ -2047,9 +2073,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · 2. Office Issues · Hành chính văn phòng',
-    description:
-      'Board Meetings, Committees, Communication, Furniture & Equipment, Office Procedures (track 07–11), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC): IPA, ví dụ, giải thích và từ liên quan.',
+    title: '2-1 Board Meetings',
+    description: 'Track 07',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -2178,6 +2203,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '2-2 Committees',
+    description: 'Track 08',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'appoint',
         pos: 'v',
@@ -2349,6 +2381,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '2-3 Communication',
+    description: 'Track 09',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'appreciation',
         pos: 'n',
@@ -2639,6 +2678,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '2-4 Furniture & Equipment',
+    description: 'Track 10',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'affordable',
         pos: 'adj',
@@ -2959,6 +3005,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '2-5 Office Procedures',
+    description: 'Track 11',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'access',
         pos: 'n',
@@ -3303,9 +3356,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · 3. Personnel · Nhân sự',
-    description:
-      'Recruiting, Retiring, Salaries, Promotions, Job Applications (track 12–16), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC): IPA, ví dụ, giải thích và từ liên quan.',
+    title: '3-1 Recruiting',
+    description: 'Track 12',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -3454,6 +3506,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '3-2 Retiring',
+    description: 'Track 13',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'eligible',
         pos: 'adj',
@@ -3621,6 +3680,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '3-3 Salaries',
+    description: 'Track 14',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'basis',
         pos: 'n',
@@ -3823,6 +3889,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '3-4 Promotions',
+    description: 'Track 15',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'apprentice',
         pos: 'n',
@@ -4046,6 +4119,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '3-5 Job Applications',
+    description: 'Track 16',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'accomplishment',
         pos: 'n',
@@ -4375,9 +4455,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · 4. Purchasing · Mua hàng',
-    description:
-      'Shopping, Ordering Supplies, Shipping, Invoices (track 17–20), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC): IPA, ví dụ, giải thích và từ liên quan.',
+    title: '4-1 Shopping',
+    description: 'Track 17',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -4592,6 +4671,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '4-2 Ordering Supplies',
+    description: 'Track 18',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'automatically',
         pos: 'adv',
@@ -4910,6 +4996,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '4-3 Shipping',
+    description: 'Track 19',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'carrier',
         pos: 'n',
@@ -5132,6 +5225,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '4-4 Invoices',
+    description: 'Track 20',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'accurately',
         pos: 'adv',
@@ -5597,9 +5697,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · 5. Finance and Budgeting · Tài chính và Ngân sách',
-    description:
-      'Banking, Investments, Taxes, Accounting, Billing (track 21–25), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC): IPA, ví dụ, giải thích và từ liên quan.',
+    title: '5-1 Banking',
+    description: 'Track 21',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -5923,6 +6022,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '5-2 Investments',
+    description: 'Track 22',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'accumulate',
         pos: 'v',
@@ -6373,6 +6479,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '5-3 Taxes',
+    description: 'Track 23',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'calculation',
         pos: 'n',
@@ -6522,6 +6635,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '5-4 Accounting',
+    description: 'Track 24',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'accounting',
         pos: 'n',
@@ -6905,6 +7025,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '5-5 Billing',
+    description: 'Track 25',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'coupon',
         pos: 'n',
@@ -7052,9 +7179,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · 6. Management Issues · Vấn đề quản lý',
-    description:
-      'Assembly Lines, Quality Control, Management Meetings (track 26–28), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC): IPA, ví dụ, giải thích và từ liên quan.',
+    title: '6-1 Assembly Lines',
+    description: 'Track 26',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -7272,6 +7398,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '6-2 Quality Control',
+    description: 'Track 27',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'circumstance',
         pos: 'n',
@@ -7760,6 +7893,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '6-3 Management Meetings',
+    description: 'Track 28',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'agenda',
         pos: 'n',
@@ -8127,9 +8267,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · 7. Restaurants and Events · Nhà hàng và Sự kiện',
-    description:
-      'Banquets, Informal Lunches, Receptions, Reservations, Events (track 29–33), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC): IPA, ví dụ, giải thích và từ liên quan.',
+    title: '7-1 Banquets',
+    description: 'Track 29',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -8369,6 +8508,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '7-2 Informal Lunches',
+    description: 'Track 30',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'basic',
         pos: 'adj',
@@ -8508,6 +8654,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '7-3 Receptions',
+    description: 'Track 31',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'arrive',
         pos: 'v',
@@ -8726,6 +8879,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '7-4 Reservations',
+    description: 'Track 32',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'demand',
         pos: 'v',
@@ -8900,6 +9060,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '7-5 Events',
+    description: 'Track 33',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'complete',
         pos: 'adj',
@@ -9219,9 +9386,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · 8. Travel · Du lịch',
-    description:
-      'Transportation, Tickets, Schedules, Stations and Terminals (track 34–37), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC): IPA, ví dụ, giải thích và từ liên quan.',
+    title: '8-1 Transportation',
+    description: 'Track 34',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -9566,6 +9732,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '8-2 Tickets',
+    description: 'Track 35',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'agent',
         pos: 'n',
@@ -9945,6 +10118,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '8-3 Schedules',
+    description: 'Track 36',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'coincide',
         pos: 'v',
@@ -10316,6 +10496,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '8-4 Stations and Terminals',
+    description: 'Track 37',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'advanced',
         pos: 'adj',
@@ -10533,9 +10720,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · 9. Entertainment · Giải trí',
-    description:
-      'Movies, Theater, Music, Art, Media (track 38–42), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC): IPA, ví dụ, giải thích và từ liên quan.',
+    title: '9-1 Movies',
+    description: 'Track 38',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -10737,6 +10923,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '9-2 Theater',
+    description: 'Track 39',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'audience',
         pos: 'n',
@@ -10931,6 +11124,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '9-3 Music',
+    description: 'Track 40',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'available',
         pos: 'adj',
@@ -11254,6 +11454,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '9-4 Art',
+    description: 'Track 41',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'acquire',
         pos: 'v',
@@ -11546,6 +11753,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '9-5 Media',
+    description: 'Track 42',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'assignment',
         pos: 'n',
@@ -11714,9 +11928,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · 10. Health · Sức khỏe',
-    description:
-      'Medical Insurance, At the Doctor\'s Office, At the Dentist\'s Office, At the Clinic, At the Hospital (track 43–47), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC): IPA, ví dụ, giải thích và từ liên quan.',
+    title: '10-1 Medical Insurance',
+    description: 'Track 43',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -11980,6 +12193,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: "10-2 At the Doctor's Office",
+    description: 'Track 44',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'appointment',
         pos: 'n',
@@ -12275,6 +12495,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: "10-3 At the Dentist's Office",
+    description: 'Track 45',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'distraction',
         pos: 'n',
@@ -12439,6 +12666,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '10-4 At the Clinic',
+    description: 'Track 46',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'annually',
         pos: 'adv',
@@ -12551,6 +12785,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: '10-5 At the Hospital',
+    description: 'Track 47',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'admit',
         pos: 'v',
@@ -12853,9 +13094,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · Cụm từ A–E',
-    description:
-      'Cụm từ thường gặp A–E (track 48–48), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC).',
+    title: 'Phrases A~E',
+    description: 'Track 48',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -13617,9 +13857,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · Cụm từ F–O',
-    description:
-      'Cụm từ thường gặp F–O (track 49–50), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC).',
+    title: 'Phrases F~J',
+    description: 'Track 49',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -14090,6 +14329,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: 'Phrases K~O',
+    description: 'Track 50',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: "keep one's promise",
         pos: 'phrase',
@@ -14753,9 +14999,8 @@ export const TOEIC990_DECKS: DeckFixture[] = [
     ],
   },
   {
-    title: 'TOEIC 0–990 · Cụm từ P–Z',
-    description:
-      'Cụm từ thường gặp P–Z (track 51–52), theo sách "Full bộ từ vựng ôn thi TOEIC từ 0–990" (Prep for the New TOEIC).',
+    title: 'Phrases P~T',
+    description: 'Track 51',
     topic: 'Từ vựng 0–990',
     cards: [
       {
@@ -15183,6 +15428,13 @@ export const TOEIC990_DECKS: DeckFixture[] = [
           },
         ],
       },
+    ],
+  },
+  {
+    title: 'Phrases U~Z',
+    description: 'Track 52',
+    topic: 'Từ vựng 0–990',
+    cards: [
       {
         term: 'under a cloud',
         pos: 'phrase',

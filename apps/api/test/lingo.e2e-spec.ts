@@ -107,12 +107,30 @@ describe('Lingo (e2e)', () => {
   })
 
   it('loads the samples once', async () => {
+    // A system deck of an earlier release: its card moves into the curriculum (same id)
+    const legacy = await prisma.lingoDeck.create({
+      data: {
+        exam: 'TOEIC_LR',
+        title: 'TOEIC 01 · Văn phòng & cuộc họp',
+        language: 'en',
+        cards: { create: { term: 'attend', meaningVi: 'tham dự' } },
+      },
+      include: { cards: true },
+    })
     const first = await as(admin).post('/admin/samples').expect(200)
     expect(first.body).toMatchObject({
       items: { succeeded: 606, failed: 0 },
-      // Lingo decks 790, Part 5–6 handout 189, TOEIC 0–990 book 678
-      cards: { succeeded: 1657, failed: 0, decks: 39 },
+      // One card per term in 48 topic decks
+      cards: { succeeded: 1425, duplicates: 1, failed: 0, decks: 48 },
     })
+    const moved = await prisma.lingoCard.findUniqueOrThrow({
+      where: { id: legacy.cards[0]!.id },
+      include: { deck: true },
+    })
+    expect(moved.deck.title).toMatch(/^Bài \d\d · /)
+    expect(
+      await prisma.lingoDeck.findUnique({ where: { id: legacy.id } }),
+    ).toBeNull()
     const library = (await as(learner).get('/exams/TOEIC_LR/tests').expect(200))
       .body as { items: { id: string; title: string; questions: number }[] }
     // …and the published sample tests, each made once
@@ -129,7 +147,7 @@ describe('Lingo (e2e)', () => {
     const again = await as(admin).post('/admin/samples').expect(200)
     expect(again.body).toMatchObject({
       items: { succeeded: 0, duplicates: 606 },
-      cards: { succeeded: 0, duplicates: 1657 },
+      cards: { succeeded: 0, duplicates: 1426 },
     })
     const exam = await as(learner).get('/exams/TOEIC_LR').expect(200)
     const parts = (
@@ -366,21 +384,26 @@ describe('Lingo (e2e)', () => {
 
   it('learns the "từ mở rộng" of a card in the learner\'s own deck', async () => {
     const card = await prisma.lingoCard.findFirstOrThrow({
-      where: { term: 'accept', deck: { title: { startsWith: 'Part 5–6' } } },
+      where: { term: 'accept', deck: { ownerId: null } },
     })
+    // Book and handout extensions of "accept", merged
+    const words = (card.extensions as { term?: string }[]).filter(
+      (e) => e.term,
+    ).length
+    expect(words).toBeGreaterThan(2)
     const first = await as(learner)
       .post(`/cards/${card.id}/extensions`)
       .expect(200)
-    expect(first.body).toMatchObject({ added: 2, known: 0 })
+    expect(first.body).toMatchObject({ added: words, known: 0 })
     const again = await as(learner)
       .post(`/cards/${card.id}/extensions`)
       .expect(200)
-    expect(again.body).toMatchObject({ added: 0, known: 2 })
+    expect(again.body).toMatchObject({ added: 0, known: words })
 
     const decks = (await as(learner).get('/decks?exam=TOEIC_LR').expect(200))
       .body as { title: string; ownerId: string | null; cards: number }[]
     expect(decks).toContainEqual(
-      expect.objectContaining({ title: 'Từ mở rộng của tôi', cards: 2 }),
+      expect.objectContaining({ title: 'Từ mở rộng của tôi', cards: words }),
     )
     // Only the learner sees it
     const others = (await as(other).get('/decks?exam=TOEIC_LR').expect(200))
