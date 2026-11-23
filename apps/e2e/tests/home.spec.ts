@@ -48,7 +48,7 @@ test('switches the theme in one click from the header and keeps it', async ({
   await page.getByRole('button', { name: 'Toggle theme' }).click()
   await expect(html).toHaveClass(/\bdark\b/)
 
-  // Stored by next-themes: still dark after a reload
+  // Stored in localStorage ("theme"): still dark after a reload
   await page.reload()
   await expect(html).toHaveClass(/\bdark\b/)
 })
