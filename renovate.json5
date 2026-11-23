@@ -146,6 +146,13 @@
       groupName: 'docker images',
     },
 
+    {
+      description: 'Infra images used in CI, deploy/docker-compose.yml and deploy/.env.example: one PR bumps every place (after "ci" / "docker images")',
+      matchDatasources: ['docker'],
+      matchDepNames: ['postgres', 'redis', 'elasticsearch'],
+      groupName: 'infra images',
+    },
+
     // ---------- guards ----------
     {
       description: 'Overrides in pnpm-workspace.yaml are pinned by hand (security patches inside the parent range, known-bad versions): never bumped, dropped when the parent is fixed',
@@ -197,6 +204,25 @@
   ],
 
   customManagers: [
+    {
+      description: 'Local infra images with an overridable tag: image: name:${X_VERSION:-tag} (deploy/docker-compose.yml)',
+      customType: 'regex',
+      managerFilePatterns: ['/(^|/)deploy/docker-compose\\.ya?ml$/'],
+      matchStrings: [
+        'image:\\s*(?<depName>[a-z0-9./_-]+):\\$\\{[A-Z0-9_]+:-(?<currentValue>[^}\\s]+)\\}',
+      ],
+      datasourceTemplate: 'docker',
+    },
+    {
+      description: 'The same tags in deploy/.env.example (copied to deploy/.env)',
+      customType: 'regex',
+      managerFilePatterns: ['/(^|/)deploy/\\.env\\.example$/'],
+      matchStrings: [
+        '(?<depName>POSTGRES|REDIS|ELASTICSEARCH)_VERSION=(?<currentValue>\\S+)',
+      ],
+      depNameTemplate: '{{{lowercase depName}}}',
+      datasourceTemplate: 'docker',
+    },
     {
       description: 'pnpm/turbo installed globally in Dockerfiles',
       customType: 'regex',
