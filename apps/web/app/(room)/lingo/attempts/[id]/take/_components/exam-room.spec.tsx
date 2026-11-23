@@ -16,9 +16,18 @@ vi.mock('@/lib/lingo-actions', () => ({
 }))
 
 const speak = vi.fn()
+const cancel = vi.fn()
 class Utterance {
   onend?: () => void
+  onerror?: () => void
+  rate = 1
   constructor(readonly text: string) {}
+}
+
+/** The utterance spoken `n`-th (lines are spoken one after another, after a tick). */
+async function spoken(n: number) {
+  await vi.waitFor(() => expect(speak.mock.calls.length).toBeGreaterThan(n))
+  return speak.mock.calls[n]![0] as Utterance
 }
 
 const part = (code: string, spokenOptions: boolean) => ({
@@ -93,9 +102,10 @@ const conversation = (n: number) => ({
 describe('ExamRoom', () => {
   beforeEach(() => {
     speak.mockReset()
+    cancel.mockReset()
     vi.stubGlobal('speechSynthesis', {
       speak,
-      cancel: vi.fn(),
+      cancel,
       getVoices: () => [],
     })
     vi.stubGlobal('SpeechSynthesisUtterance', Utterance)
@@ -109,14 +119,19 @@ describe('ExamRoom', () => {
     expect(screen.getAllByRole('radio')).toHaveLength(3)
 
     await user.click(screen.getByRole('button', { name: 'Nghe' }))
-    expect(speak.mock.calls.map(([u]) => (u as Utterance).text)).toEqual([
+    // The question, then each option: a line starts when the previous one ends
+    const heard: string[] = []
+    for (let n = 0; n < 4; n++) {
+      const line = await spoken(n)
+      heard.push(line.text)
+      line.onend?.()
+    }
+    expect(heard).toEqual([
       'Where is the meeting?',
       'A. Upstairs.',
       'B. At noon.',
       'C. Yes.',
     ])
-    // The last line ends the recording
-    ;(speak.mock.calls.at(-1)![0] as Utterance).onend?.()
     expect(
       await screen.findByRole('button', { name: 'Đã nghe' }),
     ).toBeDisabled()
@@ -204,8 +219,27 @@ describe('ExamRoom', () => {
       'true',
     )
     await user.click(screen.getByRole('button', { name: 'Nghe' }))
-    const first = speak.mock.calls[0]![0] as Utterance & { rate: number }
-    expect(first.rate).toBeCloseTo(0.95 * 1.25)
+    expect((await spoken(0)).rate).toBeCloseTo(0.95 * 1.25)
+  })
+
+  it('keeps reading while the exam clock ticks', async () => {
+    const user = userEvent.setup()
+    renderWithQuery(<ExamRoom attempt={attempt()} exam={exam} />)
+    await user.click(screen.getByRole('button', { name: 'Nghe' }))
+    const question = await spoken(0)
+    // The clock re-renders the room every second: that used to cancel the reading
+    await new Promise((r) => setTimeout(r, 1_200))
+    expect(cancel).toHaveBeenCalledTimes(1) // only the one before starting
+    question.onend?.()
+    expect((await spoken(1)).text).toBe('A. Upstairs.')
+  })
+
+  it('keeps reading when a line fails', async () => {
+    const user = userEvent.setup()
+    renderWithQuery(<ExamRoom attempt={attempt()} exam={exam} />)
+    await user.click(screen.getByRole('button', { name: 'Nghe' }))
+    ;(await spoken(0)).onerror?.()
+    expect((await spoken(1)).text).toBe('A. Upstairs.')
   })
 
   it('counts down to the deadline', () => {

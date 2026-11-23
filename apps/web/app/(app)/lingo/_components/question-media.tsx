@@ -73,8 +73,10 @@ export function ListeningPlayer({
   const speed = fixedSpeed ? 1 : chosenSpeed
   const stop = useRef<() => void>(undefined)
 
-  // Leaving the question stops the voice
-  useEffect(() => () => stop.current?.(), [lines])
+  // Leaving the question stops the voice. Keyed on the text, not the array: parents re-render
+  // (the exam clock ticks every second) with an equal new array, which used to cut the reading
+  const script = lines.map((line) => line.text).join('\n')
+  useEffect(() => () => stop.current?.(), [script])
 
   if (!canSpeak())
     return (
