@@ -2,13 +2,12 @@ import { describe, expect, it } from 'vitest'
 
 import { itemHash } from '../content'
 import { getExam, getPart } from '../specs'
-import { parseCsv } from '../specs/csv'
 import { cardRowSchema, issueLines, itemSchema } from '../specs/schemas'
-import { MORE_DECKS, PART56_DECKS, SAMPLE_TESTS, TOEIC990_DECKS } from './index'
-import { TOEIC_TOPIC_DECKS } from './toeic-decks'
+import { SAMPLE_TESTS } from './index'
 import { TOEIC_EXTRA_SAMPLES } from './toeic-extra'
 import { TOEIC_MORE_SAMPLES } from './toeic-more'
-import { TOEIC_PART5_SAMPLES, TOEIC_STARTER_DECK } from './toeic-part5'
+import { TOEIC_PART5_SAMPLES } from './toeic-part5'
+import { VOCAB_DECKS, VOCAB_SOURCES } from './vocab'
 
 const exam = getExam('TOEIC_LR')
 
@@ -65,81 +64,36 @@ describe('built-in content', () => {
     expect(questions).toBe(c.expected)
   })
 
-  it('has valid cards with terms unique across every deck', () => {
-    const decks = [
-      { title: TOEIC_STARTER_DECK.title, rows: TOEIC_STARTER_DECK.cards },
-      ...TOEIC_TOPIC_DECKS.map((d) => ({
-        title: d.title,
-        rows: parseCsv(d.csv),
-      })),
-      ...MORE_DECKS.map((d) => ({
-        title: d.title,
-        rows: d.cards.map((c) => ({ ...c, topic: d.topic })),
-      })),
-    ]
-    const terms = new Map<string, string>()
-    const problems: string[] = []
-    for (const deck of decks)
-      deck.rows.forEach((row, i) => {
+  it('has valid source cards', () => {
+    const problems = VOCAB_SOURCES.flatMap((source) =>
+      source.cards.flatMap((row, i) => {
         const parsed = cardRowSchema.safeParse(row)
-        if (!parsed.success) {
-          problems.push(
-            `${deck.title}[${i}]: ${issueLines(parsed.error).join('; ')}`,
-          )
-          return
-        }
-        const key = parsed.data.term.toLowerCase()
-        const seen = terms.get(key)
-        if (seen)
-          problems.push(`"${parsed.data.term}" in ${deck.title} and ${seen}`)
-        terms.set(key, deck.title)
-      })
-    for (const deck of MORE_DECKS)
-      expect(deck.cards.length, deck.title).toBe(40)
+        return parsed.success
+          ? []
+          : [`${source.title}[${i}]: ${issueLines(parsed.error).join('; ')}`]
+      }),
+    )
     expect(problems).toEqual([])
   })
 
-  // The handout's words may repeat the topic decks, so terms are unique within these decks only
-  it('has valid Part 5–6 handout cards, unique within the handout', () => {
-    const terms = new Set<string>()
-    const problems: string[] = []
-    for (const deck of PART56_DECKS)
-      deck.cards.forEach((row, i) => {
-        const parsed = cardRowSchema.safeParse(row)
-        if (!parsed.success)
-          problems.push(
-            `${deck.title}[${i}]: ${issueLines(parsed.error).join('; ')}`,
-          )
-        const key = row.term.toLowerCase()
-        if (terms.has(key)) problems.push(`"${row.term}" twice`)
-        terms.add(key)
-      })
-    expect(problems).toEqual([])
-    expect(PART56_DECKS.map((d) => d.cards.length)).toEqual([
-      41, 40, 43, 29, 36,
-    ])
-  })
-
-  // The book repeats a few words across chapters with another sense, so terms are unique per deck
-  it('has valid TOEIC 0–990 book cards, unique within each deck', () => {
-    const problems: string[] = []
-    for (const deck of TOEIC990_DECKS) {
-      const terms = new Set<string>()
-      deck.cards.forEach((row, i) => {
-        const parsed = cardRowSchema.safeParse(row)
-        if (!parsed.success)
-          problems.push(
-            `${deck.title}[${i}]: ${issueLines(parsed.error).join('; ')}`,
-          )
-        const key = row.term.toLowerCase()
-        if (terms.has(key))
-          problems.push(`"${row.term}" twice in ${deck.title}`)
-        terms.add(key)
-      })
-    }
-    expect(problems).toEqual([])
-    expect(TOEIC990_DECKS.map((d) => d.cards.length)).toEqual([
-      46, 42, 57, 43, 50, 69, 43, 42, 53, 48, 45, 42, 58, 40,
-    ])
+  it('builds the curriculum: one card per term, decks of up to 40 in order', () => {
+    const terms = VOCAB_DECKS.flatMap((d) =>
+      d.cards.map((c) => c.term.toLowerCase()),
+    )
+    expect(new Set(terms).size).toBe(terms.length)
+    const sourceTerms = new Set(
+      VOCAB_SOURCES.flatMap((s) => s.cards.map((c) => c.term.toLowerCase())),
+    )
+    expect(terms.length).toBe(sourceTerms.size)
+    expect(terms.length).toBe(1426)
+    VOCAB_DECKS.forEach((deck, i) => {
+      expect(deck.title).toMatch(
+        new RegExp(`^Bài ${String(i + 1).padStart(2, '0')} · `),
+      )
+      expect(deck.cards.length).toBeGreaterThan(0)
+      expect(deck.cards.length).toBeLessThanOrEqual(40)
+      for (const card of deck.cards)
+        expect(cardRowSchema.safeParse(card).success, card.term).toBe(true)
+    })
   })
 })
