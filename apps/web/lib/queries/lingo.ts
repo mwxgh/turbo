@@ -279,6 +279,19 @@ export type DeckWithStats = LingoDeck & {
 
 export type ReviewCard = LingoCard & { isNew: boolean; state: number }
 
+/** A hit of GET /lingo/cards/search. */
+export type CardHit = Pick<
+  LingoCard,
+  | 'id'
+  | 'term'
+  | 'pos'
+  | 'reading'
+  | 'meaningVi'
+  | 'example'
+  | 'exampleVi'
+  | 'deckId'
+> & { deckTitle: string }
+
 export type AdminItem = LingoItem & { questions: LingoQuestion[] }
 
 export interface ImportResult {
@@ -296,6 +309,8 @@ export const lingoKeys = {
   review: (exam?: string) =>
     [...lingoKeys.all, 'review', exam ?? 'all'] as const,
   decks: (exam?: string) => [...lingoKeys.all, 'decks', exam ?? 'all'] as const,
+  cardSearch: (q: string, exam?: string) =>
+    [...lingoKeys.all, 'cards', 'search', exam ?? 'all', q] as const,
   mistakes: (code: string) => [...lingoKeys.all, 'mistakes', code] as const,
   roadmap: (code: string) => [...lingoKeys.all, 'roadmap', code] as const,
   lessons: (code: string) => [...lingoKeys.all, 'lessons', code] as const,
@@ -355,6 +370,17 @@ export const decksQueryOptions = (exam?: string) =>
       get<DeckWithStats[]>(
         `/lingo/decks${exam ? `?exam=${encodeURIComponent(exam)}` : ''}`,
       ),
+  })
+
+export const cardSearchQueryOptions = (q: string, exam?: string) =>
+  queryOptions({
+    queryKey: lingoKeys.cardSearch(q, exam),
+    queryFn: () =>
+      get<{ engine: string; items: CardHit[] }>(
+        `/lingo/cards/search?${new URLSearchParams({ q, ...(exam && { exam }) })}`,
+      ),
+    enabled: q.length >= 2,
+    staleTime: 60_000,
   })
 
 export const mistakesQueryOptions = (code: string) =>

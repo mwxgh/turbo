@@ -20,6 +20,7 @@ export default {
         'db',
         'types',
         'redis',
+        'elasticsearch',
         'auth',
         'nest-common',
         'utils',

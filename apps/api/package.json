@@ -29,6 +29,7 @@
     "@nestjs/throttler": "catalog:",
     "@repo/auth": "workspace:*",
     "@repo/db": "workspace:*",
+    "@repo/elasticsearch": "workspace:*",
     "@repo/nest-common": "workspace:*",
     "@repo/redis": "workspace:*",
     "@repo/types": "workspace:*",

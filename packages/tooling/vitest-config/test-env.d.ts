@@ -5,3 +5,4 @@ export declare function assertLocalUrl(
   explicitVar: string,
 ): string
 export declare function testRedisUrl(): string
+export declare function testElasticsearchUrl(): string

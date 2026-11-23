@@ -12,8 +12,9 @@ import { ThrottlerGuard } from '@nestjs/throttler'
 
 import { type AuthUser, CurrentUser } from '@repo/auth/nest'
 
+import { CardSearchService } from './card-search.service'
 import { UpdateGoalDto } from './dto/goal.dto'
-import { ReviewQueueQueryDto } from './dto/vocab.dto'
+import { CardSearchQueryDto, ReviewQueueQueryDto } from './dto/vocab.dto'
 import { LessonsService } from './lessons.service'
 import { LingoService } from './lingo.service'
 import { RoadmapService } from './roadmap.service'
@@ -26,6 +27,7 @@ export class LingoController {
   constructor(
     private readonly lingo: LingoService,
     private readonly vocab: VocabService,
+    private readonly cardSearch: CardSearchService,
     private readonly roadmaps: RoadmapService,
     private readonly lessons: LessonsService,
   ) {}
@@ -83,6 +85,15 @@ export class LingoController {
   @Get('decks')
   decks(@CurrentUser() user: AuthUser, @Query() query: ReviewQueueQueryDto) {
     return this.vocab.decks(user.id, query.exam)
+  }
+
+  /** Full-text search over the cards the user can see: term, meaning (accents optional), từ mở rộng. */
+  @Get('cards/search')
+  searchCards(
+    @CurrentUser() user: AuthUser,
+    @Query() query: CardSearchQueryDto,
+  ) {
+    return this.cardSearch.search(user.id, query.q, query.exam)
   }
 
   @Get('review')

@@ -117,6 +117,18 @@ export class Env extends BaseEnv {
   @UrlField({ optional: true })
   ARK_BASE_URL = 'https://ark.ap-southeast.bytepluses.com/api/v3'
 
+  /** Elasticsearch for full-text search (`@repo/elasticsearch`); unset = search in Postgres. */
+  @UrlField({ optional: true, protocols: ['http', 'https'] })
+  ELASTICSEARCH_URL?: string
+
+  /** Index name prefix; environments sharing one cluster need different ones. Default `<APP_ENV>-`. */
+  @StringField({ optional: true, maxLength: 40 })
+  ELASTICSEARCH_INDEX_PREFIX?: string
+
+  get elasticsearchIndexPrefix(): string {
+    return this.ELASTICSEARCH_INDEX_PREFIX ?? `${this.APP_ENV}-`
+  }
+
   get oauthMobileRedirectUris(): string[] {
     return this.OAUTH_MOBILE_REDIRECT_URIS.split(',')
       .map((uri) => uri.trim())
