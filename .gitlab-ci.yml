@@ -5,9 +5,9 @@
 #   MR (any)            gitflow (source → target allowed?) + check
 #   (browser e2e / Playwright runs locally only: apps/e2e, ADR 0009)
 #   feature/*, fix/*…   check
-#   develop             check → images (dev, automatic)
-#   release/X.Y.Z       check → images (stg, automatic)
-#   hotfix/X.Y.Z        check → images (stg, automatic)
+#   develop             check → images (dev, manual; ADR 0024)
+#   release/X.Y.Z       check → images (stg, manual)
+#   hotfix/X.Y.Z        check → images (stg, manual)
 #   main                check
 #   tag vX.Y.Z on main  check → images (prod, manual) tagged :prod :X.Y.Z :latest
 #
@@ -158,6 +158,8 @@ images:dev:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_COMMIT_BRANCH == "develop"
+      when: manual
+      allow_failure: true
 
 images:stg:
   extends: .build-image
@@ -167,6 +169,8 @@ images:stg:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_COMMIT_BRANCH =~ /^(release|hotfix)\/\d+\.\d+\.\d+$/
+      when: manual
+      allow_failure: true
 
 images:prod:
   extends: .build-image

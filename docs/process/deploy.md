@@ -5,16 +5,16 @@ Repo chỉ build image. File compose chạy trên server nằm **trên server**,
 Sau khi đẩy image, CI gọi server để cập nhật. Lý do: [ADR 0008](../decisions/0008-tu-deploy-stg-qua-ssh-forced-command.md).
 
 ```
-push develop       ─▶ check ─▶ images (:dev, :dev-sha-<7>)   ─▶ deploy ─ssh─▶ /srv/turbo-dev/deploy.sh  dev-sha-<7>
-push release/X.Y.Z ─▶ check ─▶ images (:stg, :stg-sha-<7>)   ─▶ deploy ─ssh─▶ /srv/turbo-stg/deploy.sh  stg-sha-<7>
-tag vX.Y.Z (main)  ─▶ check ─▶ images (:prod, :X.Y.Z, …)     ─▶ deploy ─ssh─▶ /srv/turbo-prod/deploy.sh prod-sha-<7>
+tag vX.Y.Z (main)      ─▶ check ─▶ images (:prod, :X.Y.Z, …)   ─▶ deploy ─ssh─▶ /srv/turbo-prod/deploy.sh prod-sha-<7>
+Run workflow develop   ─▶ check ─▶ images (:dev, :dev-sha-<7>) ─▶ deploy ─ssh─▶ /srv/turbo-dev/deploy.sh  dev-sha-<7>
+Run workflow release/* ─▶ check ─▶ images (:stg, :stg-sha-<7>) ─▶ deploy ─ssh─▶ /srv/turbo-stg/deploy.sh  stg-sha-<7>
 ```
 
-| Môi trường | Domain                                           | Stack trên server | Tự deploy khi                        |
-| ---------- | ------------------------------------------------ | ----------------- | ------------------------------------ |
-| dev        | `dev.turbo-dev.site` (`api.dev.`, `socket.dev.`) | `/srv/turbo-dev`  | mỗi lần merge / push vào `develop`   |
-| stg        | `stg.turbo-dev.site` (`api.stg.`, `socket.stg.`) | `/srv/turbo-stg`  | push `release/X.Y.Z`, `hotfix/X.Y.Z` |
-| prod       | `turbo-dev.site` (`api.`, `socket.`)             | `/srv/turbo-prod` | tạo tag `vX.Y.Z` trên `main`         |
+| Môi trường | Domain                                           | Stack trên server | Tự deploy khi                |
+| ---------- | ------------------------------------------------ | ----------------- | ---------------------------- |
+| dev        | `dev.turbo-dev.site` (`api.dev.`, `socket.dev.`) | `/srv/turbo-dev`  | chỉ khi chạy tay (ADR 0024)  |
+| stg        | `stg.turbo-dev.site` (`api.stg.`, `socket.stg.`) | `/srv/turbo-stg`  | chỉ khi chạy tay (ADR 0024)  |
+| prod       | `turbo-dev.site` (`api.`, `socket.`)             | `/srv/turbo-prod` | tạo tag `vX.Y.Z` trên `main` |
 
 Prod chưa bật _Required reviewers_: tạo tag là deploy prod luôn. Muốn duyệt tay thì bật trong
 GitHub → Settings → Environments → `prod`.
@@ -78,5 +78,5 @@ Tag `<env>-sha-…` nào còn trên ghcr đều deploy lại được bằng l�
 `develop` và `release/*` có thể build cùng một commit (release vừa tách từ develop); tag `sha-…`
 chung từng bị image dev đè, stg kéo nhầm bản dev.
 
-Chạy lại deploy dev cho commit hiện tại của `develop` mà không cần push: GitHub → Actions → run của
-`develop` → _Re-run all jobs_.
+Deploy dev / stg khi cần: GitHub → Actions → _ci_ → _Run workflow_, chọn `develop` (dev) hoặc
+`release/X.Y.Z` / `hotfix/X.Y.Z` (stg). Bình thường chỉ dev ở local rồi tag lên prod (ADR 0024).

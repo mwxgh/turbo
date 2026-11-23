@@ -15,19 +15,19 @@ enforced-by:
 
 Dự án có **3 môi trường**, tên viết tắt dùng thống nhất trong code, CI, tag image và tài liệu: `dev`, `stg`, `prod`.
 
-|                         | `dev`                       | `stg`                                    | `prod`                                          |
-| ----------------------- | --------------------------- | ---------------------------------------- | ----------------------------------------------- |
-| Mục đích                | Tích hợp hằng ngày, máy dev | QA / UAT trước khi phát hành             | Người dùng thật                                 |
-| Domain                  | `dev.turbo-dev.site`        | `stg.turbo-dev.site`                     | `turbo-dev.site`                                |
-| Nguồn code              | `develop` (và máy local)    | `release/X.Y.Z`, `hotfix/X.Y.Z`          | tag `vX.Y.Z` trên `main`                        |
-| Build + deploy          | tự động khi push `develop`  | tự động khi push `release/*`, `hotfix/*` | khi tạo tag (duyệt tay nếu bật reviewers)       |
-| Tag image               | `:dev`, `:dev-sha-<sha>`    | `:stg`, `:stg-sha-<sha>`                 | `:prod`, `:X.Y.Z`, `:latest`, `:prod-sha-<sha>` |
-| CI environment          | `dev`                       | `stg`                                    | `prod` (GitHub: _Required reviewers_)           |
-| Swagger `/api/docs`     | bật                         | bật                                      | **tắt**                                         |
-| Nhãn môi trường trên UI | `DEV` (xanh)                | `STG` (cam)                              | không hiển thị                                  |
-| Dữ liệu                 | giả / seed, reset thoải mái | gần giống prod, đã ẩn danh               | thật – chỉ thay đổi qua migration               |
+|                         | `dev`                       | `stg`                           | `prod`                                          |
+| ----------------------- | --------------------------- | ------------------------------- | ----------------------------------------------- |
+| Mục đích                | Tích hợp hằng ngày, máy dev | QA / UAT trước khi phát hành    | Người dùng thật                                 |
+| Domain                  | `dev.turbo-dev.site`        | `stg.turbo-dev.site`            | `turbo-dev.site`                                |
+| Nguồn code              | `develop` (và máy local)    | `release/X.Y.Z`, `hotfix/X.Y.Z` | tag `vX.Y.Z` trên `main`                        |
+| Build + deploy          | chạy tay (ADR 0024)         | chạy tay (ADR 0024)             | khi tạo tag (duyệt tay nếu bật reviewers)       |
+| Tag image               | `:dev`, `:dev-sha-<sha>`    | `:stg`, `:stg-sha-<sha>`        | `:prod`, `:X.Y.Z`, `:latest`, `:prod-sha-<sha>` |
+| CI environment          | `dev`                       | `stg`                           | `prod` (GitHub: _Required reviewers_)           |
+| Swagger `/api/docs`     | bật                         | bật                             | **tắt**                                         |
+| Nhãn môi trường trên UI | `DEV` (xanh)                | `STG` (cam)                     | không hiển thị                                  |
+| Dữ liệu                 | giả / seed, reset thoải mái | gần giống prod, đã ẩn danh      | thật – chỉ thay đổi qua migration               |
 
-Luồng: `feature/*` → `develop` (**dev**) → `release/X.Y.Z` (**stg**) → `main` + tag `vX.Y.Z` (**prod**). Xem [GitFlow](gitflow.md).
+Luồng: `feature/*` → `develop` → `release/X.Y.Z` → `main` + tag `vX.Y.Z` (**prod**), kiểm tra ở máy local (`pnpm infra:up`); server dev / stg chỉ deploy khi chạy tay (ADR 0024). Xem [GitFlow](gitflow.md).
 
 ## Trong code
 
@@ -81,5 +81,5 @@ Kiểm tra URL (`parseUrlEnv` trong `@repo/utils`, dùng ở `apps/web/lib/env.t
 ## Quy tắc
 
 - Không deploy image `:dev` hay `:stg` lên prod: web image chứa URL và nhãn môi trường đã bake lúc build.
-- Migration chạy lần lượt dev → stg → prod (image `migrate` cùng commit với app).
-- Hotfix: `hotfix/X.Y.Z` → kiểm tra trên **stg** → tag → **prod**.
+- Migration chạy trên DB local trước khi tag, rồi lên prod (image `migrate` cùng commit với app).
+- Hotfix: `hotfix/X.Y.Z` → kiểm tra local → tag → **prod**.
