@@ -2,24 +2,24 @@
 
 Monorepo base (pnpm + Turborepo) để copy làm khung cho các dự án mới.
 
-| Path                                 | Package                   | Mô tả                                                                                                                                   | Port |
-| ------------------------------------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---- |
-| `apps/api`                           | `api`                     | NestJS 12 REST API (prefix `/api`)                                                                                                      | 3001 |
-| `apps/socket`                        | `socket`                  | NestJS 12 + Socket.IO gateway (namespace `/events`)                                                                                     | 3002 |
-| `apps/web`                           | `web`                     | Next.js 16 (App Router)                                                                                                                 | 3000 |
-| `apps/mobile`                        | `mobile`                  | Expo SDK 58 (React Native, Expo Router, NativeWind)                                                                                     | 8081 |
-| `packages/db`                        | `@repo/db`                | Prisma 7 + PostgreSQL (schema, migrations, seed, client)                                                                                | –    |
-| `packages/types`                     | `@repo/types`             | Interface model + enum sinh từ `schema.prisma` (commit sẵn, web dùng không cần Prisma)                                                  | –    |
-| `packages/redis`                     | `@repo/redis`             | Redis dùng chung cho backend (ioredis): `RedisModule`, `@InjectRedis()`, `RedisCache`, `pingRedis`                                      | –    |
-| `packages/elasticsearch`             | `@repo/elasticsearch`     | Elasticsearch dùng chung cho backend: `ElasticsearchModule`, `SearchIndex` (prefix index theo môi trường), `pingElasticsearch`          | –    |
-| `packages/utils`                     | `@repo/utils`             | Hàm bổ trợ dùng chung server + browser: datetime (múi giờ VN), chuỗi, số                                                                | –    |
-| `packages/socket-events`             | `@repo/socket-events`     | Contract Socket.IO dùng chung gateway + web (type event, namespace)                                                                     | –    |
-| `packages/nest-common`               | `@repo/nest-common`       | Dùng chung cho app Nest: field decorators (class-validator + Swagger), `validateDto`/`validateEnv`, `BaseEnv`, DTO danh sách/phân trang | –    |
-| `packages/ui`                        | `@repo/ui`                | Component shadcn/ui (base-nova, Base UI) + `DataTable` (TanStack Table v9)                                                              | –    |
-| `packages/tooling/tailwind-config`   | `@repo/tailwind-config`   | Tailwind CSS v4 + theme shadcn (token sáng/tối) + PostCSS dùng chung                                                                    | –    |
-| `packages/tooling/eslint-config`     | `@repo/eslint-config`     | ESLint flat config (mỗi file export `config`): `base`, `nest`, `next`, `react`                                                          | –    |
-| `packages/tooling/typescript-config` | `@repo/typescript-config` | tsconfig: `base`, `nestjs`, `nextjs`, `node-library`, `react-library`                                                                   | –    |
-| `packages/tooling/vitest-config`     | `@repo/vitest-config`     | Preset Vitest dùng chung: `base`, `nest` (SWC, giữ decorator metadata), `react` (jsdom)                                                 | –    |
+| Path                                 | Package                   | Mô tả                                                                                                                                                                                                                                        | Port |
+| ------------------------------------ | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| `apps/api`                           | `api`                     | NestJS 12 REST API (prefix `/api`)                                                                                                                                                                                                           | 3001 |
+| `apps/socket`                        | `socket`                  | NestJS 12 + Socket.IO gateway (namespace `/events`)                                                                                                                                                                                          | 3002 |
+| `apps/web`                           | `web`                     | Next.js 16 (App Router)                                                                                                                                                                                                                      | 3000 |
+| `apps/mobile`                        | `mobile`                  | Expo SDK 58 (React Native, Expo Router, NativeWind)                                                                                                                                                                                          | 8081 |
+| `packages/db`                        | `@repo/db`                | Prisma 7 + PostgreSQL (schema, migrations, seed, client)                                                                                                                                                                                     | –    |
+| `packages/types`                     | `@repo/types`             | Interface model + enum sinh từ `schema.prisma` (commit sẵn, web dùng không cần Prisma)                                                                                                                                                       | –    |
+| `packages/infra/redis`               | `@repo/redis`             | Redis dùng chung cho backend (ioredis): `RedisModule`, `@InjectRedis()`, `RedisCache`, `pingRedis`                                                                                                                                           | –    |
+| `packages/infra/elasticsearch`       | `@repo/elasticsearch`     | Elasticsearch dùng chung cho backend: `ElasticsearchModule`, `SearchIndex` (prefix index theo môi trường), `pingElasticsearch`                                                                                                               | –    |
+| `packages/utils`                     | `@repo/utils`             | Hàm bổ trợ dùng chung server + browser: datetime (múi giờ VN), chuỗi, số                                                                                                                                                                     | –    |
+| `packages/socket-events`             | `@repo/socket-events`     | Contract Socket.IO dùng chung gateway + web (type event, namespace)                                                                                                                                                                          | –    |
+| `packages/nest-common`               | `@repo/nest-common`       | Dùng chung cho app Nest: field decorators (class-validator + Swagger), `validateDto`/`validateEnv`, `BaseEnv`, DTO danh sách/phân trang; `/auth` (JWT, argon2id, cookie), `/auth/nest` (guard, `@Public`/`@Roles`/`@CurrentUser`), `/logger` | –    |
+| `packages/ui`                        | `@repo/ui`                | Component shadcn/ui (base-nova, Base UI) + `DataTable` (TanStack Table v9)                                                                                                                                                                   | –    |
+| `packages/tooling/tailwind-config`   | `@repo/tailwind-config`   | Tailwind CSS v4 + theme shadcn (token sáng/tối) + PostCSS dùng chung                                                                                                                                                                         | –    |
+| `packages/tooling/eslint-config`     | `@repo/eslint-config`     | ESLint flat config (mỗi file export `config`): `base`, `nest`, `next`, `react`                                                                                                                                                               | –    |
+| `packages/tooling/typescript-config` | `@repo/typescript-config` | tsconfig: `base`, `nestjs`, `nextjs`, `node-library`, `react-library`                                                                                                                                                                        | –    |
+| `packages/tooling/vitest-config`     | `@repo/vitest-config`     | Preset Vitest dùng chung: `base`, `nest` (SWC, giữ decorator metadata), `react` (jsdom)                                                                                                                                                      | –    |
 
 ## Yêu cầu
 
@@ -437,7 +437,7 @@ Dữ liệu: **đọc** qua TanStack Query (server prefetch, sau đó trình duy
 
 ### Internal packages
 
-Hai nhóm workspace: `apps/` (app chạy được) và `packages/`. Trong `packages/`: thư viện app import khi chạy ở `packages/<tên>`, cấu hình và công cụ dùng chung ở `packages/tooling/` (eslint, typescript, vitest, tailwind – sau này thêm generator, script… cũng đặt ở đây). Tên package không phụ thuộc thư mục (`@repo/eslint-config`…).
+Hai nhóm workspace: `apps/` (app chạy được) và `packages/`. Trong `packages/`: thư viện app import khi chạy ở `packages/<tên>`, client tới dịch vụ hạ tầng cho app Nest (Redis, Elasticsearch – sau này queue, mail…) ở `packages/infra/`, cấu hình và công cụ dùng chung ở `packages/tooling/` (eslint, typescript, vitest, tailwind – sau này thêm generator, script… cũng đặt ở đây). Tên package không phụ thuộc thư mục (`@repo/eslint-config`…).
 
 `@repo/utils`, `@repo/nest-common`, `@repo/socket-events`, `@repo/db` là compiled package (tsc → `dist/`); `@repo/ui`, `@repo/types` export source TS (web dùng `transpilePackages`). Task `dev`/`build`/`test` trong `turbo.json` đều `dependsOn: ["^build"]` nên package luôn được build trước app.
 
@@ -494,11 +494,11 @@ TypeScript ghim **6.0.3** (bản 6.x mới nhất): TS 7.0 chỉ có binary `tsc
 
 ## Test
 
-| Lớp              | Lệnh                                   | Ở đâu                                                         | Cần gì                             |
-| ---------------- | -------------------------------------- | ------------------------------------------------------------- | ---------------------------------- |
-| Unit / component | `pnpm test` (`test:watch`, `test:cov`) | `*.spec.ts(x)` / `*.test.ts` cạnh code                        | –                                  |
-| Backend e2e      | `pnpm test:e2e`                        | `apps/{api,socket}/test/*.e2e-spec.ts`, `packages/redis/test` | Postgres + Redis (`pnpm infra:up`) |
-| Browser e2e      | `pnpm test:e2e:browser`                | `apps/e2e/tests/*.spec.ts` (Playwright)                       | Postgres + browser                 |
+| Lớp              | Lệnh                                   | Ở đâu                                                                               | Cần gì                             |
+| ---------------- | -------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------- |
+| Unit / component | `pnpm test` (`test:watch`, `test:cov`) | `*.spec.ts(x)` / `*.test.ts` cạnh code                                              | –                                  |
+| Backend e2e      | `pnpm test:e2e`                        | `apps/{api,socket}/test/*.e2e-spec.ts`, `packages/infra/{redis,elasticsearch}/test` | Postgres + Redis (`pnpm infra:up`) |
+| Browser e2e      | `pnpm test:e2e:browser`                | `apps/e2e/tests/*.spec.ts` (Playwright)                                             | Postgres + browser                 |
 
 - Runner: **Vitest** cho mọi package, preset dùng chung trong `@repo/vitest-config` (`base`, `nest` – SWC để giữ decorator metadata cho DI, `react` – jsdom). Playwright cho trình duyệt.
 - Nest unit test dùng `Test.createTestingModule` + mock provider; e2e khởi động app thật bằng `configureApp()` (`src/app.setup.ts`) – cùng cấu hình với `main.ts`.

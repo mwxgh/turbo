@@ -3,7 +3,7 @@ title: Xác thực (auth) – api, socket, web, mobile
 status: reviewed
 applies-to: api, socket, web, mobile
 enforced-by:
-  - packages/auth (argon2id, AccessTokens, AuthGuard, @Public/@Roles/@CurrentUser, socketAuth)
+  - packages/nest-common/src/auth (`@repo/nest-common/auth`: argon2id, AccessTokens, RevokedSessions; `@repo/nest-common/auth/nest`: AuthGuard, @Public/@Roles/@CurrentUser, socketAuth)
   - apps/api/src/auth (register, login, refresh, logout, me, password)
   - apps/api/src/oauth (methods, Google / Facebook / GitHub sign-in)
   - packages/db/prisma/schema.prisma (User, Session, UserIdentity)
@@ -141,7 +141,7 @@ Mỗi môi trường một client (ít nhất tách prod): secret của local n�
 
 ## Test
 
-- `@repo/auth`: unit test (argon2id kể cả vector chuẩn, JWT, `RevokedSessions`, guard, socket middleware).
+- `@repo/nest-common/auth`: unit test (argon2id kể cả vector chuẩn, JWT, `RevokedSessions`, guard, socket middleware).
 - api: `test/auth.e2e-spec.ts` (cookie / token mode, xoay token, phát hiện dùng lại, đăng xuất, đổi mật khẩu; access token bị từ chối ngay sau khi session kết thúc). `test/oauth.e2e-spec.ts`: luồng provider với Google / GitHub giả (stub `fetch`): PKCE, state dùng 1 lần, cookie `oauth_state`, `next` ngoài site, quy tắc liên kết, liên kết chờ (`oauth_link`), registration closed, luồng mobile + exchange. socket: `test/chat.e2e-spec.ts` từ chối token của session đã thu hồi. Route khác trong e2e dùng `bearer(app)` từ `test/create-app.ts`.
 - Controller có guard trong unit test: `overrideGuard(...)` nếu cần.
 - Playwright: project `setup` (`tests/auth.setup.ts`) đăng ký + đăng nhập qua UI một lần, lưu cookie vào `.auth/user.json`; test khác dùng lại. Test đăng xuất **PHẢI** tự đăng nhập session riêng: đăng xuất session dùng chung làm các test chạy song song nhận 401. `tests/auth.spec.ts`: chuyển hướng login, sai mật khẩu, tab đăng ký + tạo tài khoản, thông báo lỗi provider, refresh trước khi render, đăng xuất. Playwright nâng `AUTH_RATE_LIMIT` (nhiều test đăng nhập trong 1 phút). Không có test với provider thật.
@@ -149,4 +149,4 @@ Mỗi môi trường một client (ít nhất tách prod): secret của local n�
 
 ## Lưu ý khi dev
 
-- `nest start --watch` chỉ theo dõi `src/` của app: sửa `packages/auth` (hay package khác) → **restart** `pnpm dev` để api / socket nạp `dist/` mới.
+- `nest start --watch` chỉ theo dõi `src/` của app: sửa `packages/nest-common` (hay package khác) → **restart** `pnpm dev` để api / socket nạp `dist/` mới.

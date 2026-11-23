@@ -9,8 +9,8 @@ import {
 import { ApiTags } from '@nestjs/swagger'
 import { ThrottlerGuard } from '@nestjs/throttler'
 
-import { type AuthUser, CurrentUser } from '@repo/auth/nest'
 import { ApiListQuery, ListQueryDto } from '@repo/nest-common'
+import { type AuthUser, CurrentUser } from '@repo/nest-common/auth/nest'
 
 import { testListSpec } from './lingo.list-spec'
 import { TestsService } from './tests.service'

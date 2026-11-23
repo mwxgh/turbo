@@ -7,7 +7,7 @@ import { Test } from '@nestjs/testing'
 import { type Socket, io } from 'socket.io-client'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
-import { RevokedSessions } from '@repo/auth'
+import { RevokedSessions } from '@repo/nest-common/auth'
 import {
   type ChatMessage,
   type ClientToServerEvents,

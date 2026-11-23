@@ -30,5 +30,7 @@ Mỗi file ghi một quyết định: bối cảnh → quyết định → hệ 
 | 0023 | [Từ vựng Lingo gộp theo chủ đề, học tuần tự; dùng nội bộ được chép tài liệu có bản quyền](0023-tu-vung-lingo-gop-theo-chu-de-hoc-tuan-tu.md) | accepted | 2026-11-23 |
 | 0024 | [Chỉ tự deploy prod, dev và kiểm tra ở máy local](0024-chi-tu-deploy-prod-dev-o-local.md) | accepted | 2026-11-23 |
 | 0025 | [Tìm kiếm full-text bằng Elasticsearch qua @repo/elasticsearch](0025-tim-kiem-full-text-bang-elasticsearch.md) | accepted | 2026-11-23 |
+| 0026 | [Package hạ tầng nằm trong packages/infra/](0026-package-ha-tang-trong-packages-infra.md) | accepted | 2026-11-23 |
+| 0027 | [Auth gộp vào @repo/nest-common](0027-auth-gop-vao-nest-common.md) | accepted | 2026-11-23 |
 
 `Ngày` của 0002–0007 = ngày commit đưa quyết định vào code (ADR viết lại sau, ngày 2026-11-11). `UNKNOWN` trong ADR = không có tài liệu về lý do; ai biết thì bổ sung.

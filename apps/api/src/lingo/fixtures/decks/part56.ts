@@ -1200,14 +1200,15 @@ export const PART56_DECKS: DeckFixture[] = [
         ],
       },
       {
+        // The handout prints the meanings of "hard" here; corrected
         term: 'hardly',
-        pos: 'adj, adv',
-        meaningVi: '(adj) khó; (adv) chăm chỉ',
+        pos: 'adv',
+        meaningVi: 'hầu như không, hiếm khi',
         extensions: [
           {
-            term: 'hardly',
-            pos: 'adv',
-            meaningVi: 'hiếm khi',
+            term: 'hard',
+            pos: 'adj, adv',
+            meaningVi: '(adj) khó; (adv) chăm chỉ',
           },
         ],
       },
@@ -1615,21 +1616,7 @@ export const PART56_DECKS: DeckFixture[] = [
         term: 'order',
         pos: 'v, n',
         meaningVi: '(v) ra lệnh, đặt hàng; (n) đơn hàng, thứ tự',
-        extensions: [
-          {
-            term: "meet one's needs",
-            meaningVi: 'đáp ứng nhu cầu của ai',
-          },
-          {
-            term: 'need to do',
-            meaningVi: 'cần làm gì',
-          },
-        ],
-      },
-      {
-        term: 'originally',
-        pos: 'adv',
-        meaningVi: 'trước tiên',
+        // The handout repeats the phrases of "need" here and prints these under "originally"
         extensions: [
           {
             term: 'orderly',
@@ -1647,6 +1634,19 @@ export const PART56_DECKS: DeckFixture[] = [
           {
             term: 'Office supplies have been ordered',
             meaningVi: 'dụng cụ văn phòng đã được đặt',
+          },
+        ],
+      },
+      {
+        term: 'originally',
+        pos: 'adv',
+        meaningVi: 'ban đầu, lúc đầu',
+        // Handout: "trước tiên", with the phrases of "order" (moved there); this one written for Lingo
+        extensions: [
+          {
+            term: 'original',
+            pos: 'adj',
+            meaningVi: 'ban đầu, nguyên bản',
           },
         ],
       },

@@ -5,7 +5,7 @@ applies-to: api
 enforced-by:
   - apps/api/src/app.module.ts (ThrottlerModule + RedisThrottlerStorage)
   - apps/api/src/env.ts (RATE_LIMIT, RATE_LIMIT_TTL_SECONDS, TRUST_PROXY)
-  - packages/redis/src/throttler-storage.ts (RedisThrottlerStorage)
+  - packages/infra/redis/src/throttler-storage.ts (RedisThrottlerStorage)
   - apps/api/test/security.e2e-spec.ts
 ---
 

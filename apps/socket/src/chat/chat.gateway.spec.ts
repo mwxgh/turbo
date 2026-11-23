@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { AccessTokens, RevokedSessions } from '@repo/auth'
+import { AccessTokens, RevokedSessions } from '@repo/nest-common/auth'
 
 import { ChatGateway } from './chat.gateway'
 
