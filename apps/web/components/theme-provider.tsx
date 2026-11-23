@@ -2,23 +2,18 @@
 
 import * as React from 'react'
 
-import { ThemeProvider as NextThemesProvider, useTheme } from 'next-themes'
+import {
+  ThemeProvider as BaseThemeProvider,
+  useTheme,
+} from '@repo/ui/components/theme'
 
-function ThemeProvider({
-  children,
-  ...props
-}: React.ComponentProps<typeof NextThemesProvider>) {
+/** Theme (light / dark / system) + the "d" hotkey. First paint: `themeScript()` in the root layout. */
+function ThemeProvider(props: React.ComponentProps<typeof BaseThemeProvider>) {
   return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      {...props}
-    >
+    <BaseThemeProvider {...props}>
       <ThemeHotkey />
-      {children}
-    </NextThemesProvider>
+      {props.children}
+    </BaseThemeProvider>
   )
 }
 

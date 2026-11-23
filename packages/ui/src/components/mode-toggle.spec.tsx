@@ -1,15 +1,15 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { ThemeProvider } from 'next-themes'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ModeToggle } from '@repo/ui/components/mode-toggle'
+import { ThemeProvider } from '@repo/ui/components/theme'
 
 describe('ModeToggle', () => {
   beforeEach(() => {
     localStorage.clear()
     document.documentElement.className = ''
-    // jsdom has no matchMedia; next-themes reads it for "system" (OS: dark)
+    // jsdom has no matchMedia; the ThemeProvider reads it for "system" (OS: dark)
     vi.stubGlobal(
       'matchMedia',
       vi.fn((query: string) => ({
@@ -28,7 +28,7 @@ describe('ModeToggle', () => {
 
   it('switches light ↔ dark in one click and remembers it', async () => {
     render(
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <ThemeProvider defaultTheme="light">
         <ModeToggle />
       </ThemeProvider>,
     )
@@ -45,7 +45,7 @@ describe('ModeToggle', () => {
 
   it('starts from the OS theme when the choice is "system"', async () => {
     render(
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider defaultTheme="system">
         <ModeToggle />
       </ThemeProvider>,
     )

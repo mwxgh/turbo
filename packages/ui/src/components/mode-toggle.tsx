@@ -1,13 +1,13 @@
 'use client'
 
 import { Moon, Sun } from 'lucide-react'
-import { useTheme } from 'next-themes'
 
 import { IconButton } from '@repo/ui/components/icon-button'
+import { useTheme } from '@repo/ui/components/theme'
 
 /**
  * One click switches light ↔ dark (from whatever is shown now, including the
- * OS theme). Needs next-themes' ThemeProvider above it. The icon swaps through
+ * OS theme). Needs the ThemeProvider (`@repo/ui/components/theme`) above it. The icon swaps through
  * the `dark:` variant, so the server render never depends on the theme.
  */
 export function ModeToggle() {
