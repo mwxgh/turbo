@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 
+import { themeScript } from '@repo/ui/lib/theme-script'
 import { cn } from '@repo/ui/lib/utils'
 
 import { EnvBadge } from '@/components/env-badge'
@@ -43,6 +44,10 @@ export default function RootLayout({
         geistMono.variable,
       )}
     >
+      <head>
+        {/* Dark / light class before the first paint (server-rendered, runs at once) */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript() }} />
+      </head>
       <body suppressHydrationWarning>
         <Providers>
           {children}

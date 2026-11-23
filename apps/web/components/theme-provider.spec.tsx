@@ -9,7 +9,7 @@ describe('ThemeProvider hotkey', () => {
   beforeEach(() => {
     localStorage.clear()
     document.documentElement.className = ''
-    // jsdom has no matchMedia; next-themes reads it for "system"
+    // jsdom has no matchMedia; the ThemeProvider reads it for "system"
     vi.stubGlobal(
       'matchMedia',
       vi.fn((query: string) => ({
