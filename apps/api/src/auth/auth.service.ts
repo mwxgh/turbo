@@ -8,6 +8,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 
+import type { User } from '@repo/db'
+import { PrismaService } from '@repo/db/nest'
 import {
   AccessTokens,
   type AuthUser,
@@ -17,9 +19,7 @@ import {
   needsRehash,
   parseRefreshToken,
   verifyPassword,
-} from '@repo/auth'
-import type { User } from '@repo/db'
-import { PrismaService } from '@repo/db/nest'
+} from '@repo/nest-common/auth'
 
 import { AuthRegistration, env } from '../env'
 import type { ChangePasswordDto } from './dto/change-password.dto'

@@ -24,9 +24,9 @@ import { ThrottlerGuard } from '@nestjs/throttler'
 
 import type { CookieOptions, Request, Response } from 'express'
 
-import { parseCookies } from '@repo/auth'
-import { Public } from '@repo/auth/nest'
 import type { OAuthProvider } from '@repo/db'
+import { parseCookies } from '@repo/nest-common/auth'
+import { Public } from '@repo/nest-common/auth/nest'
 
 import { AuthResponseDto } from '../auth/dto/auth-response.dto'
 import {

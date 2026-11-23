@@ -4,8 +4,8 @@ import type { INestApplication } from '@nestjs/common'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { Test, type TestingModuleBuilder } from '@nestjs/testing'
 
-import { AccessTokens } from '@repo/auth'
 import { PrismaService } from '@repo/db/nest'
+import { AccessTokens } from '@repo/nest-common/auth'
 
 import { AppModule } from '../src/app.module'
 import { configureApp } from '../src/app.setup'

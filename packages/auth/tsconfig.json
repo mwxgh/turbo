@@ -1,5 +1,0 @@
-{
-  "exclude": ["node_modules", "dist"],
-  "extends": "@repo/typescript-config/nest-library.json",
-  "include": ["src", "vitest.config.ts"]
-}

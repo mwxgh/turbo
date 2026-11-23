@@ -13,9 +13,9 @@ import {
 
 import type { Server, Socket } from 'socket.io'
 
-import { AccessTokens, RevokedSessions } from '@repo/auth'
-import { socketAuth } from '@repo/auth/nest'
 import { validateDto } from '@repo/nest-common'
+import { AccessTokens, RevokedSessions } from '@repo/nest-common/auth'
+import { socketAuth } from '@repo/nest-common/auth/nest'
 import {
   type Ack,
   type ChatMessage,

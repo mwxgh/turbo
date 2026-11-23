@@ -18,8 +18,8 @@ import { Throttle, ThrottlerGuard } from '@nestjs/throttler'
 
 import type { Response } from 'express'
 
-import { type AuthUser, CurrentUser } from '@repo/auth/nest'
 import { ApiListQuery, ListQueryDto } from '@repo/nest-common'
+import { type AuthUser, CurrentUser } from '@repo/nest-common/auth/nest'
 
 import { ChatService } from './chat.service'
 import { SendChatMessageDto } from './dto/chat.dto'

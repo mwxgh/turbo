@@ -11,6 +11,14 @@
     "./logger": {
       "types": "./dist/logger/index.d.ts",
       "default": "./dist/logger/index.js"
+    },
+    "./auth": {
+      "types": "./dist/auth/index.d.ts",
+      "default": "./dist/auth/index.js"
+    },
+    "./auth/nest": {
+      "types": "./dist/auth/nest/index.d.ts",
+      "default": "./dist/auth/nest/index.js"
     }
   },
   "files": [
@@ -26,8 +34,10 @@
     "test:cov": "vitest run --coverage"
   },
   "devDependencies": {
+    "@nestjs/common": "catalog:",
     "@nestjs/core": "catalog:",
     "@nestjs/platform-express": "catalog:",
+    "@nestjs/testing": "catalog:",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@repo/vitest-config": "workspace:*",
@@ -36,6 +46,7 @@
     "eslint": "catalog:",
     "reflect-metadata": "catalog:",
     "rxjs": "catalog:",
+    "socket.io": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
@@ -44,13 +55,20 @@
     "@nestjs/swagger": "catalog:",
     "class-transformer": "catalog:",
     "class-validator": "catalog:",
-    "@nestjs/core": "catalog:"
+    "@nestjs/core": "catalog:",
+    "socket.io": "catalog:"
   },
   "dependencies": {
     "@repo/utils": "workspace:*",
+    "jose": "6.2.15",
     "nestjs-pino": "catalog:",
     "pino": "catalog:",
     "pino-http": "catalog:",
     "pino-pretty": "catalog:"
+  },
+  "peerDependenciesMeta": {
+    "socket.io": {
+      "optional": true
+    }
   }
 }

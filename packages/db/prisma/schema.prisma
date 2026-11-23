@@ -41,7 +41,7 @@ model User {
   /// Lowercase
   username     String?   @unique @db.VarChar(50)
   name         String?   @db.VarChar(100)
-  /// @private argon2id hash, PHC format (`@repo/auth`); null when the account has no password
+  /// @private argon2id hash, PHC format (`@repo/nest-common/auth`); null when the account has no password
   passwordHash String?   @map("password_hash") @db.VarChar(255)
   role         Role      @default(USER)
   /// Set to block sign-in and refresh; existing access tokens expire on their own
