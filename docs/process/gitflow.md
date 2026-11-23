@@ -102,7 +102,7 @@ git push -u origin feature/hello-pagination
 ### Phát hành (release)
 
 1. Tách `release/X.Y.Z` từ `develop` khi đủ tính năng cho bản này.
-2. Push → CI build image `:stg` → QA test trên stg. Lỗi → `fix/*` từ `release/X.Y.Z`, MR vào lại `release/X.Y.Z`.
+2. Kiểm tra trên máy local (`pnpm dev`, e2e; ADR 0024), không tự deploy stg. Lỗi → `fix/*` từ `release/X.Y.Z`, MR vào lại `release/X.Y.Z`.
 3. MR `release/X.Y.Z` → `main` (mẫu **Release**), merge.
 4. Tag trên `main`: `git tag vX.Y.Z && git push origin vX.Y.Z` → CI build image `:prod`, `:X.Y.Z`, `:latest` (**cần duyệt tay**).
 5. Merge `release/X.Y.Z` (hoặc `main`) ngược về `develop`, xoá nhánh release.
@@ -110,7 +110,7 @@ git push -u origin feature/hello-pagination
 ### Hotfix
 
 1. Tách `hotfix/X.Y.Z` từ `main` (tăng PATCH so với bản prod hiện tại).
-2. Sửa tối thiểu → push → kiểm tra trên stg.
+2. Sửa tối thiểu → kiểm tra local → push.
 3. MR → `main` (mẫu **Hotfix**), merge, tag `vX.Y.Z` → duyệt build prod.
 4. Merge `hotfix/X.Y.Z` vào `develop` (và `release/*` đang mở nếu có), xoá nhánh.
 
@@ -143,13 +143,13 @@ chore(deps): update nestjs to 12.3.0
 
 ## CI/CD theo nhánh
 
-| Sự kiện                              | Chạy                      | Image (môi trường)                  |
-| ------------------------------------ | ------------------------- | ----------------------------------- |
-| MR / PR                              | `gitflow` + `check`       | –                                   |
-| push `develop`                       | `check` → images → deploy | `:dev` (dev)                        |
-| push `release/X.Y.Z`, `hotfix/X.Y.Z` | `check` → images → deploy | `:stg` (stg)                        |
-| push `main`                          | `check`                   | –                                   |
-| tag `vX.Y.Z` trên `main`             | `check` → images → deploy | `:prod`, `:X.Y.Z`, `:latest` (prod) |
+| Sự kiện                                           | Chạy                      | Image (môi trường)                  |
+| ------------------------------------------------- | ------------------------- | ----------------------------------- |
+| MR / PR                                           | `gitflow` + `check`       | –                                   |
+| push nhánh                                        | – (PR đã chạy `check`)    | –                                   |
+| _Run workflow_ (tay) trên `develop`               | `check` → images → deploy | `:dev` (dev)                        |
+| _Run workflow_ (tay) trên `release/*`, `hotfix/*` | `check` → images → deploy | `:stg` (stg)                        |
+| tag `vX.Y.Z` trên `main`                          | `check` → images → deploy | `:prod`, `:X.Y.Z`, `:latest` (prod) |
 
 `check` = format, build, lint, type-check, test, migration apply + khớp `schema.prisma`. Chi tiết: README mục _CI/CD_. Deploy: [deploy.md](deploy.md).
 
