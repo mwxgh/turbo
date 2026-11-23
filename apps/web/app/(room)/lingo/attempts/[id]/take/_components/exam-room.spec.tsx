@@ -122,7 +122,7 @@ describe('ExamRoom', () => {
     ).toBeDisabled()
   })
 
-  it('shows heard questions and options on demand in quick practice only', async () => {
+  it('quick practice prints the options and shows the question on demand', async () => {
     const user = userEvent.setup()
     const { unmount } = renderWithQuery(
       <ExamRoom
@@ -135,21 +135,48 @@ describe('ExamRoom', () => {
         exam={exam}
       />,
     )
-    expect(screen.queryByText('Upstairs.')).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Hiện chữ' }))
-    expect(screen.getByText('Where is the meeting?')).toBeInTheDocument()
     expect(
       screen.getByRole('radio', { name: /Upstairs\./ }),
     ).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Ẩn chữ' }))
-    expect(screen.queryByText('Upstairs.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Where is the meeting?')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Hiện câu hỏi' }))
+    expect(screen.getByText('Where is the meeting?')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Ẩn câu hỏi' }))
+    expect(screen.queryByText('Where is the meeting?')).not.toBeInTheDocument()
     unmount()
 
-    // A test stays listening-only
+    // A test stays listening-only, at normal speed
     renderWithQuery(<ExamRoom attempt={attempt()} exam={exam} />)
     expect(
-      screen.queryByRole('button', { name: 'Hiện chữ' }),
+      screen.queryByRole('button', { name: 'Hiện câu hỏi' }),
     ).not.toBeInTheDocument()
+    expect(screen.queryByText('Upstairs.')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('group', { name: 'Tốc độ đọc' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('reads at the chosen speed outside scored attempts', async () => {
+    const user = userEvent.setup()
+    renderWithQuery(
+      <ExamRoom
+        attempt={attempt({
+          mode: 'QUICK',
+          test: null,
+          deadline: null,
+          timeLimitSec: null,
+        })}
+        exam={exam}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: '1.25×' }))
+    expect(screen.getByRole('button', { name: '1.25×' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    await user.click(screen.getByRole('button', { name: 'Nghe' }))
+    const first = speak.mock.calls[0]![0] as Utterance & { rate: number }
+    expect(first.rate).toBeCloseTo(0.95 * 1.25)
   })
 
   it('counts down to the deadline', () => {

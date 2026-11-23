@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
 import { Headphones, Square, Volume2 } from 'lucide-react'
 
 import { Button } from '@repo/ui/components/button'
 
 import type { ScriptLine } from '@/lib/queries/lingo'
-import { canSpeak, speak, splitPassage } from '@/lib/speech'
+import { SPEEDS, canSpeak, speak, splitPassage } from '@/lib/speech'
 
 const SPEAKER_LABEL: Record<ScriptLine['speaker'], string> = {
   M: 'Nam',
@@ -17,20 +17,60 @@ const SPEAKER_LABEL: Record<ScriptLine['speaker'], string> = {
   N: 'Người đọc',
 }
 
+const SPEED_KEY = 'lingo.listening.speed'
+
+const speedListeners = new Set<() => void>()
+// Used when storage is unavailable (private window, blocked site data)
+let pageSpeed = 1
+
+function readSpeed(): number {
+  try {
+    const saved = Number(localStorage.getItem(SPEED_KEY))
+    if ((SPEEDS as readonly number[]).includes(saved)) return saved
+  } catch {
+    // fall back to this page's choice
+  }
+  return pageSpeed
+}
+
+function subscribeSpeed(listener: () => void) {
+  speedListeners.add(listener)
+  return () => speedListeners.delete(listener)
+}
+
+/** The learner's playback speed, remembered in this browser (1× on the server and without storage). */
+function useSpeed() {
+  const speed = useSyncExternalStore(subscribeSpeed, readSpeed, () => 1)
+  const choose = (value: number) => {
+    pageSpeed = value
+    try {
+      localStorage.setItem(SPEED_KEY, String(value))
+    } catch {
+      // not remembered: storage unavailable
+    }
+    speedListeners.forEach((listener) => listener())
+  }
+  return [speed, choose] as const
+}
+
 /**
  * Plays a script with the browser's voices. `locked`: already heard once in a full test (the real
- * exam plays each recording once).
+ * exam plays each recording once). `fixedSpeed`: scored attempts play at normal speed only.
  */
 export function ListeningPlayer({
   lines,
   locked = false,
+  fixedSpeed = false,
   onPlayed,
 }: {
   lines: ScriptLine[]
   locked?: boolean
+  fixedSpeed?: boolean
   onPlayed?: () => void
 }) {
   const [playing, setPlaying] = useState(false)
+  const [chosenSpeed, setSpeed] = useSpeed()
+  const speed = fixedSpeed ? 1 : chosenSpeed
   const stop = useRef<() => void>(undefined)
 
   // Leaving the question stops the voice
@@ -51,10 +91,14 @@ export function ListeningPlayer({
     }
     setPlaying(true)
     onPlayed?.()
-    stop.current = speak(lines, () => {
-      setPlaying(false)
-      stop.current = undefined
-    })
+    stop.current = speak(
+      lines,
+      () => {
+        setPlaying(false)
+        stop.current = undefined
+      },
+      speed,
+    )
   }
 
   return (
@@ -71,6 +115,29 @@ export function ListeningPlayer({
         {playing ? <Square aria-hidden /> : <Volume2 aria-hidden />}
         {playing ? 'Dừng' : locked ? 'Đã nghe' : 'Nghe'}
       </Button>
+      {!fixedSpeed && (
+        <div
+          role="group"
+          aria-label="Tốc độ đọc"
+          className="flex items-center gap-1"
+        >
+          {SPEEDS.map((value) => (
+            <Button
+              key={value}
+              type="button"
+              size="xs"
+              variant={value === speed ? 'secondary' : 'ghost'}
+              aria-pressed={value === speed}
+              // Applies from the next play: browser voices cannot change speed mid-sentence
+              disabled={playing}
+              onClick={() => setSpeed(value)}
+              className="tabular-nums"
+            >
+              {value}×
+            </Button>
+          ))}
+        </div>
+      )}
       <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Headphones aria-hidden className="size-4" />
         Giọng đọc của trình duyệt

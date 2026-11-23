@@ -101,7 +101,8 @@ function useFullscreen() {
 function QuestionBlock({
   q,
   n,
-  spoken,
+  hideQuestion,
+  hideOptions,
   active,
   choice,
   flagged,
@@ -111,7 +112,9 @@ function QuestionBlock({
 }: {
   q: AttemptQuestion
   n: number
-  spoken: boolean
+  /** Heard, not printed (Part 1–2) */
+  hideQuestion: boolean
+  hideOptions: boolean
   active: boolean
   choice: number | null
   flagged: boolean
@@ -139,11 +142,13 @@ function QuestionBlock({
         >
           {n}
         </span>
-        {q.text && !spoken ? (
+        {q.text && !hideQuestion ? (
           <p className="flex-1 pt-1 leading-relaxed">{q.text}</p>
         ) : (
           <p className="flex-1 pt-1.5 text-sm text-muted-foreground">
-            Nghe {q.text ? 'câu hỏi và ' : ''}các lựa chọn rồi chọn đáp án đúng.
+            Nghe {q.text ? 'câu hỏi' : ''}
+            {q.text && hideOptions ? ' và ' : ''}
+            {hideOptions ? 'các lựa chọn' : ''} rồi chọn đáp án đúng.
           </p>
         )}
         <Button
@@ -191,7 +196,7 @@ function QuestionBlock({
               >
                 {LETTERS[i]}
               </span>
-              {!spoken && <span>{option}</span>}
+              {!hideOptions && <span>{option}</span>}
             </button>
           )
         })}
@@ -232,8 +237,8 @@ export function ExamRoom({
   const [now, setNow] = useState(() => Date.now())
   /** Items whose recording was played (full test: once each) */
   const [played, setPlayed] = useState<ReadonlySet<string>>(new Set())
-  // Quick practice only: show what Part 1–2 read out (tests stay listening-only, like the exam)
-  const [showText, setShowText] = useState(false)
+  // Quick practice: Part 1–2 options are printed, the question on demand (tests stay listening-only)
+  const [showQuestion, setShowQuestion] = useState(false)
   const shownAt = useRef(0)
   const autoSubmitted = useRef(false)
   const fullscreen = useFullscreen()
@@ -249,7 +254,8 @@ export function ExamRoom({
   const part = parts.get(group.part)
   const spoken = part?.spokenOptions ?? false
   const script = scriptOf(first, spoken)
-  const canShowText = spoken && attempt.mode === 'QUICK'
+  const quick = attempt.mode === 'QUICK'
+  const scored = attempt.mode === 'FULL_TEST' || attempt.mode === 'PLACEMENT'
   const answered = choices.filter((c) => c !== null).length
   const remaining = deadline === null ? null : deadline - now
   const exitHref = attempt.test
@@ -384,7 +390,8 @@ export function ExamRoom({
             key={q.id}
             q={q}
             n={q.order + 1}
-            spoken={spoken && !(canShowText && showText)}
+            hideQuestion={spoken && !(quick && showQuestion)}
+            hideOptions={spoken && !quick}
             active={at === index}
             choice={choices[at] ?? null}
             flagged={flags[at] ?? false}
@@ -513,17 +520,17 @@ export function ExamRoom({
           </div>
 
           {first.imageUrl && <QuestionImage url={first.imageUrl} />}
-          {canShowText && (
+          {quick && spoken && first.text && (
             <Button
               type="button"
               variant="outline"
               size="sm"
-              aria-pressed={showText}
-              onClick={() => setShowText((on) => !on)}
+              aria-pressed={showQuestion}
+              onClick={() => setShowQuestion((on) => !on)}
               className="self-start"
             >
-              {showText ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
-              {showText ? 'Ẩn chữ' : 'Hiện chữ'}
+              {showQuestion ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
+              {showQuestion ? 'Ẩn câu hỏi' : 'Hiện câu hỏi'}
             </Button>
           )}
           {script.length > 0 && (
@@ -531,6 +538,7 @@ export function ExamRoom({
               key={group.itemId}
               lines={script}
               locked={attempt.mode === 'FULL_TEST' && played.has(group.itemId)}
+              fixedSpeed={scored}
               onPlayed={() =>
                 setPlayed((prev) => new Set(prev).add(group.itemId))
               }
