@@ -8,7 +8,10 @@ import { renderWithQuery } from '@/lib/test-utils'
 import { ExamRoom } from './exam-room'
 
 const replace = vi.fn()
-vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }) }))
+const push = vi.fn()
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace, push }),
+}))
 
 vi.mock('@/lib/lingo-actions', () => ({
   saveAnswer: vi.fn(() => Promise.resolve({})),
@@ -254,6 +257,22 @@ describe('ExamRoom', () => {
     await user.click(screen.getByRole('button', { name: 'Nghe' }))
     ;(await spoken(0)).onerror?.()
     expect((await spoken(1)).text).toBe('A. Upstairs.')
+  })
+
+  it('asks in a dialog before leaving the room', async () => {
+    const user = userEvent.setup()
+    renderWithQuery(<ExamRoom attempt={attempt()} exam={exam} />)
+    await user.click(screen.getByRole('link', { name: /Thoát/ }))
+    const dialog = await screen.findByRole('alertdialog', {
+      name: 'Thoát phòng thi?',
+    })
+    expect(dialog).toHaveTextContent('Đáp án đã được lưu')
+    await user.click(screen.getByRole('button', { name: 'Ở lại' }))
+    expect(push).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('link', { name: /Thoát/ }))
+    await user.click(await screen.findByRole('button', { name: 'Thoát' }))
+    await vi.waitFor(() => expect(push).toHaveBeenCalledWith('/lingo/tests/t1'))
   })
 
   it('counts down to the deadline', () => {
