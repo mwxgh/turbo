@@ -146,21 +146,38 @@ export class CardSearchService implements OnApplicationBootstrap {
             _source: { excludes: ['extensions', 'ownerId', 'exam'] },
             query: {
               bool: {
-                must: {
-                  multi_match: {
-                    query: q,
-                    fields: [
-                      'term^4',
-                      'term.prefix^2',
-                      'meaningVi^2',
-                      'extensions',
-                      'example^0.5',
-                    ],
-                    fuzziness: 'AUTO',
+                // Ranked: whole term > phrase in term / meaning > all words (typos ok) > word starts
+                should: [
+                  { term: { 'term.exact': { value: q, boost: 20 } } },
+                  { match_phrase: { term: { query: q, boost: 8 } } },
+                  { match_phrase: { meaningVi: { query: q, boost: 6 } } },
+                  // Typos in the English term only (1 edit from 4 letters, 2 from 8);
+                  // short Vietnamese syllables would match each other ("dat" ~ "day")
+                  {
+                    match: {
+                      term: {
+                        query: q,
+                        operator: 'and',
+                        fuzziness: 'AUTO:4,8',
+                        boost: 4,
+                      },
+                    },
                   },
-                },
-                // The whole term typed: always first
-                should: [{ term: { 'term.exact': { value: q, boost: 20 } } }],
+                  {
+                    multi_match: {
+                      query: q,
+                      fields: ['meaningVi^2', 'extensions', 'example^0.5'],
+                      operator: 'and',
+                    },
+                  },
+                  // No fuzziness on n-grams: "dong" would match "donate"
+                  {
+                    match: {
+                      'term.prefix': { query: q, operator: 'and', boost: 2 },
+                    },
+                  },
+                ],
+                minimum_should_match: 1,
                 filter: [
                   {
                     bool: {
