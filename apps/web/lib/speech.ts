@@ -59,8 +59,11 @@ function voiceFor(voices: SpeechSynthesisVoice[], line: ScriptLine) {
 export const SPEEDS = [0.75, 1, 1.25, 1.5] as const
 
 /**
- * Reads the lines in order at `speed` (1 = normal); returns a stop function. `onEnd` runs once,
- * when done or stopped.
+ * Reads the lines one after another at `speed` (1 = normal); returns a stop function. `onEnd` runs
+ * once, when done or stopped.
+ *
+ * Each line starts when the previous one ends: Chrome drops utterances queued together (only the
+ * first line was heard). A line that fails is skipped, not the end of the recording.
  */
 export function speak(
   lines: ScriptLine[],
@@ -74,13 +77,19 @@ export function speak(
   const synth = window.speechSynthesis
   synth.cancel()
   const voices = synth.getVoices()
+  // Kept referenced: Chrome may garbage-collect a speaking utterance and never fire its events
+  const utterances: SpeechSynthesisUtterance[] = []
+  let stopped = false
   let ended = false
   const end = () => {
     if (ended) return
     ended = true
     onEnd()
   }
-  lines.forEach((line, i) => {
+  const say = (i: number) => {
+    if (stopped) return
+    const line = lines[i]
+    if (!line) return end()
     const utterance = new SpeechSynthesisUtterance(line.text)
     utterance.lang = LANG[line.accent ?? 'US']
     const voice = voiceFor(voices, line)
@@ -88,11 +97,16 @@ export function speak(
     utterance.pitch = SPEAKER[line.speaker].pitch
     // Browser voices read a little fast at 1: 0.95 is "normal"
     utterance.rate = 0.95 * speed
-    if (i === lines.length - 1) utterance.onend = end
-    utterance.onerror = end
+    utterance.onend = () => say(i + 1)
+    utterance.onerror = () => say(i + 1)
+    utterances.push(utterance)
     synth.speak(utterance)
-  })
+  }
+  // Chrome ignores an utterance spoken in the same tick as cancel()
+  const start = setTimeout(() => say(0), 0)
   return () => {
+    stopped = true
+    clearTimeout(start)
     synth.cancel()
     end()
   }
