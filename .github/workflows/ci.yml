@@ -4,11 +4,9 @@
 #   ------------------  ---------------------------------------------------------
 #   pull request        gitflow (source → target allowed?) + check
 #   (browser e2e / Playwright runs locally only: apps/e2e, ADR 0009)
-#   develop             check → images (dev) → deploy (dev)
-#   release/X.Y.Z       check → images (stg) → deploy (stg)
-#   hotfix/X.Y.Z        check → images (stg) → deploy (stg)
-#   main                check
 #   tag vX.Y.Z on main  check → images (prod) tagged :prod :X.Y.Z :latest → deploy (prod)
+#   Run workflow (manual) on develop → dev, on release/X.Y.Z or hotfix/X.Y.Z → stg
+#   Pushes to branches run nothing: the PR already ran check, dev is local (ADR 0024).
 #
 # Images: ghcr.io/<owner>/<repo>-<app> for api, migrate, socket, web.
 # Repository settings:
@@ -23,7 +21,6 @@ name: ci
 
 on:
   push:
-    branches: [main, develop, 'release/**', 'hotfix/**']
     tags: ['v*.*.*']
   pull_request:
   workflow_dispatch:
@@ -119,10 +116,10 @@ jobs:
       - name: Backend e2e (api on <db>_test, socket)
         run: pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis
 
-  # Which environment (if any) this push publishes images for
+  # Which environment (if any) this tag / manual run publishes images for
   stage:
     needs: [check]
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     outputs:
       name: ${{ steps.stage.outputs.name }}
