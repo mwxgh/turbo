@@ -140,7 +140,7 @@ describe('ExamRoom', () => {
     ).toBeDisabled()
   })
 
-  it('quick practice prints the options and shows the question on demand', async () => {
+  it('quick practice is listening-only, the text shows on demand', async () => {
     const user = userEvent.setup()
     const { unmount } = renderWithQuery(
       <ExamRoom
@@ -153,28 +153,33 @@ describe('ExamRoom', () => {
         exam={exam}
       />,
     )
+    expect(screen.queryByText('Where is the meeting?')).not.toBeInTheDocument()
+    expect(screen.queryByText('Upstairs.')).not.toBeInTheDocument()
+    await user.click(
+      screen.getByRole('button', { name: 'Hiện câu hỏi & đáp án' }),
+    )
+    expect(screen.getByText('Where is the meeting?')).toBeInTheDocument()
     expect(
       screen.getByRole('radio', { name: /Upstairs\./ }),
     ).toBeInTheDocument()
+    await user.click(
+      screen.getByRole('button', { name: 'Ẩn câu hỏi & đáp án' }),
+    )
     expect(screen.queryByText('Where is the meeting?')).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Hiện câu hỏi' }))
-    expect(screen.getByText('Where is the meeting?')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Ẩn câu hỏi' }))
-    expect(screen.queryByText('Where is the meeting?')).not.toBeInTheDocument()
+    expect(screen.queryByText('Upstairs.')).not.toBeInTheDocument()
     unmount()
 
     // A test stays listening-only, at normal speed
     renderWithQuery(<ExamRoom attempt={attempt()} exam={exam} />)
     expect(
-      screen.queryByRole('button', { name: 'Hiện câu hỏi' }),
+      screen.queryByRole('button', { name: /Hiện câu hỏi/ }),
     ).not.toBeInTheDocument()
-    expect(screen.queryByText('Upstairs.')).not.toBeInTheDocument()
     expect(
       screen.queryByRole('group', { name: 'Tốc độ đọc' }),
     ).not.toBeInTheDocument()
   })
 
-  it('hides the question again on the next question', async () => {
+  it('hides the text again on the next question', async () => {
     const user = userEvent.setup()
     const base = attempt().questions[0]!
     renderWithQuery(
@@ -187,19 +192,28 @@ describe('ExamRoom', () => {
           total: 2,
           questions: [
             base,
-            { ...base, id: 'q2', itemId: 'i2', order: 1, text: 'Who called?' },
+            {
+              ...base,
+              id: 'q2',
+              itemId: 'i2',
+              order: 1,
+              text: 'Who called?',
+              options: ['Ms. Kim.', 'At five.', 'No.'],
+            },
           ],
         })}
         exam={exam}
       />,
     )
-    await user.click(screen.getByRole('button', { name: 'Hiện câu hỏi' }))
-    expect(screen.getByText('Where is the meeting?')).toBeInTheDocument()
+    await user.click(
+      screen.getByRole('button', { name: 'Hiện câu hỏi & đáp án' }),
+    )
     await user.click(screen.getByRole('radio', { name: /Upstairs\./ }))
-    await user.click(screen.getByRole('button', { name: /Câu sau|Tiếp/ }))
+    await user.click(screen.getByRole('button', { name: /Tiếp/ }))
     expect(screen.queryByText('Who called?')).not.toBeInTheDocument()
+    expect(screen.queryByText('Ms. Kim.')).not.toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Hiện câu hỏi' }),
+      screen.getByRole('button', { name: 'Hiện câu hỏi & đáp án' }),
     ).toBeInTheDocument()
   })
 

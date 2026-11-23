@@ -102,8 +102,7 @@ function useFullscreen() {
 function QuestionBlock({
   q,
   n,
-  hideQuestion,
-  hideOptions,
+  hideText,
   active,
   choice,
   flagged,
@@ -113,9 +112,8 @@ function QuestionBlock({
 }: {
   q: AttemptQuestion
   n: number
-  /** Heard, not printed (Part 1–2) */
-  hideQuestion: boolean
-  hideOptions: boolean
+  /** Question and options heard, not printed (Part 1–2) */
+  hideText: boolean
   active: boolean
   choice: number | null
   flagged: boolean
@@ -143,13 +141,11 @@ function QuestionBlock({
         >
           {n}
         </span>
-        {q.text && !hideQuestion ? (
+        {q.text && !hideText ? (
           <p className="flex-1 pt-1 leading-relaxed">{q.text}</p>
         ) : (
           <p className="flex-1 pt-1.5 text-sm text-muted-foreground">
-            Nghe {q.text ? 'câu hỏi' : ''}
-            {q.text && hideOptions ? ' và ' : ''}
-            {hideOptions ? 'các lựa chọn' : ''} rồi chọn đáp án đúng.
+            Nghe {q.text ? 'câu hỏi và ' : ''}các lựa chọn rồi chọn đáp án đúng.
           </p>
         )}
         <Button
@@ -197,7 +193,7 @@ function QuestionBlock({
               >
                 {LETTERS[i]}
               </span>
-              {!hideOptions && <span>{option}</span>}
+              {!hideText && <span>{option}</span>}
             </button>
           )
         })}
@@ -239,9 +235,9 @@ export function ExamRoom({
   /** Items whose recording was played (full test: once each) */
   const [played, setPlayed] = useState<ReadonlySet<string>>(new Set())
   const [confirm, confirmDialog] = useConfirm()
-  // Quick practice: Part 1–2 options are printed; the question only for the one it was opened on
-  // (moving on hides it again). Tests stay listening-only.
-  const [questionShownFor, setQuestionShownFor] = useState<string | null>(null)
+  // Quick practice, Part 1–2: listening-only by default (the recording reads the question and the
+  // options); the text is shown on demand, for the question it was opened on only. Tests: never.
+  const [textShownFor, setTextShownFor] = useState<string | null>(null)
   const shownAt = useRef(0)
   const autoSubmitted = useRef(false)
   const fullscreen = useFullscreen()
@@ -258,7 +254,7 @@ export function ExamRoom({
   const spoken = part?.spokenOptions ?? false
   const script = scriptOf(first, spoken)
   const quick = attempt.mode === 'QUICK'
-  const showQuestion = questionShownFor === group.itemId
+  const showText = textShownFor === group.itemId
   const scored = attempt.mode === 'FULL_TEST' || attempt.mode === 'PLACEMENT'
   const answered = choices.filter((c) => c !== null).length
   const remaining = deadline === null ? null : deadline - now
@@ -405,8 +401,7 @@ export function ExamRoom({
             key={q.id}
             q={q}
             n={q.order + 1}
-            hideQuestion={spoken && !(quick && showQuestion)}
-            hideOptions={spoken && !quick}
+            hideText={spoken && !(quick && showText)}
             active={at === index}
             choice={choices[at] ?? null}
             flagged={flags[at] ?? false}
@@ -540,19 +535,23 @@ export function ExamRoom({
           </div>
 
           {first.imageUrl && <QuestionImage url={first.imageUrl} />}
-          {quick && spoken && first.text && (
+          {quick && spoken && (
             <Button
               type="button"
               variant="outline"
               size="sm"
-              aria-pressed={showQuestion}
-              onClick={() =>
-                setQuestionShownFor(showQuestion ? null : group.itemId)
-              }
+              aria-pressed={showText}
+              onClick={() => setTextShownFor(showText ? null : group.itemId)}
               className="self-start"
             >
-              {showQuestion ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
-              {showQuestion ? 'Ẩn câu hỏi' : 'Hiện câu hỏi'}
+              {showText ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
+              {showText
+                ? first.text
+                  ? 'Ẩn câu hỏi & đáp án'
+                  : 'Ẩn đáp án'
+                : first.text
+                  ? 'Hiện câu hỏi & đáp án'
+                  : 'Hiện đáp án'}
             </Button>
           )}
           {script.length > 0 && (
