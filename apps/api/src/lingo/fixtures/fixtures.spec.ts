@@ -22,6 +22,7 @@ const sources: [string, Record<string, object[]>][] = [
 ]
 
 describe('built-in content', () => {
+  // Validates and hashes every built-in item: ~5 s on a CI runner, over vitest's 5 s default
   it('has valid, unique items', () => {
     const hashes = new Map<string, string>()
     const problems: string[] = []
@@ -43,7 +44,7 @@ describe('built-in content', () => {
         })
       }
     expect(problems).toEqual([])
-  })
+  }, 30_000)
 
   // One case per test and part, so a part still being written fails on its own
   const partCases = SAMPLE_TESTS.flatMap((test) =>
