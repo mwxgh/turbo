@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { itemHash } from '../content'
 import { getExam, getPart } from '../specs'
 import { cardRowSchema, issueLines, itemSchema } from '../specs/schemas'
+import { CARD_SUPPLEMENT } from './decks/supplement'
 import { SAMPLE_TESTS } from './index'
 import { TOEIC_EXTRA_SAMPLES } from './toeic-extra'
 import { TOEIC_MORE_SAMPLES } from './toeic-more'
@@ -95,5 +96,18 @@ describe('built-in content', () => {
       for (const card of deck.cards)
         expect(cardRowSchema.safeParse(card).success, card.term).toBe(true)
     })
+  })
+
+  it('gives every card IPA and an example, using every supplement entry', () => {
+    const cards = VOCAB_DECKS.flatMap((d) => d.cards)
+    expect(
+      cards
+        .filter((c) => !c.reading || !c.example || !c.exampleVi)
+        .map((c) => c.term),
+    ).toEqual([])
+    const terms = new Set(cards.map((c) => c.term))
+    expect(Object.keys(CARD_SUPPLEMENT).filter((t) => !terms.has(t))).toEqual(
+      [],
+    )
   })
 })
