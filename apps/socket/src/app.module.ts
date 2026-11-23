@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common'
 
+import { REDIS, RedisModule } from '@repo/infra/redis'
 import { AuthModule } from '@repo/nest-common/auth/nest'
 import { createLoggerModule } from '@repo/nest-common/logger'
-import { REDIS, RedisModule } from '@repo/redis'
 
 import { ChatModule } from './chat/chat.module'
 import { env } from './env'

@@ -1,0 +1,28 @@
+import { Test } from '@nestjs/testing'
+
+import { describe, expect, it } from 'vitest'
+
+import {
+  {{ constantCase name }},
+  type {{ pascalCase name }}Client,
+  {{ pascalCase name }}Module,
+  ping{{ pascalCase name }},
+} from './index.js'
+
+describe('{{ pascalCase name }}Module', () => {
+  it('provides one shared client, closed on shutdown', async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [{{ pascalCase name }}Module.forRoot({ url: 'http://127.0.0.1:1' })],
+    }).compile()
+    expect(moduleRef.get({{ constantCase name }})).toBeDefined()
+    await moduleRef.close()
+  })
+
+  it('reports an unreachable service as down without throwing', async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [{{ pascalCase name }}Module.forRoot({ url: 'http://127.0.0.1:1' })],
+    }).compile()
+    expect(await ping{{ pascalCase name }}(moduleRef.get<{{ pascalCase name }}Client>({{ constantCase name }}), 200)).toBe('down')
+    await moduleRef.close()
+  })
+})

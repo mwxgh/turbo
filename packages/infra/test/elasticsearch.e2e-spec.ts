@@ -10,9 +10,9 @@ import {
   ElasticsearchModule,
   SearchIndex,
   pingElasticsearch,
-} from '../src/index.js'
+} from '../src/elasticsearch/index.js'
 
-describe('@repo/elasticsearch against a real cluster', () => {
+describe('@repo/infra/elasticsearch against a real cluster', () => {
   // A unique prefix per run: tests never see or delete other indices
   const indexPrefix = `e2e-${randomUUID()}-`
   let client: Client

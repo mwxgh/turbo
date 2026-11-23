@@ -10,8 +10,7 @@ Monorepo base (pnpm + Turborepo) để copy làm khung cho các dự án mới.
 | `apps/mobile`                        | `mobile`                  | Expo SDK 58 (React Native, Expo Router, NativeWind)                                                                                                                                                                                          | 8081 |
 | `packages/db`                        | `@repo/db`                | Prisma 7 + PostgreSQL (schema, migrations, seed, client)                                                                                                                                                                                     | –    |
 | `packages/types`                     | `@repo/types`             | Interface model + enum sinh từ `schema.prisma` (commit sẵn, web dùng không cần Prisma)                                                                                                                                                       | –    |
-| `packages/infra/redis`               | `@repo/redis`             | Redis dùng chung cho backend (ioredis): `RedisModule`, `@InjectRedis()`, `RedisCache`, `pingRedis`                                                                                                                                           | –    |
-| `packages/infra/elasticsearch`       | `@repo/elasticsearch`     | Elasticsearch dùng chung cho backend: `ElasticsearchModule`, `SearchIndex` (prefix index theo môi trường), `pingElasticsearch`                                                                                                               | –    |
+| `packages/infra`                     | `@repo/infra`             | Client tới dịch vụ hạ tầng cho app Nest, mỗi dịch vụ một subpath: `/redis` (`RedisModule`, `@InjectRedis()`, `RedisCache`, `pingRedis`; `/redis/socket-io`), `/elasticsearch` (`ElasticsearchModule`, `SearchIndex`, `pingElasticsearch`)    | –    |
 | `packages/utils`                     | `@repo/utils`             | Hàm bổ trợ dùng chung server + browser: datetime (múi giờ VN), chuỗi, số                                                                                                                                                                     | –    |
 | `packages/socket-events`             | `@repo/socket-events`     | Contract Socket.IO dùng chung gateway + web (type event, namespace)                                                                                                                                                                          | –    |
 | `packages/nest-common`               | `@repo/nest-common`       | Dùng chung cho app Nest: field decorators (class-validator + Swagger), `validateDto`/`validateEnv`, `BaseEnv`, DTO danh sách/phân trang; `/auth` (JWT, argon2id, cookie), `/auth/nest` (guard, `@Public`/`@Roles`/`@CurrentUser`), `/logger` | –    |
@@ -73,7 +72,7 @@ Tài liệu dự án (quy trình, yêu cầu, kiến trúc, ADR) ở [`docs/`](d
 
 ### NestJS apps (`api`, `socket`)
 
-- **Cấu trúc `src/`** (mặc định của Nest): `main.ts`, `app.module.ts`, `app.setup.ts`, `env.ts` ở gốc `src/`; mỗi thư mục là **một module có controller/service** (`files/`, `health/`, `hellos/`, `chat/`). Hạ tầng dùng chung nằm ở package: `PrismaModule`/`PrismaService`/`PrismaExceptionFilter` → `@repo/db/nest`, `jsonReplacer` → `@repo/nest-common`, `RedisIoAdapter` → `@repo/redis/socket-io`.
+- **Cấu trúc `src/`** (mặc định của Nest): `main.ts`, `app.module.ts`, `app.setup.ts`, `env.ts` ở gốc `src/`; mỗi thư mục là **một module có controller/service** (`files/`, `health/`, `hellos/`, `chat/`). Hạ tầng dùng chung nằm ở package: `PrismaModule`/`PrismaService`/`PrismaExceptionFilter` → `@repo/db/nest`, `jsonReplacer` → `@repo/nest-common`, `RedisIoAdapter` → `@repo/infra/redis/socket-io`.
 - **ESM** (`"type": "module"`), import tương đối **không cần đuôi** (`./app.module`): type-check bằng `moduleResolution: Bundler`, khi build SWC tự thêm `.js`. Cấu hình dùng chung trong `@repo/typescript-config`: `nestjs.json` (tsconfig) + `nest.swcrc` (Nest CLI trỏ tới qua `builder.options.swcrcPath`) – app Nest mới chỉ cần `extends` và chép `nest-cli.json`. Package `@repo/*` (build bằng `tsc`) vẫn giữ đuôi `.js`.
 - **Build bằng Nest CLI + SWC** (`nest build`, builder `swc` trong `nest-cli.json`, mặc định SWC của Nest + `nest.swcrc`) → `dist/` (giữ cấu trúc thư mục). Build **không** type-check – lỗi type bị chặn bởi `check-types` (turbo/CI).
 - **Dev**: `nest start --watch --type-check --env-file .env` (SWC khởi động lại app ngay, `tsc` chạy song song và in lỗi type ra terminal); debug: `pnpm --filter api start:debug`.
@@ -87,7 +86,7 @@ Tài liệu dự án (quy trình, yêu cầu, kiến trúc, ADR) ở [`docs/`](d
 - **Auth** (mặc định chặn): mọi route api/socket cần đăng nhập trừ `@Public()`. Email/username + mật khẩu (argon2id), access JWT 15 phút + refresh token xoay vòng; web dùng cookie httpOnly (`proxy.ts` refresh trước khi render), mobile dùng Bearer + `expo-secure-store`. Admin đầu tiên: `ADMIN_*` trong `packages/db/.env` rồi `pnpm db:seed`. Chi tiết: [docs/architecture/auth.md](docs/architecture/auth.md).
 - **Bảo mật HTTP (api, `app.setup.ts` + `app.module.ts`)**:
   - `helmet`: security header; CSP chỉ bật ở `prod` (Swagger UI ở dev/stg cần inline asset).
-  - Rate limit **opt-in theo controller**: gắn `@UseGuards(ThrottlerGuard)` (từ `@nestjs/throttler`) lên controller cần limit (đang gắn: `hellos`, `files`); controller không gắn thì không bị limit (vd. `health`). Bộ đếm dùng chung qua Redis (`RedisThrottlerStorage` từ `@repo/redis`), mặc định `RATE_LIMIT=100` request / `RATE_LIMIT_TTL_SECONDS=60` / IP. Đổi mức cho controller/route: `@Throttle({ default: { limit, ttl } })`; bỏ một route trong controller đã gắn: `@SkipThrottle()`. **Controller mới nhận request từ ngoài nhớ gắn guard.** Chi tiết: [docs/architecture/rate-limit.md](docs/architecture/rate-limit.md).
+  - Rate limit **opt-in theo controller**: gắn `@UseGuards(ThrottlerGuard)` (từ `@nestjs/throttler`) lên controller cần limit (đang gắn: `hellos`, `files`); controller không gắn thì không bị limit (vd. `health`). Bộ đếm dùng chung qua Redis (`RedisThrottlerStorage` từ `@repo/infra/redis`), mặc định `RATE_LIMIT=100` request / `RATE_LIMIT_TTL_SECONDS=60` / IP. Đổi mức cho controller/route: `@Throttle({ default: { limit, ttl } })`; bỏ một route trong controller đã gắn: `@SkipThrottle()`. **Controller mới nhận request từ ngoài nhớ gắn guard.** Chi tiết: [docs/architecture/rate-limit.md](docs/architecture/rate-limit.md).
   - Body limit: `BODY_LIMIT=100kb` cho JSON và form, áp cho cả app (middleware Express, không theo module). File upload đi thẳng lên S3 nên không cần limit lớn.
   - Sau load balancer / ingress: đặt `TRUST_PROXY=<số proxy>` để rate limit theo IP thật (`X-Forwarded-For`), nếu không mọi client chung một bộ đếm.
   - Lưu ý: Server Component / Server Action của web gọi api từ IP của server Next → chung một bộ đếm; tăng `RATE_LIMIT`, hoặc không gắn / `@SkipThrottle()` cho route đó nếu trang SSR nhiều.
@@ -221,11 +220,11 @@ Option chung: `optional`, `nullable`, `each` (+ `minItems/maxItems/uniqueItems`)
 
 Ngoài HTTP (socket, env, script) dùng `validateDto(Dto, payload)` → `{ ok: true, data } | { ok: false, errors }`.
 
-### Elasticsearch (`@repo/elasticsearch`)
+### Elasticsearch (`@repo/infra/elasticsearch`)
 
 Tìm kiếm full-text (đang dùng: tìm thẻ Lingo, `GET /api/lingo/cards/search`). Tuỳ chọn: `ELASTICSEARCH_URL` trống thì api tìm bằng Postgres. Index có prefix `<APP_ENV>-` và tên có phiên bản. Chi tiết: [docs/architecture/search.md](docs/architecture/search.md), ADR 0025.
 
-### Redis (`@repo/redis`)
+### Redis (`@repo/infra/redis`)
 
 Một kết nối ioredis cho mỗi app backend, cấu hình từ `REDIS_URL` (`BaseEnv`, mặc định `redis://127.0.0.1:6379`; Redis 8 trong `deploy/docker-compose.yml`).
 
@@ -244,7 +243,7 @@ await this.cache.delByPrefix('hellos:') // sau khi ghi
 
 - **Key prefix theo môi trường** (`dev:`, `stg:`, `prod:` từ `APP_ENV`): nhiều môi trường dùng chung một Redis không đụng key của nhau. `keyPrefix` của ioredis không áp dụng cho pattern `SCAN` và kênh pub/sub – `RedisCache.delByPrefix` và `RedisIoAdapter` đã tự xử lý.
 - `/api/health` (`database` + `redis`) và `/socket/health` (`redis`) trả 503 khi Redis không trả lời (`pingRedis`, timeout 2s).
-- **Socket chạy nhiều instance**: `RedisIoAdapter` (`@repo/redis/socket-io`, `@socket.io/redis-adapter`, kênh `<env>:socket.io`) chuyển emit tới room qua Redis – client ở instance nào cũng nhận. Test: `apps/socket/test/scale-out.e2e-spec.ts`.
+- **Socket chạy nhiều instance**: `RedisIoAdapter` (`@repo/infra/redis/socket-io`, `@socket.io/redis-adapter`, kênh `<env>:socket.io`) chuyển emit tới room qua Redis – client ở instance nào cũng nhận. Test: `apps/socket/test/scale-out.e2e-spec.ts`.
 - Kết nối subscribe / hàng đợi (BullMQ sau này) dùng **kết nối riêng** (`redis.duplicate()`; BullMQ cần `maxRetriesPerRequest: null`). Redis chạy `maxmemory-policy noeviction` (không xoá key ngầm khi đầy bộ nhớ).
 
 ### Upload file (S3)
@@ -437,7 +436,7 @@ Dữ liệu: **đọc** qua TanStack Query (server prefetch, sau đó trình duy
 
 ### Internal packages
 
-Hai nhóm workspace: `apps/` (app chạy được) và `packages/`. Trong `packages/`: thư viện app import khi chạy ở `packages/<tên>`, client tới dịch vụ hạ tầng cho app Nest (Redis, Elasticsearch – sau này queue, mail…) ở `packages/infra/`, cấu hình và công cụ dùng chung ở `packages/tooling/` (eslint, typescript, vitest, tailwind – sau này thêm generator, script… cũng đặt ở đây). Tên package không phụ thuộc thư mục (`@repo/eslint-config`…).
+Hai nhóm workspace: `apps/` (app chạy được) và `packages/`. Trong `packages/`: thư viện app import khi chạy ở `packages/<tên>`, client tới dịch vụ hạ tầng cho app Nest ở **một** package `packages/infra` (`@repo/infra/<dịch vụ>`: Redis, Elasticsearch – thêm dịch vụ bằng `pnpm gen infra`), cấu hình và công cụ dùng chung ở `packages/tooling/` (eslint, typescript, vitest, tailwind – sau này thêm generator, script… cũng đặt ở đây). Tên package không phụ thuộc thư mục (`@repo/eslint-config`…).
 
 `@repo/utils`, `@repo/nest-common`, `@repo/socket-events`, `@repo/db` là compiled package (tsc → `dist/`); `@repo/ui`, `@repo/types` export source TS (web dùng `transpilePackages`). Task `dev`/`build`/`test` trong `turbo.json` đều `dependsOn: ["^build"]` nên package luôn được build trước app.
 
@@ -494,11 +493,11 @@ TypeScript ghim **6.0.3** (bản 6.x mới nhất): TS 7.0 chỉ có binary `tsc
 
 ## Test
 
-| Lớp              | Lệnh                                   | Ở đâu                                                                               | Cần gì                             |
-| ---------------- | -------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------- |
-| Unit / component | `pnpm test` (`test:watch`, `test:cov`) | `*.spec.ts(x)` / `*.test.ts` cạnh code                                              | –                                  |
-| Backend e2e      | `pnpm test:e2e`                        | `apps/{api,socket}/test/*.e2e-spec.ts`, `packages/infra/{redis,elasticsearch}/test` | Postgres + Redis (`pnpm infra:up`) |
-| Browser e2e      | `pnpm test:e2e:browser`                | `apps/e2e/tests/*.spec.ts` (Playwright)                                             | Postgres + browser                 |
+| Lớp              | Lệnh                                   | Ở đâu                                                         | Cần gì                                             |
+| ---------------- | -------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------- |
+| Unit / component | `pnpm test` (`test:watch`, `test:cov`) | `*.spec.ts(x)` / `*.test.ts` cạnh code                        | –                                                  |
+| Backend e2e      | `pnpm test:e2e`                        | `apps/{api,socket}/test/*.e2e-spec.ts`, `packages/infra/test` | Postgres + Redis + Elasticsearch (`pnpm infra:up`) |
+| Browser e2e      | `pnpm test:e2e:browser`                | `apps/e2e/tests/*.spec.ts` (Playwright)                       | Postgres + browser                                 |
 
 - Runner: **Vitest** cho mọi package, preset dùng chung trong `@repo/vitest-config` (`base`, `nest` – SWC để giữ decorator metadata cho DI, `react` – jsdom). Playwright cho trình duyệt.
 - Nest unit test dùng `Test.createTestingModule` + mock provider; e2e khởi động app thật bằng `configureApp()` (`src/app.setup.ts`) – cùng cấu hình với `main.ts`.

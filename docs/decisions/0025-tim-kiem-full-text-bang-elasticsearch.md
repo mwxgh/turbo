@@ -7,6 +7,8 @@ date: 2026-11-23
 
 # 0025: Tìm kiếm full-text bằng Elasticsearch qua @repo/elasticsearch
 
+> Từ ADR 0028: `@repo/redis` / `@repo/elasticsearch` là subpath `@repo/infra/redis` / `@repo/infra/elasticsearch` của một package `@repo/infra`.
+
 ## Bối cảnh
 
 Lingo chưa có ô tìm từ. Kho có 1426 thẻ hệ thống cộng thẻ học viên tự thêm; người học gõ tiếng Anh hoặc nghĩa tiếng Việt, thường không dấu và hay gõ sai. Postgres `contains` không bỏ dấu, không chịu lỗi gõ, không xếp hạng. Người dùng chọn Elasticsearch, code dùng chung đặt trong một package `@repo/elasticsearch` (như `@repo/redis`). Server prod 7.7 GB RAM, đang dùng khoảng 1.8 GB.

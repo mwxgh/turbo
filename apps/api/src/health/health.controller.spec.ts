@@ -3,7 +3,7 @@ import { Logger, ServiceUnavailableException } from '@nestjs/common'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { PrismaService } from '@repo/db/nest'
-import type { Redis } from '@repo/redis'
+import type { Redis } from '@repo/infra/redis'
 
 import { HealthController } from './health.controller'
 

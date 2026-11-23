@@ -39,7 +39,7 @@ Closes #
 ## Checklist
 
 - [ ] `pnpm turbo run build lint check-types test` passes
-- [ ] Touched api / socket / redis → `pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis` passes
+- [ ] Touched api / socket / redis → `pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/infra` passes
 - [ ] Changed `schema.prisma` → `pnpm db:migrate` (migration committed), `pnpm db:check` passes, `pnpm db:types` (`packages/types/src/generated` committed)
 - [ ] Added / changed env vars → updated the app's `.env.example` and `deploy/.env.example`
 - [ ] Changed the API → Swagger (`/api/docs`) is correct; changed a socket event → only in `packages/socket-events`

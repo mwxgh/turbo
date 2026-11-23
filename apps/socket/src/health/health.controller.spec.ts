@@ -2,7 +2,7 @@ import { Logger, ServiceUnavailableException } from '@nestjs/common'
 
 import { describe, expect, it, vi } from 'vitest'
 
-import type { Redis } from '@repo/redis'
+import type { Redis } from '@repo/infra/redis'
 
 import { HealthController } from './health.controller'
 

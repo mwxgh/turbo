@@ -127,7 +127,7 @@ jobs:
           pnpm db:check
 
       - name: Backend e2e (api on <db>_test, socket)
-        run: pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis --filter=@repo/elasticsearch
+        run: pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/infra
 
   # Which environment (if any) this tag / manual run publishes images for
   stage:

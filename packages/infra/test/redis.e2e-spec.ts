@@ -11,9 +11,9 @@ import {
   RedisModule,
   RedisThrottlerStorage,
   pingRedis,
-} from '../src/index.js'
+} from '../src/redis/index.js'
 
-describe('@repo/redis against a real Redis', () => {
+describe('@repo/infra/redis against a real Redis', () => {
   // A unique prefix per run: tests never see or delete other keys
   const keyPrefix = `e2e:${randomUUID()}:`
   let redis: Redis

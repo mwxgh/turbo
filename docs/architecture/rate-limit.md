@@ -5,7 +5,7 @@ applies-to: api
 enforced-by:
   - apps/api/src/app.module.ts (ThrottlerModule + RedisThrottlerStorage)
   - apps/api/src/env.ts (RATE_LIMIT, RATE_LIMIT_TTL_SECONDS, TRUST_PROXY)
-  - packages/infra/redis/src/throttler-storage.ts (RedisThrottlerStorage)
+  - packages/infra/src/redis/throttler-storage.ts (RedisThrottlerStorage)
   - apps/api/test/security.e2e-spec.ts
 ---
 
@@ -79,7 +79,7 @@ flowchart LR
   R -- vượt limit --> E[429 + Retry-After]
 ```
 
-- Bộ đếm nằm trong Redis (`RedisThrottlerStorage` từ `@repo/redis`): mọi instance api dùng chung, scale ngang không làm limit nhân lên.
+- Bộ đếm nằm trong Redis (`RedisThrottlerStorage` từ `@repo/infra/redis`): mọi instance api dùng chung, scale ngang không làm limit nhân lên.
 - Fixed window, một Lua script atomic mỗi request (1 round trip). Key: `<APP_ENV>:throttle:<throttler>:<hash>` (hash = controller + handler + IP), tự hết hạn.
 - Redis không trả lời → request lỗi (guard throw). Redis đã là dependency bắt buộc của api (`/health/ready` kiểm tra).
 

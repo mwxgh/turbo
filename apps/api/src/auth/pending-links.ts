@@ -6,7 +6,7 @@ import type { CookieOptions } from 'express'
 
 import { type OAuthProvider, Prisma } from '@repo/db'
 import { PrismaService } from '@repo/db/nest'
-import { InjectRedis, type Redis } from '@repo/redis'
+import { InjectRedis, type Redis } from '@repo/infra/redis'
 
 import { env } from '../env'
 

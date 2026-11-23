@@ -5,8 +5,8 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common'
 
+import { InjectRedis, type Redis, pingRedis } from '@repo/infra/redis'
 import { Public } from '@repo/nest-common/auth/nest'
-import { InjectRedis, type Redis, pingRedis } from '@repo/redis'
 
 import { env } from '../env'
 
