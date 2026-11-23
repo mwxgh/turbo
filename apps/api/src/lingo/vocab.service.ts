@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, Optional } from '@nestjs/common'
 
 import { type Card, type Grade, State, createEmptyCard, fsrs } from 'ts-fsrs'
 
@@ -6,6 +6,7 @@ import type { LingoCardState, Prisma } from '@repo/db'
 import { PrismaService } from '@repo/db/nest'
 import { dayRange } from '@repo/utils'
 
+import { CardSearchService } from './card-search.service'
 import { cardExtensionSchema } from './specs/schemas'
 
 /** The learner's own deck that "Học từ mở rộng" adds cards to (one per exam). */
@@ -60,7 +61,10 @@ function fromFsrsCard(card: Card) {
 
 @Injectable()
 export class VocabService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly search?: CardSearchService,
+  ) {}
 
   /** Decks with card counts and the learner's progress. */
   async decks(userId: string, exam?: string) {
@@ -204,6 +208,7 @@ export class VocabService {
       })),
       skipDuplicates: true,
     })
+    if (count) await this.search?.reindexDecks([deck.id])
     return { deckId: deck.id, added: count, known: rows.length - count }
   }
 

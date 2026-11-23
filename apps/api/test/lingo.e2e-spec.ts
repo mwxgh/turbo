@@ -410,4 +410,36 @@ describe('Lingo (e2e)', () => {
       .body as { title: string }[]
     expect(others.map((d) => d.title)).not.toContain('Từ mở rộng của tôi')
   })
+
+  it('searches cards in Elasticsearch: accents optional, typos, own decks private', async () => {
+    const search = async (auth: string, q: string) =>
+      (
+        await as(auth)
+          .get(`/cards/search?exam=TOEIC_LR&q=${encodeURIComponent(q)}`)
+          .expect(200)
+      ).body as {
+        engine: string
+        items: { term: string; meaningVi: string; deckTitle: string }[]
+      }
+
+    const exact = await search(learner, 'contract')
+    expect(exact.engine).toBe('elasticsearch')
+    expect(exact.items[0]).toMatchObject({ term: 'contract' })
+    // Vietnamese without accents, and a typo
+    expect(
+      (await search(learner, 'hop dong')).items.map((i) => i.term),
+    ).toContain('contract')
+    expect(
+      (await search(learner, 'contrct')).items.map((i) => i.term),
+    ).toContain('contract')
+    // "accept responsibilities for" is in the learner's own deck (từ mở rộng above)
+    const own = (await search(learner, 'accept responsibilities')).items
+    expect(own).toContainEqual(
+      expect.objectContaining({ deckTitle: 'Từ mở rộng của tôi' }),
+    )
+    const others = (await search(other, 'accept responsibilities')).items
+    expect(others.map((i) => i.deckTitle)).not.toContain('Từ mở rộng của tôi')
+
+    await as(learner).get('/cards/search?q=').expect(400)
+  })
 })

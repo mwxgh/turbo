@@ -3,6 +3,7 @@ import { ThrottlerModule } from '@nestjs/throttler'
 
 import { AuthModule as JwtAuthModule } from '@repo/auth/nest'
 import { PrismaModule } from '@repo/db/nest'
+import { ElasticsearchModule } from '@repo/elasticsearch'
 import { createLoggerModule } from '@repo/nest-common/logger'
 import {
   REDIS,
@@ -31,6 +32,15 @@ import { StudioModule } from './studio/studio.module'
     }),
     PrismaModule.forRoot({ url: env.DATABASE_URL }),
     RedisModule.forRoot({ url: env.REDIS_URL, keyPrefix: env.redisKeyPrefix }),
+    // Optional: without it, Lingo card search runs in Postgres
+    ...(env.ELASTICSEARCH_URL
+      ? [
+          ElasticsearchModule.forRoot({
+            node: env.ELASTICSEARCH_URL,
+            indexPrefix: env.elasticsearchIndexPrefix,
+          }),
+        ]
+      : []),
     // Opt-in per controller: @UseGuards(ThrottlerGuard). Counters shared by all instances through Redis
     ThrottlerModule.forRootAsync({
       inject: [REDIS],

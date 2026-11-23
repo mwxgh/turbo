@@ -55,17 +55,18 @@ if (env.APP_ENV !== AppEnv.Prod) {
 
 Khai báo ở CI/CD variables (GitLab: _environment scope_; GitHub: _Environments_) hoặc nơi deploy, **không** commit giá trị thật vào repo.
 
-| Biến                                           | Dùng bởi          | Khi        | Ví dụ `dev` / `stg` / `prod`                                                                 |
-| ---------------------------------------------- | ----------------- | ---------- | -------------------------------------------------------------------------------------------- |
-| `APP_ENV`                                      | api, socket       | runtime    | `dev` / `stg` / `prod`                                                                       |
-| `DATABASE_URL`                                 | api, migrate      | runtime    | DB riêng cho từng môi trường                                                                 |
-| `REDIS_URL`                                    | api, socket       | runtime    | Redis có thể dùng chung giữa môi trường: key/kênh tự có prefix `APP_ENV:`                    |
-| `STORAGE_CORE_S3_SERVERS`, `STORAGE_BUCKET`    | api               | runtime    | Bắt buộc. Định dạng btp (JSON danh sách server S3 / MinIO); bucket riêng cho từng môi trường |
-| `CORS_ORIGINS`                                 | api, socket       | runtime    | `https://dev.example.com` / `https://stg.example.com` / `https://example.com`                |
-| `PUBLIC_API_URL` → `NEXT_PUBLIC_API_URL`       | web               | build (CI) | `https://api.dev.example.com/api` / …                                                        |
-| `PUBLIC_SOCKET_URL` → `NEXT_PUBLIC_SOCKET_URL` | web               | build (CI) | `https://socket.dev.example.com` / …                                                         |
-| `NEXT_PUBLIC_APP_ENV`                          | web               | build (CI) | CI tự đặt theo môi trường build (`BUILD_STAGE` / `STAGE`)                                    |
-| `API_URL`                                      | web (server-side) | runtime    | URL nội bộ của api trong cụm                                                                 |
+| Biến                                           | Dùng bởi          | Khi        | Ví dụ `dev` / `stg` / `prod`                                                                       |
+| ---------------------------------------------- | ----------------- | ---------- | -------------------------------------------------------------------------------------------------- |
+| `APP_ENV`                                      | api, socket       | runtime    | `dev` / `stg` / `prod`                                                                             |
+| `DATABASE_URL`                                 | api, migrate      | runtime    | DB riêng cho từng môi trường                                                                       |
+| `REDIS_URL`                                    | api, socket       | runtime    | Redis có thể dùng chung giữa môi trường: key/kênh tự có prefix `APP_ENV:`                          |
+| `ELASTICSEARCH_URL`                            | api               | runtime    | Tuỳ chọn (trống = tìm bằng Postgres); index tự có prefix `APP_ENV-` (`ELASTICSEARCH_INDEX_PREFIX`) |
+| `STORAGE_CORE_S3_SERVERS`, `STORAGE_BUCKET`    | api               | runtime    | Bắt buộc. Định dạng btp (JSON danh sách server S3 / MinIO); bucket riêng cho từng môi trường       |
+| `CORS_ORIGINS`                                 | api, socket       | runtime    | `https://dev.example.com` / `https://stg.example.com` / `https://example.com`                      |
+| `PUBLIC_API_URL` → `NEXT_PUBLIC_API_URL`       | web               | build (CI) | `https://api.dev.example.com/api` / …                                                              |
+| `PUBLIC_SOCKET_URL` → `NEXT_PUBLIC_SOCKET_URL` | web               | build (CI) | `https://socket.dev.example.com` / …                                                               |
+| `NEXT_PUBLIC_APP_ENV`                          | web               | build (CI) | CI tự đặt theo môi trường build (`BUILD_STAGE` / `STAGE`)                                          |
+| `API_URL`                                      | web (server-side) | runtime    | URL nội bộ của api trong cụm                                                                       |
 
 Local: `.env` / `.env.local` của từng app (copy từ `.env.example`, mặc định `dev`). Docker Compose: `APP_ENV` trong `deploy/.env` (dùng cho api, socket và build web).
 

@@ -11,6 +11,7 @@ Monorepo base (pnpm + Turborepo) để copy làm khung cho các dự án mới.
 | `packages/db`                        | `@repo/db`                | Prisma 7 + PostgreSQL (schema, migrations, seed, client)                                                                                | –    |
 | `packages/types`                     | `@repo/types`             | Interface model + enum sinh từ `schema.prisma` (commit sẵn, web dùng không cần Prisma)                                                  | –    |
 | `packages/redis`                     | `@repo/redis`             | Redis dùng chung cho backend (ioredis): `RedisModule`, `@InjectRedis()`, `RedisCache`, `pingRedis`                                      | –    |
+| `packages/elasticsearch`             | `@repo/elasticsearch`     | Elasticsearch dùng chung cho backend: `ElasticsearchModule`, `SearchIndex` (prefix index theo môi trường), `pingElasticsearch`          | –    |
 | `packages/utils`                     | `@repo/utils`             | Hàm bổ trợ dùng chung server + browser: datetime (múi giờ VN), chuỗi, số                                                                | –    |
 | `packages/socket-events`             | `@repo/socket-events`     | Contract Socket.IO dùng chung gateway + web (type event, namespace)                                                                     | –    |
 | `packages/nest-common`               | `@repo/nest-common`       | Dùng chung cho app Nest: field decorators (class-validator + Swagger), `validateDto`/`validateEnv`, `BaseEnv`, DTO danh sách/phân trang | –    |
@@ -37,7 +38,7 @@ cp apps/socket/.env.example apps/socket/.env
 cp apps/web/.env.example apps/web/.env.local
 cp apps/mobile/.env.example apps/mobile/.env
 
-pnpm infra:up       # start PostgreSQL + Redis + S3 local (RustFS, tự tạo bucket turbo-dev; đợi healthy)
+pnpm infra:up       # start PostgreSQL + Redis + Elasticsearch + S3 local (RustFS, tự tạo bucket turbo-dev; đợi healthy)
 pnpm db:deploy      # apply migrations (pnpm build sẽ tự generate Prisma client)
 pnpm db:seed        # dữ liệu mẫu
 
@@ -48,7 +49,7 @@ pnpm dev:web
 pnpm dev:mobile     # Expo dev server (quét QR bằng Expo Go, hoặc a / i cho emulator)
 ```
 
-Môi trường `dev` trên máy chỉ dùng service của `pnpm infra:up` (Postgres `127.0.0.1:5432`, Redis `:6379`, S3 `:9000`): `.env` local **không** trỏ lên server stg / prod.
+Môi trường `dev` trên máy chỉ dùng service của `pnpm infra:up` (Postgres `127.0.0.1:5432`, Redis `:6379`, Elasticsearch `:9200`, S3 `:9000`): `.env` local **không** trỏ lên server stg / prod.
 
 Scripts khác: `pnpm build`, `pnpm lint`, `pnpm check-types`, `pnpm test`, `pnpm format` / `format:check`, `pnpm start:api|start:socket|start:web`.
 
@@ -219,6 +220,10 @@ Option chung: `optional`, `nullable`, `each` (+ `minItems/maxItems/uniqueItems`)
 `each: true` tự gói giá trị đơn thành mảng (`?tag=a` → `['a']`), transform/validate áp dụng cho từng phần tử, `uniqueItems` kiểm tra sau khi chuẩn hoá. Mọi chuẩn hoá đã nằm sẵn trong decorator, DTO không cần thêm `@Transform`.
 
 Ngoài HTTP (socket, env, script) dùng `validateDto(Dto, payload)` → `{ ok: true, data } | { ok: false, errors }`.
+
+### Elasticsearch (`@repo/elasticsearch`)
+
+Tìm kiếm full-text (đang dùng: tìm thẻ Lingo, `GET /api/lingo/cards/search`). Tuỳ chọn: `ELASTICSEARCH_URL` trống thì api tìm bằng Postgres. Index có prefix `<APP_ENV>-` và tên có phiên bản. Chi tiết: [docs/architecture/search.md](docs/architecture/search.md), ADR 0025.
 
 ### Redis (`@repo/redis`)
 

@@ -39,3 +39,11 @@ export function testRedisUrl() {
   url.pathname = '/15'
   return url.toString()
 }
+
+/** Elasticsearch for e2e: TEST_ELASTICSEARCH_URL, else ELASTICSEARCH_URL when local, else 127.0.0.1:9200. */
+export function testElasticsearchUrl() {
+  if (process.env.TEST_ELASTICSEARCH_URL)
+    return process.env.TEST_ELASTICSEARCH_URL
+  const base = process.env.ELASTICSEARCH_URL ?? 'http://127.0.0.1:9200'
+  return isLocalHost(new URL(base).hostname) ? base : 'http://127.0.0.1:9200'
+}
