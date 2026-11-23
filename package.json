@@ -41,7 +41,7 @@
     "deps:update": "pnpm update -r -i --latest",
     "docs:convert": "sh scripts/docs-convert.sh",
     "test:cov": "turbo run test:cov",
-    "test:e2e": "turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis",
+    "test:e2e": "turbo run test:e2e --filter=api --filter=socket --filter=@repo/infra",
     "test:e2e:browser": "turbo run test:e2e --filter=e2e"
   },
   "devDependencies": {

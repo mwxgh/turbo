@@ -9,12 +9,12 @@ Lý do chọn: [ADR 0025](../decisions/0025-tim-kiem-full-text-bang-elasticsearc
 
 ## Thành phần
 
-| Phần                  | Ở đâu                                                         | Việc                                                                        |
-| --------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `@repo/elasticsearch` | `packages/infra/elasticsearch`                                | Client dùng chung cho app Nest, `SearchIndex` (tiền tố index), probe health |
-| Tìm thẻ Lingo         | `apps/api/src/lingo/card-search.service.ts`                   | Index `lingo-cards-v1`, `GET /api/lingo/cards/search?q=&exam=`              |
-| Ô tìm từ              | `apps/web/app/(app)/lingo/review/_components/card-search.tsx` | Gõ → chờ 250 ms → gọi api, hiện từ, nghĩa, ví dụ, bài                       |
-| Elasticsearch local   | `deploy/docker-compose.yml` (`pnpm infra:up`)                 | 1 node, tắt security, chỉ bind `127.0.0.1:9200`, heap 512 MB                |
+| Phần                        | Ở đâu                                                         | Việc                                                                        |
+| --------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `@repo/infra/elasticsearch` | `packages/infra/src/elasticsearch`                            | Client dùng chung cho app Nest, `SearchIndex` (tiền tố index), probe health |
+| Tìm thẻ Lingo               | `apps/api/src/lingo/card-search.service.ts`                   | Index `lingo-cards-v1`, `GET /api/lingo/cards/search?q=&exam=`              |
+| Ô tìm từ                    | `apps/web/app/(app)/lingo/review/_components/card-search.tsx` | Gõ → chờ 250 ms → gọi api, hiện từ, nghĩa, ví dụ, bài                       |
+| Elasticsearch local         | `deploy/docker-compose.yml` (`pnpm infra:up`)                 | 1 node, tắt security, chỉ bind `127.0.0.1:9200`, heap 512 MB                |
 
 ## Dùng trong app Nest
 
@@ -41,8 +41,8 @@ await index.search<CardHit>('lingo-cards-v1', { query })  // hit có id + score
 
 ## Môi trường
 
-| Môi trường | Elasticsearch                                                                           |
-| ---------- | --------------------------------------------------------------------------------------- |
-| local      | `pnpm infra:up`, `ELASTICSEARCH_URL=http://127.0.0.1:9200` trong `apps/api/.env`        |
-| CI         | service `elasticsearch:9.5.3` (GitHub Actions, GitLab), e2e `@repo/elasticsearch` + api |
-| server     | container trong stack `infra` dùng chung, mỗi môi trường một tiền tố index              |
+| Môi trường | Elasticsearch                                                                                 |
+| ---------- | --------------------------------------------------------------------------------------------- |
+| local      | `pnpm infra:up`, `ELASTICSEARCH_URL=http://127.0.0.1:9200` trong `apps/api/.env`              |
+| CI         | service `elasticsearch:9.5.3` (GitHub Actions, GitLab), e2e `@repo/infra/elasticsearch` + api |
+| server     | container trong stack `infra` dùng chung, mỗi môi trường một tiền tố index                    |

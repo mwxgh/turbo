@@ -442,4 +442,27 @@ describe('Lingo (e2e)', () => {
 
     await as(learner).get('/cards/search?q=').expect(400)
   })
+
+  it('"Đã biết" takes a card out of the review list for good', async () => {
+    const queue = (await as(other).get('/review?exam=TOEIC_LR').expect(200))
+      .body as { newPerDay: number; cards: { id: string; isNew: boolean }[] }
+    expect(queue.newPerDay).toBe(20)
+    const card = queue.cards.find((c) => c.isNew)!
+
+    await as(other).post(`/cards/${card.id}/known`).expect(200)
+
+    const after = (await as(other).get('/review?exam=TOEIC_LR').expect(200))
+      .body as { cards: { id: string }[] }
+    expect(after.cards.map((c) => c.id)).not.toContain(card.id)
+    // Only "other" has seen this card since the first queue
+    const states = await prisma.lingoCardState.findMany({
+      where: { cardId: card.id },
+      orderBy: { createdAt: 'desc' },
+    })
+    const state = states[0]!
+    expect(state.state).toBe(2) // Review: counts as learned
+    expect(state.due.getTime()).toBeGreaterThan(Date.now() + 3_650 * 86_400_000)
+
+    await as(other).post(`/cards/${randomUUID()}/known`).expect(404)
+  })
 })

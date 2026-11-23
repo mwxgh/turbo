@@ -117,7 +117,7 @@ export class Env extends BaseEnv {
   @UrlField({ optional: true })
   ARK_BASE_URL = 'https://ark.ap-southeast.bytepluses.com/api/v3'
 
-  /** Elasticsearch for full-text search (`@repo/elasticsearch`); unset = search in Postgres. */
+  /** Elasticsearch for full-text search (`@repo/infra/elasticsearch`); unset = search in Postgres. */
   @UrlField({ optional: true, protocols: ['http', 'https'] })
   ELASTICSEARCH_URL?: string
 

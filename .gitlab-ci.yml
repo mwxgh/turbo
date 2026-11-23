@@ -103,7 +103,7 @@ check:
     - pnpm db:check
     # Backend e2e: api on <db>_test, socket over a real port
     - until wget -qO- "$ELASTICSEARCH_URL/_cluster/health" >/dev/null 2>&1; do sleep 2; done
-    - pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/redis --filter=@repo/elasticsearch
+    - pnpm turbo run test:e2e --filter=api --filter=socket --filter=@repo/infra
 
 # ==================== IMAGES ====================
 

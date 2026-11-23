@@ -1,11 +1,13 @@
 ---
 title: '0026: Package hạ tầng nằm trong packages/infra/'
 status: draft
-decision: accepted
+decision: superseded by 0028
 date: 2026-11-23
 ---
 
 # 0026: Package hạ tầng nằm trong packages/infra/
+
+> Từ ADR 0028: `@repo/redis` / `@repo/elasticsearch` là subpath `@repo/infra/redis` / `@repo/infra/elasticsearch` của một package `@repo/infra`.
 
 ## Bối cảnh
 

@@ -159,6 +159,8 @@ Giống study4: chỉ chế độ **Full test** mới có điểm quy đổi. Ch
   - **Luyện tập:** chọn 1 hoặc nhiều Part, giới hạn thời gian (không giới hạn / 5–120 phút). Chấm khi nộp, có tuỳ chọn hiện đáp án ngay từng câu.
   - **Full test:** đủ Section, đúng thời gian, Listening chạy liền không tua. Có điểm quy đổi.
 - Thêm **Luyện nhanh**: 10–20 câu ngẫu nhiên của 1 Part, ưu tiên câu chưa làm và dạng câu yếu.
+  Part 1–2 (câu hỏi và lựa chọn chỉ được đọc, không in – như đề thật): trong Luyện nhanh các lựa chọn A/B/C hiện chữ sẵn, câu hỏi bật bằng nút **Hiện câu hỏi / Ẩn câu hỏi**; Luyện tập và Full test vẫn chỉ nghe.
+- Trình phát nghe có tốc độ **0.75× / 1× / 1.25× / 1.5×** (nhớ theo trình duyệt); Full test và bài đầu vào luôn 1×.
 
 ### 4.3 Làm bài
 
@@ -177,7 +179,7 @@ Giống study4: chỉ chế độ **Full test** mới có điểm quy đổi. Ch
 - **Bộ thẻ hệ thống** theo kỳ thi và chủ đề (TOEIC: Office, Finance…; IELTS: Environment, Education…; HSK: theo cấp).
 - **Bộ thẻ của tôi:** tạo bộ, thêm thẻ tay, thêm từ **highlight** ở trang kết quả (người học tự gõ nghĩa; AI điền tự động ở giai đoạn AI).
 - Mặt thẻ tuỳ ngôn ngữ: tiếng Anh có IPA; tiếng Trung có chữ Hán, **pinyin**, Hán Việt. Có audio phát âm.
-- Ôn: lật thẻ → tự chấm **Again / Hard / Good / Easy**, lịch ôn theo FSRS (`ts-fsrs`). Giới hạn thẻ mới mỗi ngày.
+- Ôn: thẻ hiện từ, loại từ, IPA, nút nghe, nhãn "Từ mới"; lật thẻ (Space) xem nghĩa, ví dụ, từ mở rộng. Chọn **Dễ** (FSRS Easy) / **Trung bình** (Good) / **Khó** (Again, gặp lại cuối phiên) – phím 1–3 – hoặc **Đã biết, loại khỏi danh sách ôn tập** (phím 4, `POST /lingo/cards/:id/known`: không ôn lại, tính là đã thuộc). Lịch ôn theo FSRS (`ts-fsrs`). Giới hạn thẻ mới mỗi ngày (mục tiêu, mặc định 20), nhắc ở đầu phiên.
 
 ### 4.6 Admin (role `ADMIN`)
 

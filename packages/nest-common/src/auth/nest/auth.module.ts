@@ -17,7 +17,7 @@ export interface AuthModuleOptions {
   accessCookie: string
   /**
    * Provider of the revoked-session list, shared by every app (the Redis client: `REDIS` from
-   * `@repo/redis`, same `keyPrefix` in api and socket).
+   * `@repo/infra/redis`, same `keyPrefix` in api and socket).
    */
   revocationStore: InjectionToken
 }

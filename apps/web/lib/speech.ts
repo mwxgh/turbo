@@ -55,8 +55,18 @@ function voiceFor(voices: SpeechSynthesisVoice[], line: ScriptLine) {
     : undefined
 }
 
-/** Reads the lines in order; returns a stop function. `onEnd` runs once, when done or stopped. */
-export function speak(lines: ScriptLine[], onEnd: () => void): () => void {
+/** Playback speeds the learner can pick (1 = normal). */
+export const SPEEDS = [0.75, 1, 1.25, 1.5] as const
+
+/**
+ * Reads the lines in order at `speed` (1 = normal); returns a stop function. `onEnd` runs once,
+ * when done or stopped.
+ */
+export function speak(
+  lines: ScriptLine[],
+  onEnd: () => void,
+  speed = 1,
+): () => void {
   if (!canSpeak() || !lines.length) {
     onEnd()
     return () => undefined
@@ -76,7 +86,8 @@ export function speak(lines: ScriptLine[], onEnd: () => void): () => void {
     const voice = voiceFor(voices, line)
     if (voice) utterance.voice = voice
     utterance.pitch = SPEAKER[line.speaker].pitch
-    utterance.rate = 0.95
+    // Browser voices read a little fast at 1: 0.95 is "normal"
+    utterance.rate = 0.95 * speed
     if (i === lines.length - 1) utterance.onend = end
     utterance.onerror = end
     synth.speak(utterance)

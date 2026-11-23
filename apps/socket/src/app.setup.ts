@@ -1,8 +1,8 @@
 import type { INestApplication } from '@nestjs/common'
 
+import { REDIS, type Redis } from '@repo/infra/redis'
+import { RedisIoAdapter } from '@repo/infra/redis/socket-io'
 import { REQUEST_ID_HEADER } from '@repo/nest-common/logger'
-import { REDIS, type Redis } from '@repo/redis'
-import { RedisIoAdapter } from '@repo/redis/socket-io'
 
 import { env } from './env'
 

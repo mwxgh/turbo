@@ -1,0 +1,5 @@
+import { Inject } from '@nestjs/common'
+
+/** DI token of the shared client: `@Inject{{ pascalCase name }}() private readonly {{ camelCase name }}: {{ pascalCase name }}Client`. */
+export const {{ constantCase name }} = Symbol('{{ constantCase name }}')
+export const Inject{{ pascalCase name }} = () => Inject({{ constantCase name }})
