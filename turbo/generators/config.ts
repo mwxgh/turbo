@@ -7,7 +7,7 @@ import type { PlopTypes } from '@turbo/gen'
 /**
  * Code generators: `pnpm gen` (pick one) or `pnpm gen <name>`.
  *
- *   package   new workspace package in packages/ (compiled Node lib or React source lib)
+ *   package   new workspace package in packages/ or packages/infra/ (compiled Node lib or React source lib)
  *   resource  CRUD resource: Prisma model + Nest module (api) + list/form page (web)
  *
  * Templates live next to this file and follow the reference code in the repo
@@ -119,6 +119,18 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         ],
       },
       {
+        type: 'list',
+        name: 'folder',
+        message: 'Folder:',
+        choices: [
+          { name: 'packages/        – library the apps import', value: '' },
+          {
+            name: 'packages/infra/  – client of an infrastructure service for the Nest apps (like @repo/redis)',
+            value: 'infra/',
+          },
+        ],
+      },
+      {
         type: 'input',
         name: 'description',
         message: 'One-line description:',
@@ -129,11 +141,15 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
       },
     ],
     actions: (data) => {
-      const answers = data as { name: string; kind: 'node' | 'react' }
+      const answers = data as {
+        name: string
+        kind: 'node' | 'react'
+        folder: '' | 'infra/'
+      }
       const actions: PlopTypes.ActionType[] = [
         {
           type: 'addMany',
-          destination: '{{ turbo.paths.root }}/packages/{{ kebabCase name }}',
+          destination: `{{ turbo.paths.root }}/packages/${answers.folder}{{ kebabCase name }}`,
           base: `templates/package/${answers.kind}`,
           templateFiles: `templates/package/${answers.kind}/**`,
           globOptions: { dot: true },
@@ -150,7 +166,7 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
           'install',
           '--prefer-offline',
         ]),
-        format('packages/{{ kebabCase name }}'),
+        format(`packages/${answers.folder}{{ kebabCase name }}`),
       ]
       if (answers.kind === 'react') {
         actions.push(

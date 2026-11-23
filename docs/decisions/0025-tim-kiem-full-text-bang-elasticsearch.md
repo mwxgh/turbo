@@ -21,11 +21,11 @@ Lingo chưa có ô tìm từ. Kho có 1426 thẻ hệ thống cộng thẻ học
 
 ## Hệ quả
 
-| Loại     | Nội dung                                                                                                          |
-| -------- | ----------------------------------------------------------------------------------------------------------------- |
-| Được     | Tìm không dấu, chịu lỗi gõ, theo tiền tố, xếp hạng; package dùng lại được cho tìm kiếm khác                       |
-| Đánh đổi | Thêm ~1 GB RAM (JVM + cache) trên server và một service phải vận hành; CI chạy thêm một service; thêm job đồng bộ |
-| Áp dụng  | `packages/elasticsearch`, `apps/api/src/lingo/card-search.service.ts`, `deploy/docker-compose.yml`, CI services   |
+| Loại     | Nội dung                                                                                                              |
+| -------- | --------------------------------------------------------------------------------------------------------------------- |
+| Được     | Tìm không dấu, chịu lỗi gõ, theo tiền tố, xếp hạng; package dùng lại được cho tìm kiếm khác                           |
+| Đánh đổi | Thêm ~1 GB RAM (JVM + cache) trên server và một service phải vận hành; CI chạy thêm một service; thêm job đồng bộ     |
+| Áp dụng  | `packages/infra/elasticsearch`, `apps/api/src/lingo/card-search.service.ts`, `deploy/docker-compose.yml`, CI services |
 
 ## Phương án đã cân nhắc
 
