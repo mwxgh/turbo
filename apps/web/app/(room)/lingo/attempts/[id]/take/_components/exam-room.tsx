@@ -16,6 +16,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import {
   ChevronLeft,
   ChevronRight,
+  Eye,
+  EyeOff,
   Flag,
   Loader2,
   Maximize,
@@ -230,6 +232,8 @@ export function ExamRoom({
   const [now, setNow] = useState(() => Date.now())
   /** Items whose recording was played (full test: once each) */
   const [played, setPlayed] = useState<ReadonlySet<string>>(new Set())
+  // Quick practice only: show what Part 1–2 read out (tests stay listening-only, like the exam)
+  const [showText, setShowText] = useState(false)
   const shownAt = useRef(0)
   const autoSubmitted = useRef(false)
   const fullscreen = useFullscreen()
@@ -245,6 +249,7 @@ export function ExamRoom({
   const part = parts.get(group.part)
   const spoken = part?.spokenOptions ?? false
   const script = scriptOf(first, spoken)
+  const canShowText = spoken && attempt.mode === 'QUICK'
   const answered = choices.filter((c) => c !== null).length
   const remaining = deadline === null ? null : deadline - now
   const exitHref = attempt.test
@@ -379,7 +384,7 @@ export function ExamRoom({
             key={q.id}
             q={q}
             n={q.order + 1}
-            spoken={spoken}
+            spoken={spoken && !(canShowText && showText)}
             active={at === index}
             choice={choices[at] ?? null}
             flagged={flags[at] ?? false}
@@ -508,6 +513,19 @@ export function ExamRoom({
           </div>
 
           {first.imageUrl && <QuestionImage url={first.imageUrl} />}
+          {canShowText && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              aria-pressed={showText}
+              onClick={() => setShowText((on) => !on)}
+              className="self-start"
+            >
+              {showText ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
+              {showText ? 'Ẩn chữ' : 'Hiện chữ'}
+            </Button>
+          )}
           {script.length > 0 && (
             <ListeningPlayer
               key={group.itemId}

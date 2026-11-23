@@ -159,6 +159,7 @@ Giống study4: chỉ chế độ **Full test** mới có điểm quy đổi. Ch
   - **Luyện tập:** chọn 1 hoặc nhiều Part, giới hạn thời gian (không giới hạn / 5–120 phút). Chấm khi nộp, có tuỳ chọn hiện đáp án ngay từng câu.
   - **Full test:** đủ Section, đúng thời gian, Listening chạy liền không tua. Có điểm quy đổi.
 - Thêm **Luyện nhanh**: 10–20 câu ngẫu nhiên của 1 Part, ưu tiên câu chưa làm và dạng câu yếu.
+  Part 1–2 (câu hỏi và lựa chọn chỉ được đọc, không in – như đề thật) có nút **Hiện chữ / Ẩn chữ** chỉ trong Luyện nhanh; Luyện tập và Full test vẫn chỉ nghe.
 
 ### 4.3 Làm bài
 

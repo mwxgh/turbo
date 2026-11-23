@@ -122,6 +122,36 @@ describe('ExamRoom', () => {
     ).toBeDisabled()
   })
 
+  it('shows heard questions and options on demand in quick practice only', async () => {
+    const user = userEvent.setup()
+    const { unmount } = renderWithQuery(
+      <ExamRoom
+        attempt={attempt({
+          mode: 'QUICK',
+          test: null,
+          deadline: null,
+          timeLimitSec: null,
+        })}
+        exam={exam}
+      />,
+    )
+    expect(screen.queryByText('Upstairs.')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Hiện chữ' }))
+    expect(screen.getByText('Where is the meeting?')).toBeInTheDocument()
+    expect(
+      screen.getByRole('radio', { name: /Upstairs\./ }),
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Ẩn chữ' }))
+    expect(screen.queryByText('Upstairs.')).not.toBeInTheDocument()
+    unmount()
+
+    // A test stays listening-only
+    renderWithQuery(<ExamRoom attempt={attempt()} exam={exam} />)
+    expect(
+      screen.queryByRole('button', { name: 'Hiện chữ' }),
+    ).not.toBeInTheDocument()
+  })
+
   it('counts down to the deadline', () => {
     renderWithQuery(<ExamRoom attempt={attempt()} exam={exam} />)
     expect(screen.getByLabelText('Thời gian còn lại')).toHaveTextContent(
