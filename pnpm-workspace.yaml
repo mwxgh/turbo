@@ -7,7 +7,7 @@ packages:
 catalog:
   # Dev tooling (TS 7 has no compiler API yet: Nest CLI, typescript-eslint, @nestjs/swagger need it)
   'typescript': 6.0.3
-  'eslint': 10.9.1
+  'eslint': 10.15.0
   # Prettier: root (repo format) and api (Studio formats generated projects)
   'prettier': 3.9.6
   '@trivago/prettier-plugin-sort-imports': 6.0.2
@@ -35,7 +35,7 @@ catalog:
   '@nestjs/platform-socket.io': 12.3.2
   '@nestjs/websockets': 12.3.2
   '@nestjs/swagger': 12.0.2
-  '@nestjs/cli': 12.0.9
+  '@nestjs/cli': 12.0.15
   '@nestjs/schematics': 12.0.9
   '@nestjs/testing': 12.3.2
   '@nestjs/throttler': 6.7.1
@@ -98,6 +98,23 @@ overrides:
   # Security (GHSA in body-parser <2.4.0): express 5.3 still allows ^2.3.0. Drop once
   # express requires >=2.4.0.
   'express>body-parser': ^2.4.0
+  # Security (pnpm audit, 2026-11-23): patched versions inside the ranges the parents allow.
+  # Drop each one once the parent's own range excludes the vulnerable versions.
+  'flat-cache>flatted': ^3.4.2
+  'picomatch@^2': ^2.3.2
+  '@humanfs/node': ^0.16.8
+  'node-forge@^1': ^1.4.3
+  'ajv>fast-uri': ^3.1.9
+  '@hono/node-server': ^2.1.6
+  'hono': ^4.13.16
+  # Prisma pins effect 3.20.0 (ReDoS fixed in 3.22.1, same major)
+  '@prisma/config>effect': ^3.22.1
+  # minimatch ^9 has a ReDoS fixed only in 11; both callers use the unchanged `minimatch()` API
+  '@trivago/prettier-plugin-sort-imports>minimatch': ^11.0.1
+  '@swc/cli>minimatch': ^11.0.1
+  # Not fixable here: the Expo SDK's CLI pins zod ^3 and glob ^13 (with minimatch ^10); fixes only
+  # in zod 4 / glob 14 / minimatch 11.
+  # Dev-time tooling, not shipped in the app; goes away with an Expo SDK upgrade.
 
 peerDependencyRules:
   allowedVersions:
