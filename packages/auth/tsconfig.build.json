@@ -1,3 +1,0 @@
-{
-  "extends": ["./tsconfig.json", "@repo/typescript-config/library.build.json"]
-}

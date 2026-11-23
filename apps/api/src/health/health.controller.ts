@@ -5,8 +5,8 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common'
 
-import { Public } from '@repo/auth/nest'
 import { PrismaService } from '@repo/db/nest'
+import { Public } from '@repo/nest-common/auth/nest'
 import { InjectRedis, type Redis, pingRedis } from '@repo/redis'
 import { probe } from '@repo/utils'
 

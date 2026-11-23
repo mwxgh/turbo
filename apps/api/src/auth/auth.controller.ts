@@ -20,8 +20,8 @@ import { Throttle, ThrottlerGuard } from '@nestjs/throttler'
 
 import type { Request, Response } from 'express'
 
-import { parseCookies } from '@repo/auth'
-import { type AuthUser, CurrentUser, Public } from '@repo/auth/nest'
+import { parseCookies } from '@repo/nest-common/auth'
+import { type AuthUser, CurrentUser, Public } from '@repo/nest-common/auth/nest'
 
 import { env } from '../env'
 import { AuthService } from './auth.service'

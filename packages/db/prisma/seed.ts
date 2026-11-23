@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-import { hashPassword } from '@repo/auth'
+import { hashPassword } from '@repo/nest-common/auth'
 
 import { createPrismaClient } from '../src/index.js'
 

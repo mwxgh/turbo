@@ -10,7 +10,7 @@ import {
 import { ApiTags } from '@nestjs/swagger'
 import { ThrottlerGuard } from '@nestjs/throttler'
 
-import { type AuthUser, CurrentUser } from '@repo/auth/nest'
+import { type AuthUser, CurrentUser } from '@repo/nest-common/auth/nest'
 
 import { CardSearchService } from './card-search.service'
 import { UpdateGoalDto } from './dto/goal.dto'

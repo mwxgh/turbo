@@ -13,7 +13,7 @@ import { publicEnv } from './env'
 
 export type { ChatMessage } from '@repo/socket-events'
 
-/** `connect_error` message when the handshake has no valid access token (`@repo/auth`). */
+/** `connect_error` message when the handshake has no valid access token (`@repo/nest-common/auth`). */
 export const SOCKET_UNAUTHORIZED = 'unauthorized'
 
 export type AppSocket = Socket<ServerToClientEvents, ClientToServerEvents>

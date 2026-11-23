@@ -14,8 +14,8 @@ import {
 import { ApiTags } from '@nestjs/swagger'
 import { ThrottlerGuard } from '@nestjs/throttler'
 
-import { type AuthUser, CurrentUser } from '@repo/auth/nest'
 import { ApiListQuery, ListQueryDto } from '@repo/nest-common'
+import { type AuthUser, CurrentUser } from '@repo/nest-common/auth/nest'
 
 import { SaveAnswerDto, StartAttemptDto } from './dto/attempt.dto'
 import { ReviewCardDto } from './dto/vocab.dto'

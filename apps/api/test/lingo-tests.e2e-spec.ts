@@ -5,8 +5,8 @@ import type { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
-import { AccessTokens } from '@repo/auth'
 import type { PrismaService } from '@repo/db/nest'
+import { AccessTokens } from '@repo/nest-common/auth'
 
 import { type ArkMessage, ArkModel } from '../src/lingo/ark-model'
 import { createApp } from './create-app'

@@ -1,6 +1,6 @@
 import type { CookieOptions, Request, Response } from 'express'
 
-import { parseCookies } from '@repo/auth'
+import { parseCookies } from '@repo/nest-common/auth'
 import { AUTH_TRANSPORT_HEADER, AUTH_TRANSPORT_TOKEN } from '@repo/utils'
 
 import { env } from '../env'

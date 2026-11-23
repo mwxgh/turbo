@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common'
 import { ThrottlerModule } from '@nestjs/throttler'
 
-import { AuthModule as JwtAuthModule } from '@repo/auth/nest'
 import { PrismaModule } from '@repo/db/nest'
 import { ElasticsearchModule } from '@repo/elasticsearch'
+import { AuthModule as JwtAuthModule } from '@repo/nest-common/auth/nest'
 import { createLoggerModule } from '@repo/nest-common/logger'
 import {
   REDIS,

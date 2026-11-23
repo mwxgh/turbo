@@ -14,8 +14,8 @@ import {
   vi,
 } from 'vitest'
 
-import { hashPassword, parseCookies } from '@repo/auth'
 import type { PrismaService } from '@repo/db/nest'
+import { hashPassword, parseCookies } from '@repo/nest-common/auth'
 
 import { AuthRegistration, env } from '../src/env'
 import { createApp } from './create-app'
