@@ -425,13 +425,13 @@ describe('Lingo (e2e)', () => {
     const exact = await search(learner, 'contract')
     expect(exact.engine).toBe('elasticsearch')
     expect(exact.items[0]).toMatchObject({ term: 'contract' })
-    // Vietnamese without accents, and a typo
-    expect(
-      (await search(learner, 'hop dong')).items.map((i) => i.term),
-    ).toContain('contract')
-    expect(
-      (await search(learner, 'contrct')).items.map((i) => i.term),
-    ).toContain('contract')
+    // Vietnamese without accents: cards meaning "hợp đồng" come first
+    const vi = (await search(learner, 'hop dong')).items
+    expect(vi[0]?.meaningVi).toContain('hợp đồng')
+    expect(vi.slice(0, 5).map((i) => i.term)).toContain('contract')
+    // A typo
+    const typo = (await search(learner, 'contrct')).items
+    expect(typo.slice(0, 3).map((i) => i.term)).toContain('contract')
     // "accept responsibilities for" is in the learner's own deck (từ mở rộng above)
     const own = (await search(learner, 'accept responsibilities')).items
     expect(own).toContainEqual(

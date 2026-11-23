@@ -72,9 +72,25 @@ describe('CardSearchService', () => {
         },
       },
     ])
-    expect(request.query.bool.must.multi_match).toMatchObject({
-      query: 'contract',
-      fuzziness: 'AUTO',
+    const should = request.query.bool.should as Record<string, unknown>[]
+    expect(should).toContainEqual({
+      term: { 'term.exact': { value: 'contract', boost: 20 } },
+    })
+    expect(should).toContainEqual({
+      match: {
+        term: {
+          query: 'contract',
+          operator: 'and',
+          fuzziness: 'AUTO:4,8',
+          boost: 4,
+        },
+      },
+    })
+    // Fuzziness never on the n-gram prefix field
+    expect(should).toContainEqual({
+      match: {
+        'term.prefix': { query: 'contract', operator: 'and', boost: 2 },
+      },
     })
   })
 
