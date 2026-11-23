@@ -4,6 +4,7 @@ import { PART56_DECKS } from './decks/part56'
 import { DECKS_A } from './decks/set-a'
 import { DECKS_B } from './decks/set-b'
 import { DECKS_C } from './decks/set-c'
+import { CARD_SUPPLEMENT } from './decks/supplement'
 import { TOEIC990_DECKS } from './decks/toeic990'
 import { TOEIC_TOPIC_DECKS } from './toeic-decks'
 import { TOEIC_STARTER_DECK } from './toeic-part5'
@@ -274,10 +275,11 @@ function merge([first, ...rest]: [Card, ...Card[]]): Card {
     pos: first.pos,
     meaningVi: meanings.join('; ').slice(0, 500),
   }
-  const reading = ipa(pick('reading'))
+  const extra = CARD_SUPPLEMENT[first.term]
+  const reading = ipa(pick('reading')) ?? extra?.reading
   if (reading) card.reading = reading
   // Example and its translation come as a pair from one source
-  const example = cards.find((c) => c.example)
+  const example = cards.find((c) => c.example) ?? extra
   if (example?.example) card.example = example.example
   if (example?.exampleVi) card.exampleVi = example.exampleVi
   if (extensions.length) card.extensions = extensions.slice(0, 20)
