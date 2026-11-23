@@ -8,7 +8,7 @@ import {
   LingoBatchSource,
   LingoContentStatus,
   LingoTestKind,
-  type Prisma,
+  Prisma,
   toPrismaListArgs,
 } from '@repo/db'
 import { PrismaService } from '@repo/db/nest'
@@ -16,17 +16,12 @@ import { type ListQuery, paginated } from '@repo/utils'
 
 import { itemCreateData, itemHash } from './content'
 import type { CreateDeckDto } from './dto/admin.dto'
-import {
-  MORE_DECKS,
-  PART56_DECKS,
-  SAMPLE_TESTS,
-  TOEIC990_DECKS,
-} from './fixtures/index'
-import { TOEIC_TOPIC_DECKS } from './fixtures/toeic-decks'
+import { SAMPLE_TESTS } from './fixtures/index'
 import { TOEIC_EXTRA_SAMPLES } from './fixtures/toeic-extra'
 import { TOEIC_MORE_SAMPLES } from './fixtures/toeic-more'
-import { TOEIC_PART5_SAMPLES, TOEIC_STARTER_DECK } from './fixtures/toeic-part5'
+import { TOEIC_PART5_SAMPLES } from './fixtures/toeic-part5'
 import type { TestFixture } from './fixtures/types'
+import { LEGACY_DECK_TITLES, VOCAB_DECKS } from './fixtures/vocab'
 import { itemListSpec } from './lingo.list-spec'
 import { findPart, getExam, getPart } from './specs'
 import { parseCsv } from './specs/csv'
@@ -257,9 +252,8 @@ export class AdminService {
   }
 
   /**
-   * Loads the built-in TOEIC samples (published items of Parts 2–7, a sample test, the starter deck
-   * and six topic decks) so a fresh
-   * environment has something to practise. Safe to run twice.
+   * Loads the built-in TOEIC samples (published items of Parts 2–7, the sample tests and the
+   * vocabulary curriculum) so a fresh environment has something to practise. Safe to run twice.
    */
   async loadSamples(userId: string) {
     const samples: Record<string, object[]> = { P5: TOEIC_PART5_SAMPLES }
@@ -307,30 +301,71 @@ export class AdminService {
       tests.push(await this.publishedTest(userId, test))
     }
 
-    const decks = [
-      { ...TOEIC_STARTER_DECK, rows: TOEIC_STARTER_DECK.cards, firstLine: 1 },
-      // CSV: line 1 is the header
-      ...TOEIC_TOPIC_DECKS.map((d) => ({
-        ...d,
-        rows: parseCsv(d.csv),
-        firstLine: 2,
-      })),
-      ...[...MORE_DECKS, ...PART56_DECKS, ...TOEIC990_DECKS].map((d) => ({
-        ...d,
-        rows: d.cards.map((c) => ({ ...c, topic: d.topic })),
-        firstLine: 1,
-      })),
-    ]
+    const cards = await this.syncDecks()
+    return { items, cards, tests }
+  }
+
+  /**
+   * The vocabulary curriculum as system decks in study order (one card per term). Cards of earlier
+   * system decks with the same term move into it, so learners keep their progress; old decks left
+   * empty are removed. Safe to run twice.
+   */
+  private async syncDecks() {
+    const existing = await this.prisma.lingoCard.findMany({
+      where: {
+        deck: {
+          ownerId: null,
+          title: {
+            in: [...VOCAB_DECKS.map((d) => d.title), ...LEGACY_DECK_TITLES],
+          },
+        },
+      },
+      select: { id: true, term: true, _count: { select: { states: true } } },
+    })
+    const byTerm = new Map<string, typeof existing>()
+    for (const card of existing) {
+      const key = card.term.toLowerCase()
+      byTerm.set(key, [...(byTerm.get(key) ?? []), card])
+    }
     const cards = { succeeded: 0, duplicates: 0, failed: 0, decks: 0 }
-    for (const { title, description, rows, firstLine } of decks) {
-      const deck = await this.systemDeck(title, description)
-      const result = await this.insertCards(deck.id, rows, firstLine)
-      cards.succeeded += result.succeeded
-      cards.duplicates += result.duplicates
-      cards.failed += result.failed
+    for (const fixture of VOCAB_DECKS) {
+      const deck = await this.systemDeck(fixture.title, fixture.description)
+      const fresh: Prisma.LingoCardCreateManyInput[] = []
+      for (const row of fixture.cards) {
+        const data = {
+          ...cardRowSchema.parse({ ...row, topic: fixture.topic }),
+          deckId: deck.id,
+        }
+        // The copy with the most learner progress stays; the others go
+        const [keep, ...extra] = (
+          byTerm.get(row.term.toLowerCase()) ?? []
+        ).sort((a, b) => b._count.states - a._count.states)
+        if (!keep) {
+          fresh.push(data)
+          continue
+        }
+        if (extra.length)
+          await this.prisma.lingoCard.deleteMany({
+            where: { id: { in: extra.map((c) => c.id) } },
+          })
+        await this.prisma.lingoCard.update({
+          where: { id: keep.id },
+          data: { ...data, extensions: data.extensions ?? Prisma.DbNull },
+        })
+        cards.duplicates++
+      }
+      const { count } = await this.prisma.lingoCard.createMany({ data: fresh })
+      cards.succeeded += count
       cards.decks++
     }
-    return { items, cards, tests }
+    await this.prisma.lingoDeck.deleteMany({
+      where: {
+        ownerId: null,
+        title: { in: LEGACY_DECK_TITLES },
+        cards: { none: {} },
+      },
+    })
+    return cards
   }
 
   /** A system deck of the TOEIC samples, found by title (made once). */
