@@ -237,8 +237,9 @@ export function ExamRoom({
   const [now, setNow] = useState(() => Date.now())
   /** Items whose recording was played (full test: once each) */
   const [played, setPlayed] = useState<ReadonlySet<string>>(new Set())
-  // Quick practice: Part 1–2 options are printed, the question on demand (tests stay listening-only)
-  const [showQuestion, setShowQuestion] = useState(false)
+  // Quick practice: Part 1–2 options are printed; the question only for the one it was opened on
+  // (moving on hides it again). Tests stay listening-only.
+  const [questionShownFor, setQuestionShownFor] = useState<string | null>(null)
   const shownAt = useRef(0)
   const autoSubmitted = useRef(false)
   const fullscreen = useFullscreen()
@@ -255,6 +256,7 @@ export function ExamRoom({
   const spoken = part?.spokenOptions ?? false
   const script = scriptOf(first, spoken)
   const quick = attempt.mode === 'QUICK'
+  const showQuestion = questionShownFor === group.itemId
   const scored = attempt.mode === 'FULL_TEST' || attempt.mode === 'PLACEMENT'
   const answered = choices.filter((c) => c !== null).length
   const remaining = deadline === null ? null : deadline - now
@@ -526,7 +528,9 @@ export function ExamRoom({
               variant="outline"
               size="sm"
               aria-pressed={showQuestion}
-              onClick={() => setShowQuestion((on) => !on)}
+              onClick={() =>
+                setQuestionShownFor(showQuestion ? null : group.itemId)
+              }
               className="self-start"
             >
               {showQuestion ? <EyeOff aria-hidden /> : <Eye aria-hidden />}

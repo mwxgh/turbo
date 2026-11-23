@@ -156,6 +156,35 @@ describe('ExamRoom', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('hides the question again on the next question', async () => {
+    const user = userEvent.setup()
+    const base = attempt().questions[0]!
+    renderWithQuery(
+      <ExamRoom
+        attempt={attempt({
+          mode: 'QUICK',
+          test: null,
+          deadline: null,
+          timeLimitSec: null,
+          total: 2,
+          questions: [
+            base,
+            { ...base, id: 'q2', itemId: 'i2', order: 1, text: 'Who called?' },
+          ],
+        })}
+        exam={exam}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Hiện câu hỏi' }))
+    expect(screen.getByText('Where is the meeting?')).toBeInTheDocument()
+    await user.click(screen.getByRole('radio', { name: /Upstairs\./ }))
+    await user.click(screen.getByRole('button', { name: /Câu sau|Tiếp/ }))
+    expect(screen.queryByText('Who called?')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Hiện câu hỏi' }),
+    ).toBeInTheDocument()
+  })
+
   it('reads at the chosen speed outside scored attempts', async () => {
     const user = userEvent.setup()
     renderWithQuery(
