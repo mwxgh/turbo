@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common'
 
 import {
@@ -14,6 +15,7 @@ import {
 import { PrismaService } from '@repo/db/nest'
 import { type ListQuery, paginated } from '@repo/utils'
 
+import { CardSearchService } from './card-search.service'
 import { itemCreateData, itemHash } from './content'
 import type { CreateDeckDto } from './dto/admin.dto'
 import { SAMPLE_TESTS } from './fixtures/index'
@@ -45,7 +47,11 @@ const SAMPLE_TEST_TITLE = 'Đề mẫu Lingo 01'
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    // Absent in scripts (lingo-seed): the api re-indexes at start
+    @Optional() private readonly search?: CardSearchService,
+  ) {}
 
   /**
    * Validates every item against the part's schema; valid, new ones are stored as `status`
@@ -302,6 +308,7 @@ export class AdminService {
     }
 
     const cards = await this.syncDecks()
+    await this.search?.reindexAll()
     return { items, cards, tests }
   }
 
@@ -443,6 +450,7 @@ export class AdminService {
       data: valid.map((row) => ({ ...row, deckId })),
       skipDuplicates: true,
     })
+    if (count) await this.search?.reindexDecks([deckId])
     return {
       succeeded: count,
       duplicates: valid.length - count,

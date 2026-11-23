@@ -5,6 +5,7 @@ import { AdminTestsController } from './admin-tests.controller'
 import { AdminController } from './admin.controller'
 import { AdminService } from './admin.service'
 import { ArkModel } from './ark-model'
+import { CardSearchService } from './card-search.service'
 import { ChatController } from './chat.controller'
 import { ChatService } from './chat.service'
 import { GeneratorService } from './generator.service'
@@ -33,6 +34,7 @@ import { VocabService } from './vocab.service'
     LingoService,
     PracticeService,
     VocabService,
+    CardSearchService,
     AdminService,
     ChatService,
     TestsService,

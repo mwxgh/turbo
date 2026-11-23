@@ -1,7 +1,10 @@
 import { defineConfig, mergeConfig } from 'vitest/config'
 
 import { nestE2eConfig } from '@repo/vitest-config/nest'
-import { testRedisUrl } from '@repo/vitest-config/test-env'
+import {
+  testElasticsearchUrl,
+  testRedisUrl,
+} from '@repo/vitest-config/test-env'
 
 import { testAuthEnv } from './test/auth-env.js'
 import { testDatabaseUrl } from './test/database-url.js'
@@ -14,6 +17,9 @@ export default mergeConfig(
       env: {
         DATABASE_URL: testDatabaseUrl(),
         REDIS_URL: testRedisUrl(),
+        // Real local Elasticsearch; own index prefix (the api rebuilds it at start)
+        ELASTICSEARCH_URL: testElasticsearchUrl(),
+        ELASTICSEARCH_INDEX_PREFIX: 'e2e-',
         NODE_ENV: 'test',
         LOG_LEVEL: 'silent',
         // All requests share one IP; security.e2e-spec.ts checks the headers, not 429s

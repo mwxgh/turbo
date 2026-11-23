@@ -1,0 +1,5 @@
+export type { Client, estypes } from '@elastic/elasticsearch'
+export * from './elasticsearch.module.js'
+export * from './health.js'
+export * from './search-index.js'
+export * from './tokens.js'

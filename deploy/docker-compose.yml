@@ -52,6 +52,31 @@ services:
       retries: 10
       start_period: 5s
 
+  # Full-text search (@repo/elasticsearch); indices are prefixed per APP_ENV.
+  # Single node, security off: bound to 127.0.0.1 only, never exposed.
+  elasticsearch:
+    image: elasticsearch:${ELASTICSEARCH_VERSION:-9.5.3}
+    restart: ${RESTART_POLICY:-no}
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: 'false'
+      ES_JAVA_OPTS: -Xms${ELASTICSEARCH_HEAP:-512m} -Xmx${ELASTICSEARCH_HEAP:-512m}
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+    ports:
+      - '${ELASTICSEARCH_BIND:-127.0.0.1}:${ELASTICSEARCH_PORT:-9200}:9200'
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'curl -fs http://localhost:9200/_cluster/health || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
   # S3-compatible file storage for local dev (same engine as the servers)
   storage:
     image: rustfs/rustfs:${RUSTFS_VERSION:-1.0.6}
@@ -115,6 +140,7 @@ services:
       PORT: 3001
       DATABASE_URL: *database-url
       REDIS_URL: &redis-url redis://redis:6379
+      ELASTICSEARCH_URL: http://elasticsearch:9200
       # S3 / MinIO (btp format), from deploy/.env
       STORAGE_CORE_S3_SERVERS: ${STORAGE_CORE_S3_SERVERS}
       STORAGE_BUCKET: ${STORAGE_BUCKET}
@@ -142,6 +168,8 @@ services:
       migrate:
         condition: service_completed_successfully
       redis:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
     healthcheck:
       test:
@@ -200,4 +228,5 @@ services:
 volumes:
   postgres18-data:
   redis-data:
+  elasticsearch-data:
   storage-data:

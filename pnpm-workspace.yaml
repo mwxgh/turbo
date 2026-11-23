@@ -100,6 +100,12 @@ overrides:
   # express requires >=2.4.0.
   'express>body-parser': ^2.4.0
 
+peerDependencyRules:
+  allowedVersions:
+    # @elastic/transport → @opentelemetry/core wants api <1.10; vitest already brings 1.10
+    # (1.x is backward compatible). Drop once @opentelemetry/core allows 1.10.
+    '@opentelemetry/core>@opentelemetry/api': '1.10'
+
 allowBuilds:
   '@prisma/engines': true
   '@scarf/scarf': false
