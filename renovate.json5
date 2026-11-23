@@ -88,7 +88,6 @@
         'class-variance-authority',
         'cn',
         'lucide-react',
-        'next-themes',
       ],
       groupName: 'tailwind & shadcn',
     },
