@@ -11,7 +11,7 @@ Lý do chọn: [ADR 0025](../decisions/0025-tim-kiem-full-text-bang-elasticsearc
 
 | Phần                  | Ở đâu                                                         | Việc                                                                        |
 | --------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `@repo/elasticsearch` | `packages/elasticsearch`                                      | Client dùng chung cho app Nest, `SearchIndex` (tiền tố index), probe health |
+| `@repo/elasticsearch` | `packages/infra/elasticsearch`                                | Client dùng chung cho app Nest, `SearchIndex` (tiền tố index), probe health |
 | Tìm thẻ Lingo         | `apps/api/src/lingo/card-search.service.ts`                   | Index `lingo-cards-v1`, `GET /api/lingo/cards/search?q=&exam=`              |
 | Ô tìm từ              | `apps/web/app/(app)/lingo/review/_components/card-search.tsx` | Gõ → chờ 250 ms → gọi api, hiện từ, nghĩa, ví dụ, bài                       |
 | Elasticsearch local   | `deploy/docker-compose.yml` (`pnpm infra:up`)                 | 1 node, tắt security, chỉ bind `127.0.0.1:9200`, heap 512 MB                |

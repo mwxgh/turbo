@@ -2,6 +2,7 @@ packages:
   - 'apps/*'
   - 'packages/*'
   - 'packages/tooling/*'
+  - 'packages/infra/*'
 
 # Shared versions: one flat list, referenced as `"<pkg>": "catalog:"`.
 catalog:
