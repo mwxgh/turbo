@@ -1,0 +1,55 @@
+import {
+  type DynamicModule,
+  Module,
+  type OnApplicationShutdown,
+} from '@nestjs/common'
+
+import { Inject{{ pascalCase name }}, {{ constantCase name }} } from './tokens.js'
+
+export interface {{ pascalCase name }}ModuleOptions {
+  /** Address of the service, from the app's env (`{{ constantCase name }}_URL`). */
+  url: string
+}
+
+/** The client of the service. TODO: replace with the library's client type. */
+export interface {{ pascalCase name }}Client {
+  ping(): Promise<unknown>
+  close(): Promise<void>
+}
+
+/** Creates the client. TODO: build the library's client from `options`. */
+export function create{{ pascalCase name }}(
+  options: {{ pascalCase name }}ModuleOptions,
+): {{ pascalCase name }}Client {
+  return {
+    ping: () => Promise.reject(new Error(`{{ words name }} at ${options.url}: client not implemented`)),
+    close: () => Promise.resolve(),
+  }
+}
+
+/**
+ * One {{ words name }} client per app, injectable everywhere (global):
+ *
+ *   {{ pascalCase name }}Module.forRoot({ url: env.{{ constantCase name }}_URL })
+ *
+ * Provides `{{ constantCase name }}` (the client); closed when the app shuts down.
+ */
+@Module({})
+export class {{ pascalCase name }}Module implements OnApplicationShutdown {
+  constructor(@Inject{{ pascalCase name }}() private readonly client: {{ pascalCase name }}Client) {}
+
+  static forRoot(options: {{ pascalCase name }}ModuleOptions): DynamicModule {
+    return {
+      module: {{ pascalCase name }}Module,
+      global: true,
+      providers: [
+        { provide: {{ constantCase name }}, useFactory: () => create{{ pascalCase name }}(options) },
+      ],
+      exports: [{{ constantCase name }}],
+    }
+  }
+
+  async onApplicationShutdown() {
+    await this.client.close()
+  }
+}

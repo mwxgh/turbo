@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import type { PrismaService } from '@repo/db/nest'
-import type { SearchIndex } from '@repo/elasticsearch'
+import type { SearchIndex } from '@repo/infra/elasticsearch'
 
 import { CardSearchService } from './card-search.service'
 

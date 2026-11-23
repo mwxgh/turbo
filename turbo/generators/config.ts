@@ -7,7 +7,8 @@ import type { PlopTypes } from '@turbo/gen'
 /**
  * Code generators: `pnpm gen` (pick one) or `pnpm gen <name>`.
  *
- *   package   new workspace package in packages/ or packages/infra/ (compiled Node lib or React source lib)
+ *   package   new workspace package in packages/ (compiled Node lib or React source lib)
+ *   infra     client of an infrastructure service in @repo/infra (subpath @repo/infra/<name>)
  *   resource  CRUD resource: Prisma model + Nest module (api) + list/form page (web)
  *
  * Templates live next to this file and follow the reference code in the repo
@@ -119,18 +120,6 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         ],
       },
       {
-        type: 'list',
-        name: 'folder',
-        message: 'Folder:',
-        choices: [
-          { name: 'packages/        – library the apps import', value: '' },
-          {
-            name: 'packages/infra/  – client of an infrastructure service for the Nest apps (like @repo/redis)',
-            value: 'infra/',
-          },
-        ],
-      },
-      {
         type: 'input',
         name: 'description',
         message: 'One-line description:',
@@ -141,15 +130,11 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
       },
     ],
     actions: (data) => {
-      const answers = data as {
-        name: string
-        kind: 'node' | 'react'
-        folder: '' | 'infra/'
-      }
+      const answers = data as { name: string; kind: 'node' | 'react' }
       const actions: PlopTypes.ActionType[] = [
         {
           type: 'addMany',
-          destination: `{{ turbo.paths.root }}/packages/${answers.folder}{{ kebabCase name }}`,
+          destination: '{{ turbo.paths.root }}/packages/{{ kebabCase name }}',
           base: `templates/package/${answers.kind}`,
           templateFiles: `templates/package/${answers.kind}/**`,
           globOptions: { dot: true },
@@ -166,7 +151,7 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
           'install',
           '--prefer-offline',
         ]),
-        format(`packages/${answers.folder}{{ kebabCase name }}`),
+        format('packages/{{ kebabCase name }}'),
       ]
       if (answers.kind === 'react') {
         actions.push(
@@ -182,6 +167,56 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
       )
       return actions
     },
+  })
+
+  plop.setGenerator('infra', {
+    description:
+      'Client of an infrastructure service in @repo/infra (module, token, health probe → @repo/infra/<name>)',
+    prompts: [
+      {
+        type: 'input',
+        name: 'name',
+        message: 'Service (kebab-case; folder + subpath), e.g. "mailer":',
+        validate: (value: string) =>
+          KEBAB.test(value) || 'Use kebab-case, e.g. "mailer"',
+      },
+    ],
+    actions: [
+      assertAbsent('packages/infra/package.json', (answers) =>
+        plop.renderString('"./{{ kebabCase name }}"', answers),
+      ),
+      {
+        type: 'addMany',
+        destination:
+          '{{ turbo.paths.root }}/packages/infra/src/{{ kebabCase name }}',
+        base: 'templates/infra',
+        templateFiles: 'templates/infra/**',
+        abortOnFail: true,
+      },
+      {
+        // Subpath export, next to ./redis and ./elasticsearch
+        type: 'modify',
+        path: '{{ turbo.paths.root }}/packages/infra/package.json',
+        transform: (content: string, answers: Record<string, unknown>) => {
+          const pkg = JSON.parse(content) as {
+            exports: Record<string, { types: string; default: string }>
+          }
+          const name = plop.renderString('{{ kebabCase name }}', answers)
+          pkg.exports[`./${name}`] = {
+            types: `./dist/${name}/index.d.ts`,
+            default: `./dist/${name}/index.js`,
+          }
+          return `${JSON.stringify(pkg, null, 2)}\n`
+        },
+      },
+      format(
+        'packages/infra/src/{{ kebabCase name }}',
+        'packages/infra/package.json',
+      ),
+      note(
+        'Next: add the client library to packages/infra (pnpm --filter @repo/infra add <lib>), fill in create{{ pascalCase name }}(), import {{ pascalCase name }}Module.forRoot() in the app, and document it in README.md (package table) and docs/architecture.',
+      ),
+    ],
   })
 
   plop.setGenerator('resource', {

@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common'
 
 import { PrismaService } from '@repo/db/nest'
+import { InjectRedis, type Redis, pingRedis } from '@repo/infra/redis'
 import { Public } from '@repo/nest-common/auth/nest'
-import { InjectRedis, type Redis, pingRedis } from '@repo/redis'
 import { probe } from '@repo/utils'
 
 import { env } from '../env'

@@ -1,0 +1,10 @@
+import { type ProbeStatus, probe } from '@repo/utils'
+
+import type { {{ pascalCase name }}Client } from './{{ kebabCase name }}.module.js'
+
+/** For /health: `'up'` when the service answers within `timeoutMs`, else `'down'` (never throws). */
+export const ping{{ pascalCase name }} = (
+  client: {{ pascalCase name }}Client,
+  timeoutMs = 2_000,
+  onError?: (error: unknown) => void,
+): Promise<ProbeStatus> => probe(() => client.ping(), timeoutMs, onError)

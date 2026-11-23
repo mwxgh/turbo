@@ -1,16 +1,22 @@
 {
-  "name": "@repo/redis",
+  "name": "@repo/infra",
   "version": "0.0.0",
   "private": true,
+  "description": "Clients of the infrastructure services for the Nest apps: Redis, Elasticsearch",
   "type": "module",
+  "sideEffects": false,
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+    "./redis": {
+      "types": "./dist/redis/index.d.ts",
+      "default": "./dist/redis/index.js"
     },
-    "./socket-io": {
-      "types": "./dist/socket-io.d.ts",
-      "default": "./dist/socket-io.js"
+    "./redis/socket-io": {
+      "types": "./dist/redis/socket-io.d.ts",
+      "default": "./dist/redis/socket-io.js"
+    },
+    "./elasticsearch": {
+      "types": "./dist/elasticsearch/index.d.ts",
+      "default": "./dist/elasticsearch/index.js"
     }
   },
   "files": [
@@ -27,6 +33,7 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "dependencies": {
+    "@elastic/elasticsearch": "9.5.1",
     "@repo/utils": "workspace:*",
     "@socket.io/redis-adapter": "8.3.0",
     "ioredis": "6.0.0"
@@ -52,8 +59,8 @@
   "peerDependencies": {
     "@nestjs/common": "catalog:",
     "@nestjs/platform-socket.io": "catalog:",
-    "socket.io": "catalog:",
-    "@nestjs/throttler": "catalog:"
+    "@nestjs/throttler": "catalog:",
+    "socket.io": "catalog:"
   },
   "peerDependenciesMeta": {
     "@nestjs/platform-socket.io": {

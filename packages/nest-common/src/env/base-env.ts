@@ -16,7 +16,7 @@ export class BaseEnv {
   @StringField({ optional: true })
   HOST = '0.0.0.0'
 
-  /** Shared Redis (`@repo/redis`), `redis://` or `rediss://` (TLS). */
+  /** Shared Redis (`@repo/infra/redis`), `redis://` or `rediss://` (TLS). */
   @UrlField({ optional: true, protocols: ['redis', 'rediss'] })
   REDIS_URL = 'redis://127.0.0.1:6379'
 

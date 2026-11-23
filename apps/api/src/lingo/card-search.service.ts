@@ -7,7 +7,7 @@ import {
 
 import type { Prisma } from '@repo/db'
 import { PrismaService } from '@repo/db/nest'
-import { type IndexDefinition, SearchIndex } from '@repo/elasticsearch'
+import { type IndexDefinition, SearchIndex } from '@repo/infra/elasticsearch'
 
 import { cardExtensionSchema } from './specs/schemas'
 

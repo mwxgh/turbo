@@ -2,15 +2,15 @@ import { Module } from '@nestjs/common'
 import { ThrottlerModule } from '@nestjs/throttler'
 
 import { PrismaModule } from '@repo/db/nest'
-import { ElasticsearchModule } from '@repo/elasticsearch'
-import { AuthModule as JwtAuthModule } from '@repo/nest-common/auth/nest'
-import { createLoggerModule } from '@repo/nest-common/logger'
+import { ElasticsearchModule } from '@repo/infra/elasticsearch'
 import {
   REDIS,
   type Redis,
   RedisModule,
   RedisThrottlerStorage,
-} from '@repo/redis'
+} from '@repo/infra/redis'
+import { AuthModule as JwtAuthModule } from '@repo/nest-common/auth/nest'
+import { createLoggerModule } from '@repo/nest-common/logger'
 
 import { AuthModule } from './auth/auth.module'
 import { env } from './env'

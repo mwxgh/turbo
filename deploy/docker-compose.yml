@@ -27,7 +27,7 @@ services:
       retries: 10
       start_period: 10s
 
-  # Shared by the backend apps (@repo/redis); keys are prefixed per APP_ENV
+  # Shared by the backend apps (@repo/infra/redis); keys are prefixed per APP_ENV
   redis:
     image: redis:${REDIS_VERSION:-8-alpine}
     restart: ${RESTART_POLICY:-no}
@@ -52,7 +52,7 @@ services:
       retries: 10
       start_period: 5s
 
-  # Full-text search (@repo/elasticsearch); indices are prefixed per APP_ENV.
+  # Full-text search (@repo/infra/elasticsearch); indices are prefixed per APP_ENV.
   # Single node, security off: bound to 127.0.0.1 only, never exposed.
   elasticsearch:
     image: elasticsearch:${ELASTICSEARCH_VERSION:-9.5.3}
