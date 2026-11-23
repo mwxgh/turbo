@@ -19,6 +19,7 @@ import { Label } from '@repo/ui/components/label'
 import { toast } from '@repo/ui/components/sonner'
 import { formatDateTime } from '@repo/utils'
 
+import { useConfirm } from '@/components/confirm-dialog'
 import { withToast } from '@/lib/action-toast'
 import {
   assembleTest,
@@ -127,6 +128,7 @@ export function AssembleTestPanel({ exam }: { exam: string }) {
 function TestReview({ id, status }: { id: string; status: string }) {
   const queryClient = useQueryClient()
   const { data: test } = useQuery(adminTestQueryOptions(id))
+  const [confirm, confirmDialog] = useConfirm()
   if (!test) return <p className="text-sm text-muted-foreground">Đang tải…</p>
 
   const pending = test.items.filter((i) => i.status !== 'PUBLISHED')
@@ -155,6 +157,7 @@ function TestReview({ id, status }: { id: string; status: string }) {
 
   return (
     <div className="flex flex-col gap-3 border-t pt-3 text-sm">
+      {confirmDialog}
       <p className="text-muted-foreground tabular-nums">
         {test.items.length} item ·{' '}
         {Object.entries(counts)
@@ -179,14 +182,16 @@ function TestReview({ id, status }: { id: string; status: string }) {
             variant="outline"
             className="self-start"
             disabled={noPhoto > 0}
-            onClick={() => {
-              if (
-                window.confirm(
-                  `Duyệt ${pending.length} item chưa xuất bản của đề này?`,
-                )
-              )
-                void publishItems()
-            }}
+            onClick={() =>
+              void confirm({
+                title: `Duyệt ${pending.length} item của đề?`,
+                description:
+                  'Các item chưa xuất bản của đề này sẽ được xuất bản và học viên thấy được. Chỉ duyệt khi đã kiểm tra.',
+                confirm: 'Duyệt',
+              }).then((ok) => {
+                if (ok) void publishItems()
+              })
+            }
           >
             <Check aria-hidden />
             Duyệt {pending.length} item của đề
@@ -202,6 +207,7 @@ export function TestsListPanel() {
   const queryClient = useQueryClient()
   const { data } = useQuery(adminTestsQueryOptions(TESTS_QUERY))
   const [open, setOpen] = useState<string>()
+  const [confirm, confirmDialog] = useConfirm()
   const tests = data?.items ?? []
 
   async function change(id: string, status: string) {
@@ -214,7 +220,13 @@ export function TestsListPanel() {
   }
 
   async function remove(id: string, title: string) {
-    if (!window.confirm(`Xoá đề “${title}”? Câu hỏi vẫn được giữ.`)) return
+    const ok = await confirm({
+      title: `Xoá đề “${title}”?`,
+      description: 'Câu hỏi của đề vẫn được giữ trong ngân hàng câu hỏi.',
+      confirm: 'Xoá đề',
+      destructive: true,
+    })
+    if (!ok) return
     const res = await withToast(deleteTest(id), {
       success: 'Đã xoá đề',
       error: 'Không xoá được đề',
@@ -225,6 +237,7 @@ export function TestsListPanel() {
 
   return (
     <section aria-labelledby="tests-heading" className="flex flex-col gap-3">
+      {confirmDialog}
       <h2 id="tests-heading" className={sectionHeadingClass}>
         Bộ đề
       </h2>

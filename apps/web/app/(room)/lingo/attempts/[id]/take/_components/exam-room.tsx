@@ -36,6 +36,7 @@ import {
   Passage,
   QuestionImage,
 } from '@/app/(app)/lingo/_components/question-media'
+import { useConfirm } from '@/components/confirm-dialog'
 import { LETTERS, partLabel, resultHref } from '@/lib/lingo'
 import { saveAnswer, submitAttempt } from '@/lib/lingo-actions'
 import {
@@ -237,6 +238,7 @@ export function ExamRoom({
   const [now, setNow] = useState(() => Date.now())
   /** Items whose recording was played (full test: once each) */
   const [played, setPlayed] = useState<ReadonlySet<string>>(new Set())
+  const [confirm, confirmDialog] = useConfirm()
   // Quick practice: Part 1–2 options are printed; the question only for the one it was opened on
   // (moving on hides it again). Tests stay listening-only.
   const [questionShownFor, setQuestionShownFor] = useState<string | null>(null)
@@ -325,11 +327,22 @@ export function ExamRoom({
     const missing = questions.length - answered
     if (
       !timeUp &&
-      !window.confirm(
+      !(await confirm(
         missing
-          ? `Còn ${missing} câu chưa làm (tính là sai). Vẫn nộp bài?`
-          : 'Nộp bài và xem kết quả?',
-      )
+          ? {
+              title: 'Nộp bài?',
+              description: `Còn ${missing} câu chưa làm, những câu này tính là sai.`,
+              confirm: 'Vẫn nộp bài',
+              cancel: 'Làm tiếp',
+              destructive: true,
+            }
+          : {
+              title: 'Nộp bài?',
+              description: 'Bạn đã làm hết các câu. Nộp để xem kết quả.',
+              confirm: 'Nộp bài',
+              cancel: 'Xem lại',
+            },
+      ))
     )
       return
     setSubmitting(true)
@@ -408,6 +421,7 @@ export function ExamRoom({
 
   return (
     <div className="flex min-h-dvh flex-col bg-muted/20">
+      {confirmDialog}
       <header
         className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur-sm"
       >
@@ -417,12 +431,16 @@ export function ExamRoom({
           <Link
             href={exitHref}
             onClick={(event) => {
-              if (
-                !window.confirm(
-                  'Thoát phòng thi? Đáp án đã lưu, bạn làm tiếp được từ Lịch sử (đồng hồ vẫn chạy).',
-                )
-              )
-                event.preventDefault()
+              event.preventDefault()
+              void confirm({
+                title: 'Thoát phòng thi?',
+                description:
+                  'Đáp án đã được lưu, bạn làm tiếp được từ Lịch sử. Đồng hồ vẫn chạy trong lúc bạn rời đi.',
+                confirm: 'Thoát',
+                cancel: 'Ở lại',
+              }).then((ok) => {
+                if (ok) router.push(exitHref)
+              })
             }}
             className={buttonVariants({ variant: 'ghost', size: 'sm' })}
           >
