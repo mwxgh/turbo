@@ -53,6 +53,15 @@ function useSpeed() {
   return [speed, choose] as const
 }
 
+const noSubscribe = () => () => {}
+
+/**
+ * Whether this browser has voices. Assumed on the server and during hydration (the HTML must match
+ * the first client render), checked right after: a browser without speech then gets the notice.
+ */
+const useCanSpeak = () =>
+  useSyncExternalStore(noSubscribe, canSpeak, () => true)
+
 /**
  * Plays a script with the browser's voices. `locked`: already heard once in a full test (the real
  * exam plays each recording once). `fixedSpeed`: scored attempts play at normal speed only.
@@ -72,13 +81,14 @@ export function ListeningPlayer({
   const [chosenSpeed, setSpeed] = useSpeed()
   const speed = fixedSpeed ? 1 : chosenSpeed
   const stop = useRef<() => void>(undefined)
+  const speechSupported = useCanSpeak()
 
   // Leaving the question stops the voice. Keyed on the text, not the array: parents re-render
   // (the exam clock ticks every second) with an equal new array, which used to cut the reading
   const script = lines.map((line) => line.text).join('\n')
   useEffect(() => () => stop.current?.(), [script])
 
-  if (!canSpeak())
+  if (!speechSupported)
     return (
       <p className="text-sm text-muted-foreground">
         Trình duyệt này không đọc được âm thanh. Hãy dùng Chrome, Edge hoặc
