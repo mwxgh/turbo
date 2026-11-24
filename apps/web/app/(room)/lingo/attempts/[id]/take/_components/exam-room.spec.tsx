@@ -1,9 +1,15 @@
+import { act } from 'react'
+import { hydrateRoot } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+
+import { QueryClientProvider } from '@tanstack/react-query'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { NuqsTestingAdapter } from 'nuqs/adapters/testing'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Attempt, ExamDetail } from '@/lib/queries/lingo'
-import { renderWithQuery } from '@/lib/test-utils'
+import { createTestQueryClient, renderWithQuery } from '@/lib/test-utils'
 
 import { ExamRoom } from './exam-room'
 
@@ -112,6 +118,47 @@ describe('ExamRoom', () => {
       getVoices: () => [],
     })
     vi.stubGlobal('SpeechSynthesisUtterance', Utterance)
+  })
+
+  it.each([
+    [
+      'the elapsed clock',
+      {
+        mode: 'QUICK' as const,
+        test: null,
+        deadline: null,
+        timeLimitSec: null,
+      },
+    ],
+    ['the countdown', {}],
+  ])('hydrates when %s moved since the server render', (_, extra) => {
+    const room = attempt(extra)
+    const ui = (
+      <QueryClientProvider client={createTestQueryClient()}>
+        <NuqsTestingAdapter>
+          <ExamRoom attempt={room} exam={exam} />
+        </NuqsTestingAdapter>
+      </QueryClientProvider>
+    )
+    const start = Date.parse(room.startedAt)
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(start + 3_000)
+    const container = document.createElement('div')
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    try {
+      container.innerHTML = renderToString(ui)
+      document.body.append(container)
+      // The browser hydrates two seconds later
+      clock.mockReturnValue(start + 5_000)
+      const onRecoverableError = vi.fn()
+      act(() => {
+        root = hydrateRoot(container, ui, { onRecoverableError })
+      })
+      expect(onRecoverableError).not.toHaveBeenCalled()
+    } finally {
+      act(() => root?.unmount())
+      container.remove()
+      clock.mockRestore()
+    }
   })
 
   it('hides heard questions and options, plays the recording once in a full test', async () => {

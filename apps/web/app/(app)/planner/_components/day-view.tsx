@@ -293,7 +293,9 @@ function NowLine() {
     return () => clearInterval(timer)
   }, [])
   return (
+    // The minute may change between the server render and hydration: the next tick moves it
     <div
+      suppressHydrationWarning
       aria-hidden="true"
       className="pointer-events-none absolute inset-x-0 z-30 flex items-center"
       style={{ top: (minute / 60) * HOUR_PX }}
