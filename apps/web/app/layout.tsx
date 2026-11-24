@@ -5,6 +5,7 @@ import { themeScript } from '@repo/ui/lib/theme-script'
 import { cn } from '@repo/ui/lib/utils'
 
 import { EnvBadge } from '@/components/env-badge'
+import { InlineScript } from '@/components/inline-script'
 
 import './globals.css'
 
@@ -45,8 +46,8 @@ export default function RootLayout({
       )}
     >
       <head>
-        {/* Dark / light class before the first paint (server-rendered, runs at once) */}
-        <script dangerouslySetInnerHTML={{ __html: themeScript() }} />
+        {/* Dark / light class before the first paint (runs from the server HTML only) */}
+        <InlineScript html={themeScript()} />
       </head>
       <body suppressHydrationWarning>
         <Providers>

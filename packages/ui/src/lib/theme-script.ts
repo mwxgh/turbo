@@ -5,8 +5,8 @@ export const THEME_STORAGE_KEY = 'theme'
 
 /**
  * Inline script for the document head: puts `dark` / `light` on <html> before the first paint, so a
- * dark page never flashes white. The root layout runs it with `next/script` (beforeInteractive),
- * outside the React tree.
+ * dark page never flashes white. The root layout renders it with `InlineScript` (apps/web), so it
+ * runs from the server HTML only.
  */
 export function themeScript(defaultTheme: Theme = 'system'): string {
   const key = JSON.stringify(THEME_STORAGE_KEY)
