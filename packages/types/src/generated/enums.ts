@@ -78,3 +78,20 @@ export const LingoChatRole = {
 } as const
 
 export type LingoChatRole = (typeof LingoChatRole)[keyof typeof LingoChatRole]
+
+/** Kanban column of a planner task */
+export const PlannerStatus = {
+  TODO: 'TODO',
+  DOING: 'DOING',
+  DONE: 'DONE',
+} as const
+
+export type PlannerStatus = (typeof PlannerStatus)[keyof typeof PlannerStatus]
+
+export const PlannerPriority = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+} as const
+
+export type PlannerPriority = (typeof PlannerPriority)[keyof typeof PlannerPriority]

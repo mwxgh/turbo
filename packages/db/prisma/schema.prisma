@@ -60,6 +60,8 @@ model User {
   lingoChats      LingoChat[]
   lingoTests      LingoTest[]
 
+  plannerTasks PlannerTask[]
+
   @@map("users")
 }
 
@@ -433,4 +435,46 @@ model LingoTestItem {
   @@id([testId, itemId])
   @@index([itemId])
   @@map("lingo_test_items")
+}
+
+// ─── Planner: daily / monthly schedule with a kanban board ─────────────────────────────────────
+
+/// Kanban column of a planner task
+enum PlannerStatus {
+  TODO
+  DOING
+  DONE
+}
+
+enum PlannerPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+/// One job on a user's planner: shown on the board (by `status`) and, when `date` is set, on the
+/// calendar (all day, or at `startMinute` for `durationMinutes` when it has a time).
+model PlannerTask {
+  id              String          @id @default(uuid(7)) @db.Uuid
+  userId          String          @map("user_id") @db.Uuid
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title           String          @db.VarChar(200)
+  note            String?         @db.VarChar(2000)
+  status          PlannerStatus   @default(TODO)
+  priority        PlannerPriority @default(MEDIUM)
+  /// Calendar day (Vietnam time); null = backlog, not scheduled yet
+  date            DateTime?       @db.Date
+  /// Minutes after midnight (0–1439); null = all day
+  startMinute     Int?            @map("start_minute")
+  durationMinutes Int             @default(60) @map("duration_minutes")
+  /// Palette key of the web planner (`sky`, `rose` …)
+  color           String          @default("sky") @db.VarChar(16)
+  /// Order inside a board column, ascending (fractional: a move rewrites one row)
+  position        Float           @default(0)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([userId, date])
+  @@index([userId, status, position])
+  @@map("planner_tasks")
 }

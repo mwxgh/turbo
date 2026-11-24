@@ -17,9 +17,14 @@ describe('app registry', () => {
   })
 
   it('lists only the visible apps, admin-only ones for admins', () => {
-    expect(launcherApps(false).map((a) => a.id)).toEqual(['studio', 'lingo'])
+    expect(launcherApps(false).map((a) => a.id)).toEqual([
+      'studio',
+      'planner',
+      'lingo',
+    ])
     expect(launcherApps(true).map((a) => a.id)).toEqual([
       'studio',
+      'planner',
       'lingo',
       'teach',
     ])
