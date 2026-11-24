@@ -35,6 +35,7 @@ import {
   ListeningPlayer,
   Passage,
   QuestionImage,
+  Transcript,
 } from '@/app/(app)/lingo/_components/question-media'
 import { useConfirm } from '@/components/confirm-dialog'
 import { LETTERS, partLabel, resultHref } from '@/lib/lingo'
@@ -254,6 +255,9 @@ export function ExamRoom({
   const spoken = part?.spokenOptions ?? false
   const script = scriptOf(first, spoken)
   const quick = attempt.mode === 'QUICK'
+  // Part 3–4: questions are printed, the recording is not; quick practice can show its script
+  const transcript =
+    !spoken && first.transcript?.length ? first.transcript : null
   const showText = textShownFor === group.itemId
   const scored = attempt.mode === 'FULL_TEST' || attempt.mode === 'PLACEMENT'
   const answered = choices.filter((c) => c !== null).length
@@ -535,7 +539,7 @@ export function ExamRoom({
           </div>
 
           {first.imageUrl && <QuestionImage url={first.imageUrl} />}
-          {quick && spoken && (
+          {quick && (spoken || transcript) && (
             <Button
               type="button"
               variant="outline"
@@ -545,13 +549,13 @@ export function ExamRoom({
               className="self-start"
             >
               {showText ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
-              {showText
-                ? first.text
-                  ? 'Ẩn câu hỏi & đáp án'
-                  : 'Ẩn đáp án'
-                : first.text
-                  ? 'Hiện câu hỏi & đáp án'
-                  : 'Hiện đáp án'}
+              {`${showText ? 'Ẩn' : 'Hiện'} ${
+                transcript
+                  ? 'hội thoại'
+                  : first.text
+                    ? 'câu hỏi & đáp án'
+                    : 'đáp án'
+              }`}
             </Button>
           )}
           {script.length > 0 && (
@@ -565,6 +569,7 @@ export function ExamRoom({
               }
             />
           )}
+          {quick && showText && transcript && <Transcript lines={transcript} />}
 
           {first.passage ? (
             <div className="grid gap-4 xl:grid-cols-2">

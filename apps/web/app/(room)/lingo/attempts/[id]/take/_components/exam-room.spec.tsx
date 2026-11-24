@@ -179,6 +179,41 @@ describe('ExamRoom', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('shows the Part 3 conversation on demand in quick practice only', async () => {
+    const user = userEvent.setup()
+    const quick = {
+      mode: 'QUICK' as const,
+      test: null,
+      deadline: null,
+      timeLimitSec: null,
+      parts: ['P3'],
+      total: 2,
+      questions: [conversation(0), conversation(1)],
+    }
+    const { unmount } = renderWithQuery(
+      <ExamRoom attempt={attempt(quick)} exam={exam} />,
+    )
+    // Questions are printed, the script is not
+    expect(screen.getByText('Question 0?')).toBeInTheDocument()
+    expect(screen.queryByText('Shall we meet at noon?')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Hiện hội thoại' }))
+    expect(screen.getByText('Shall we meet at noon?')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Ẩn hội thoại' }))
+    expect(screen.queryByText('Shall we meet at noon?')).not.toBeInTheDocument()
+    unmount()
+
+    // A test never shows the script
+    renderWithQuery(
+      <ExamRoom
+        attempt={attempt({ ...quick, mode: 'FULL_TEST', test: attempt().test })}
+        exam={exam}
+      />,
+    )
+    expect(
+      screen.queryByRole('button', { name: /hội thoại/ }),
+    ).not.toBeInTheDocument()
+  })
+
   it('hides the text again on the next question', async () => {
     const user = userEvent.setup()
     const base = attempt().questions[0]!
