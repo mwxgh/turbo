@@ -460,7 +460,10 @@ export function ExamRoom({
           </div>
           <div className="ml-auto flex items-center gap-2">
             {remaining === null ? (
+              // The clock moves between the server render and hydration: keep the server's
+              // second, the next tick (1 s) corrects it
               <span
+                suppressHydrationWarning
                 aria-label="Thời gian đã làm"
                 className="rounded-lg border px-2.5 py-1 font-mono text-sm
                   tabular-nums"
@@ -469,6 +472,7 @@ export function ExamRoom({
               </span>
             ) : (
               <span
+                suppressHydrationWarning
                 aria-label="Thời gian còn lại"
                 className={cn(
                   `flex items-center gap-1.5 rounded-lg border px-2.5 py-1
