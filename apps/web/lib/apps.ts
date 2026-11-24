@@ -1,4 +1,5 @@
 import {
+  CalendarCheck,
   FilePenLine,
   FolderUp,
   Languages,
@@ -70,6 +71,16 @@ export const APPS: AppEntry[] = [
     tone: 'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300',
     status: 'ready',
     href: '/studio',
+  },
+  {
+    id: 'planner',
+    name: 'Planner',
+    description:
+      'Plan your day and month: calendar, timeline and a drag-and-drop kanban board',
+    icon: CalendarCheck,
+    tone: 'bg-indigo-500/10 text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-300',
+    status: 'ready',
+    href: '/planner',
   },
   {
     id: 'lingo',
