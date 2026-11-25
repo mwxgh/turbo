@@ -103,7 +103,9 @@ async function seedStudio() {
   console.log(`Seeded ${added} Studio tracks / roadmaps.`)
 }
 
+/** `tsx prisma/seed.ts studio`: Studio content only (the e2e database, apps/e2e/prepare-db.ts). */
 async function main() {
+  if (process.argv[2] === 'studio') return seedStudio()
   await seedAdmin()
   await seedHellos()
   await seedStudio()
