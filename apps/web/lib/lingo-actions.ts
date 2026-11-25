@@ -1,30 +1,11 @@
 'use server'
 
 // Writes of Lingo. Callers toast the outcome and invalidate `lingoKeys` (see use-lingo-actions).
-import type {
-  ApiErrorBody,
-  LingoBatch,
-  LingoChat,
-  LingoTest,
-} from '@repo/types'
+import type { LingoBatch, LingoChat, LingoTest } from '@repo/types'
 
-import type { ActionState } from '@/lib/action-toast'
-import { ApiError, apiFetch } from '@/lib/api'
+import { run } from '@/lib/action-result'
+import { apiFetch } from '@/lib/api'
 import type { Attempt, ImportResult } from '@/lib/queries/lingo'
-
-export type Result<T> = ActionState & { data?: T }
-
-async function run<T>(call: () => Promise<T>): Promise<Result<T>> {
-  try {
-    return { data: await call() }
-  } catch (error) {
-    if (error instanceof ApiError) {
-      const message = (error.body as ApiErrorBody | null)?.message
-      return { errors: [message ?? error.message].flat() }
-    }
-    throw error
-  }
-}
 
 const post = <T>(path: string, body?: unknown, method = 'POST') =>
   apiFetch<T>(path, {
