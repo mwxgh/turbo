@@ -25,13 +25,13 @@ date: 2026-11-21
 
 ## Hệ quả
 
-| Loại     | Nội dung                                                                                                      |
-| -------- | ------------------------------------------------------------------------------------------------------------- |
-| Được     | Bớt một package build; Prettier và bộ sinh không còn trong bundle / dependency của web.                       |
-| Được     | Luật tương thích vẫn một nguồn (api); web chỉ tra bảng.                                                       |
-| Đánh đổi | Xem cây file cần một request (format toàn bộ project, khoảng một giây); không còn xem trước sau mỗi lựa chọn. |
-| Đánh đổi | Trang Studio cần api để tải danh mục (prefetch lúc render server).                                            |
-| Áp dụng  | `apps/api/src/studio/`, `apps/web/lib/queries/studio.ts`, `test/studio.e2e-spec.ts`                           |
+| Loại     | Nội dung                                                                                                                                                   |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Được     | Bớt một package build; Prettier và bộ sinh không còn trong bundle / dependency của web.                                                                    |
+| Được     | Luật tương thích vẫn một nguồn (api); web chỉ tra bảng.                                                                                                    |
+| Đánh đổi | Xem cây file cần một request (format toàn bộ project, khoảng một giây); không còn xem trước sau mỗi lựa chọn.                                              |
+| Đánh đổi | Trang Studio cần api để tải danh mục (prefetch lúc render server).                                                                                         |
+| Áp dụng  | `apps/api/src/studio/`, `apps/web/lib/queries/studio.ts`, `test/studio.e2e-spec.ts`; trang web ở `/studio/generator` (từ ADR 0029, `/studio` là trang học) |
 
 ## Phương án đã cân nhắc
 
