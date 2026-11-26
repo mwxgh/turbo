@@ -18,4 +18,20 @@ export const config = [
     },
   },
   pluginReactHooks.configs.flat.recommended,
+  {
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'lucide-react',
+              message:
+                "Icons come from 'pulsoicon-react' (same names, animated); server components use '@/components/icons'. See ADR 0030.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]

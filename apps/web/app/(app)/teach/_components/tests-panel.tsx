@@ -11,7 +11,7 @@ import {
   Loader2,
   Trash2,
   Undo2,
-} from 'lucide-react'
+} from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import { Input } from '@repo/ui/components/input'

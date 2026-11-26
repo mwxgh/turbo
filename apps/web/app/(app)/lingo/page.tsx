@@ -1,7 +1,6 @@
 import Link from 'next/link'
 
-import { ChevronRight } from 'lucide-react'
-
+import { ChevronRight } from '@/components/icons'
 import { apiFetch } from '@/lib/api'
 import type { ExamSummary } from '@/lib/queries/lingo'
 

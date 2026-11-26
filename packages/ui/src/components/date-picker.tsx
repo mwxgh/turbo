@@ -4,7 +4,7 @@ import { type ComponentProps, useState } from 'react'
 
 import { cn } from 'cn'
 import { format, isValid, parse } from 'date-fns'
-import { CalendarIcon, X } from 'lucide-react'
+import { CalendarIcon, X } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import { Calendar } from '@repo/ui/components/calendar'

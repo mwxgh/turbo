@@ -7,7 +7,7 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-} from 'lucide-react'
+} from 'pulsoicon-react'
 import {
   type DayButton,
   DayPicker,

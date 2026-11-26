@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2 } from 'pulsoicon-react'
 
 import type { Hello } from '@repo/types'
 import {

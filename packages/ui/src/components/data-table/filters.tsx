@@ -11,7 +11,7 @@ import {
 
 import type { RowData } from '@tanstack/react-table'
 import { cn } from 'cn'
-import { Columns3, Eraser, Filter, RefreshCw } from 'lucide-react'
+import { Columns3, Eraser, Filter, RefreshCw } from 'pulsoicon-react'
 
 import type { FilterOption } from '@repo/ui/components/data-table/columns'
 import type { ListTable } from '@repo/ui/components/data-table/use-list-table'

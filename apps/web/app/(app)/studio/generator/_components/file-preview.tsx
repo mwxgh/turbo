@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-import { Check, Copy, FileText, Folder } from 'lucide-react'
+import { Check, Copy, FileText, Folder } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 

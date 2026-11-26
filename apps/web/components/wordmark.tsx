@@ -1,4 +1,4 @@
-import { ChevronsRight } from 'lucide-react'
+import { ChevronsRight } from '@/components/icons'
 
 /** Product name with its mark: two chevrons, the "turbo" push forward. */
 export function Wordmark() {

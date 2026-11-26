@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { useQueryStates } from 'nuqs'
 import {
   CalendarDays,
   CalendarRange,
@@ -12,8 +13,7 @@ import {
   ChevronRight,
   KanbanSquare,
   Plus,
-} from 'lucide-react'
-import { useQueryStates } from 'nuqs'
+} from 'pulsoicon-react'
 
 import type { PlannerStatus, PlannerTask } from '@repo/types'
 import { Button } from '@repo/ui/components/button'

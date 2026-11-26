@@ -3,7 +3,7 @@
 import { type ReactNode, useState } from 'react'
 
 import { FlexRender, type RowData } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import {

@@ -10,7 +10,7 @@ import {
   LayoutDashboard,
   ListChecks,
   Upload,
-} from 'lucide-react'
+} from 'pulsoicon-react'
 
 import { cn } from '@repo/ui/lib/utils'
 

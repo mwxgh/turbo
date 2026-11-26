@@ -3,7 +3,7 @@
 import Link from 'next/link'
 
 import { useQuery } from '@tanstack/react-query'
-import { Check, ChevronRight } from 'lucide-react'
+import { Check, ChevronRight } from 'pulsoicon-react'
 
 import { cn } from '@repo/ui/lib/utils'
 

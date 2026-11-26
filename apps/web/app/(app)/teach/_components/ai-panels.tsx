@@ -3,7 +3,7 @@
 import { type FormEvent, useState } from 'react'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { BookA, FilePlus2, FileStack, Loader2 } from 'lucide-react'
+import { BookA, FilePlus2, FileStack, Loader2 } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import { Input } from '@repo/ui/components/input'

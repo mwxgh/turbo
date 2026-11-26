@@ -1,3 +1,5 @@
+import type { PulsoIcon } from 'pulsoicon-react'
+
 import {
   CalendarCheck,
   FilePenLine,
@@ -5,9 +7,8 @@ import {
   Languages,
   LayoutTemplate,
   ListTodo,
-  type LucideIcon,
   MessagesSquare,
-} from 'lucide-react'
+} from '@/components/icons'
 
 /** One app of the launcher (`/`): its card, the header label and the page title. */
 export interface AppEntry {
@@ -15,7 +16,7 @@ export interface AppEntry {
   name: string
   /** One sentence: what you do there. */
   description: string
-  icon: LucideIcon
+  icon: PulsoIcon
   /** Icon tile colours (light / dark), one hue per app so cards are told apart at a glance. */
   tone: string
   /** `ready`: opens `href`. `soon`: shown, not clickable, with the reason. */

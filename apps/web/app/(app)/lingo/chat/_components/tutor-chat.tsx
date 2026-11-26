@@ -3,8 +3,8 @@
 import { useState } from 'react'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2 } from 'lucide-react'
 import { parseAsString, useQueryState } from 'nuqs'
+import { Plus, Trash2 } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import { IconButton } from '@repo/ui/components/icon-button'

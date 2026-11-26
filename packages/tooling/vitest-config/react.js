@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url'
+
 import { defineConfig, mergeConfig } from 'vitest/config'
 
 import { baseConfig } from './base.js'
@@ -15,6 +17,7 @@ export const reactConfig = mergeConfig(
     resolve: { tsconfigPaths: true },
     test: {
       environment: 'jsdom',
+      setupFiles: [fileURLToPath(new URL('./jsdom-setup.js', import.meta.url))],
       // user-event flows (type, open a date picker…) take ~1s alone but can pass the 5s default
       // while turbo runs every package's tests at once (pre-push hook, a busy laptop)
       testTimeout: 15_000,

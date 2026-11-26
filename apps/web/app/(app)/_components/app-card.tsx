@@ -1,9 +1,8 @@
 import Link from 'next/link'
 
-import { ArrowRight } from 'lucide-react'
-
 import { Badge } from '@repo/ui/components/badge'
 
+import { ArrowRight } from '@/components/icons'
 import type { AppEntry } from '@/lib/apps'
 
 const frame = `group relative flex h-full flex-col gap-4 rounded-xl border bg-card p-5

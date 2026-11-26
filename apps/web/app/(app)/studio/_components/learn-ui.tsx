@@ -1,10 +1,9 @@
 import Link from 'next/link'
 
-import { Check, ChevronRight } from 'lucide-react'
-
 import { Progress } from '@repo/ui/components/progress'
 import { cn } from '@repo/ui/lib/utils'
 
+import { Check, ChevronRight } from '@/components/icons'
 import type { TrackSummary } from '@/lib/queries/studio'
 import { donePercent, trackHref } from '@/lib/studio'
 

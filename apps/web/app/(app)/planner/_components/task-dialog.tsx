@@ -1,7 +1,7 @@
 'use client'
 
 import { useForm } from '@tanstack/react-form'
-import { Trash2 } from 'lucide-react'
+import { Trash2 } from 'pulsoicon-react'
 
 import type { PlannerTask } from '@repo/types'
 import { Button } from '@repo/ui/components/button'

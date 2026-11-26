@@ -3,7 +3,7 @@
 import { type FormEvent, useState } from 'react'
 
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, Loader2, RotateCcw, X } from 'lucide-react'
+import { Check, Loader2, RotateCcw, X } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'

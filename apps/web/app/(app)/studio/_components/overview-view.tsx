@@ -3,7 +3,7 @@
 import Link from 'next/link'
 
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, Check, Route } from 'lucide-react'
+import { ArrowRight, Check, Route } from 'pulsoicon-react'
 
 import {
   overviewQueryOptions,

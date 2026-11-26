@@ -3,7 +3,7 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bot, Send, Square } from 'lucide-react'
+import { Bot, Send, Square } from 'pulsoicon-react'
 
 import type { LingoChatMessage } from '@repo/types'
 import { Button } from '@repo/ui/components/button'

@@ -5,7 +5,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, ArrowRight, Check, CircleCheck } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, CircleCheck } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { Inbox, Plus } from 'lucide-react'
+import { Inbox, Plus } from 'pulsoicon-react'
 
 import type { PlannerTask } from '@repo/types'
 import { cn } from '@repo/ui/lib/utils'

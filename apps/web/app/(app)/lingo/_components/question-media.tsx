@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
-import { Headphones, Square, Volume2 } from 'lucide-react'
+import { Headphones, Square, Volume2 } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 

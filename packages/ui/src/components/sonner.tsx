@@ -6,7 +6,7 @@ import {
   Loader2Icon,
   OctagonXIcon,
   TriangleAlertIcon,
-} from 'lucide-react'
+} from 'pulsoicon-react'
 import { Toaster as Sonner, type ToasterProps } from 'sonner'
 
 import { useTheme } from '@repo/ui/components/theme'
