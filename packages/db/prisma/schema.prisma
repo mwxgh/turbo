@@ -439,6 +439,55 @@ model LingoTestItem {
   @@map("lingo_test_items")
 }
 
+/// A module of a course (grammar, listening…): its lessons in study order
+model LingoLessonModule {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  exam        String   @db.VarChar(32)
+  /// URL key inside the exam, lowercase kebab-case
+  slug        String   @db.VarChar(80)
+  title       String   @db.VarChar(120)
+  description String   @default("") @db.VarChar(500)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  lessons LingoLesson[]
+
+  @@unique([exam, slug])
+  @@index([exam, order])
+  @@map("lingo_lesson_modules")
+}
+
+/// A theory lesson (Markdown) with a checklist and an optional practice of one skill. Progress is
+/// not stored: it comes from the learner's answers to questions of `practiceSkillTag`
+model LingoLesson {
+  id               String             @id @default(uuid(7)) @db.Uuid
+  moduleId         String             @map("module_id") @db.Uuid
+  module           LingoLessonModule  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  /// URL key, lowercase kebab-case; the 12-week plan links lessons by it
+  slug             String             @unique @db.VarChar(80)
+  title            String             @db.VarChar(160)
+  summary          String             @default("") @db.VarChar(500)
+  /// Markdown (GFM)
+  content          String             @default("")
+  /// Checklist shown under the lesson ("Nhớ khi làm bài")
+  keyPoints        String[]           @map("key_points")
+  /// Parts the lesson is about (P1…P7)
+  parts            String[]
+  minutes          Int                @default(10)
+  /// Practice draws published questions of this part…
+  practicePart     String?            @map("practice_part") @db.VarChar(16)
+  /// …tagged with this skill, when set
+  practiceSkillTag String?            @map("practice_skill_tag") @db.VarChar(64)
+  order            Int                @default(0)
+  status           LingoContentStatus @default(DRAFT)
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([moduleId, order])
+  @@map("lingo_lessons")
+}
+
 // ─── Planner: daily / monthly schedule with a kanban board ─────────────────────────────────────
 
 /// Kanban column of a planner task

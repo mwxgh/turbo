@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common'
 import { LingoAttemptMode, LingoTestKind } from '@repo/db'
 import { PrismaService } from '@repo/db/nest'
 
+import { LessonsService } from './lessons.service'
 import { LingoService } from './lingo.service'
 import { PART_WINDOW, type RoadmapStats, buildRoadmap } from './roadmap'
 import { getExam } from './specs'
@@ -36,6 +37,7 @@ export class RoadmapService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly lingo: LingoService,
+    private readonly lessons: LessonsService,
   ) {}
 
   async roadmap(userId: string, code: string) {
@@ -119,7 +121,13 @@ export class RoadmapService {
       : []
     return {
       ...roadmap,
-      plan: buildStudyPlan(start, weeks, roadmap.target, new Date()),
+      plan: buildStudyPlan(
+        start,
+        weeks,
+        roadmap.target,
+        new Date(),
+        await this.lessons.titles(exam.code),
+      ),
     }
   }
 

@@ -11,6 +11,7 @@ import { ArrowLeft, ArrowRight, Loader2, Play } from 'pulsoicon-react'
 import { Button } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'
 
+import { Markdown } from '@/components/markdown'
 import { percent, takeHref } from '@/lib/lingo'
 import { startAttempt } from '@/lib/lingo-actions'
 import { type Lesson, lessonQueryOptions } from '@/lib/queries/lingo'
@@ -79,7 +80,7 @@ function Practice({ exam, lesson }: { exam: string; lesson: Lesson }) {
   )
 }
 
-/** One lesson: sections with rules and worked examples, key points, practice, previous / next. */
+/** One lesson: its Markdown, key points, practice, previous / next. */
 export function LessonView({ exam, id }: { exam: string; id: string }) {
   const { data: lesson } = useQuery(lessonQueryOptions(exam, id))
   if (!lesson) return <p className="text-muted-foreground">Đang tải bài…</p>
@@ -106,48 +107,7 @@ export function LessonView({ exam, id }: { exam: string; id: string }) {
         </p>
       </div>
 
-      {lesson.sections.map((section, i) => (
-        <section
-          key={section.heading}
-          aria-labelledby={`section-${i}`}
-          className="flex flex-col gap-3"
-        >
-          <h2 id={`section-${i}`} className="text-lg font-medium">
-            {section.heading}
-          </h2>
-          {section.paragraphs.map((text) => (
-            <p key={text} className="leading-relaxed text-pretty">
-              {text}
-            </p>
-          ))}
-          {section.bullets && (
-            <ul className="flex list-disc flex-col gap-1.5 pl-5 leading-relaxed">
-              {section.bullets.map((b) => (
-                <li key={b}>{b}</li>
-              ))}
-            </ul>
-          )}
-          {section.examples && (
-            <ul
-              className="flex flex-col divide-y rounded-xl border bg-card
-                shadow-xs"
-            >
-              {section.examples.map((ex) => (
-                <li key={ex.en} className="flex flex-col gap-1.5 p-4">
-                  <span className="leading-relaxed font-medium">{ex.en}</span>
-                  <span className="text-sm text-muted-foreground">{ex.vi}</span>
-                  {ex.note && (
-                    <span className="text-sm leading-relaxed">
-                      <span className="text-muted-foreground">Vì sao: </span>
-                      {ex.note}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      ))}
+      <Markdown>{lesson.content}</Markdown>
 
       <section
         aria-labelledby="key-points-heading"

@@ -74,6 +74,10 @@ describe('Lingo (e2e)', () => {
         .put(`/api/lingo${path}`)
         .set('authorization', auth)
         .send(body),
+    delete: (path: string) =>
+      request(app.getHttpServer())
+        .delete(`/api/lingo${path}`)
+        .set('authorization', auth),
   })
 
   beforeAll(async () => {
@@ -173,13 +177,15 @@ describe('Lingo (e2e)', () => {
     const lesson = (
       await as(learner).get('/lessons/TOEIC_LR/word-form').expect(200)
     ).body as {
-      sections: unknown[]
+      content: string
+      keyPoints: string[]
       practice: { part: string; skillTag: string }
       progress: { answered: number } | null
       previous: unknown
       next: { id: string }
     }
-    expect(lesson.sections.length).toBeGreaterThan(1)
+    expect(lesson.content).toMatch(/^## /)
+    expect(lesson.keyPoints.length).toBeGreaterThan(1)
     expect(lesson.practice).toEqual({
       part: 'P5',
       skillTag: 'grammar.word-form',
@@ -208,6 +214,56 @@ describe('Lingo (e2e)', () => {
         q.item.questions.some((x) => x.skillTags.includes('grammar.word-form')),
       ),
     ).toBe(true)
+  })
+
+  it('lets an admin write a lesson that learners see once published', async () => {
+    const module = (
+      await as(admin)
+        .post('/admin/lesson-modules', {
+          exam: 'TOEIC_LR',
+          slug: 'e2e-module',
+          title: 'E2E module',
+          order: 99,
+        })
+        .expect(201)
+    ).body as { id: string }
+    const body = {
+      moduleId: module.id,
+      slug: 'e2e-lesson',
+      title: 'E2E lesson',
+      content: '## Heading\n\nText',
+      keyPoints: ['One'],
+      parts: ['P5'],
+      practicePart: 'P5',
+      practiceSkillTag: 'grammar.word-form',
+    }
+    await as(learner).post('/admin/lessons', body).expect(403)
+    await as(admin)
+      .post('/admin/lessons', { ...body, slug: 'e2e-bad', parts: ['P9'] })
+      .expect(400)
+    const lesson = (await as(admin).post('/admin/lessons', body).expect(201))
+      .body as { id: string; status: string }
+    expect(lesson.status).toBe('DRAFT')
+    await as(learner).get('/lessons/TOEIC_LR/e2e-lesson').expect(404)
+
+    await as(admin)
+      .put(`/admin/lessons/${lesson.id}`, { ...body, status: 'PUBLISHED' })
+      .expect(200)
+    const seen = (
+      await as(learner).get('/lessons/TOEIC_LR/e2e-lesson').expect(200)
+    ).body as { content: string; previous: { id: string } }
+    expect(seen.content).toBe('## Heading\n\nText')
+    expect(seen.previous.id).toBe('review-mistakes')
+
+    const course = (await as(admin).get('/admin/courses/TOEIC_LR').expect(200))
+      .body as { slug: string; lessons: { slug: string }[] }[]
+    expect(course.at(-1)).toMatchObject({
+      slug: 'e2e-module',
+      lessons: [{ slug: 'e2e-lesson' }],
+    })
+
+    await as(admin).delete(`/admin/lesson-modules/${module.id}`).expect(204)
+    await as(learner).get('/lessons/TOEIC_LR/e2e-lesson').expect(404)
   })
 
   it('imports valid items as drafts and reports invalid rows', async () => {

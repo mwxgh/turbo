@@ -3,7 +3,6 @@
  * measured on that week's activity only. Like the roadmap, nothing is stored: the plan starts on
  * the day (UTC) of the learner's first placement test, in 7-day weeks, recomputed on every request.
  */
-import { lessonById } from './lessons'
 import {
   type RoadmapStats,
   type RoadmapTask,
@@ -320,6 +319,8 @@ export function buildStudyPlan(
   weeks: WeekStats[],
   target: number,
   now: Date,
+  /** Published lessons by slug; a planned lesson missing here is left out */
+  lessonTitles: ReadonlyMap<string, string> = new Map(),
 ): StudyPlan {
   const current = currentWeekOf(start, now)
   const over = !!start && current === null && now >= start
@@ -341,8 +342,8 @@ export function buildStudyPlan(
         start: range?.from.toISOString() ?? null,
         end: range?.to.toISOString() ?? null,
         lessons: spec.lessons.flatMap((id) => {
-          const lesson = lessonById(id)
-          return lesson ? [{ id, title: lesson.title }] : []
+          const title = lessonTitles.get(id)
+          return title ? [{ id, title }] : []
         }),
         status: done
           ? 'done'

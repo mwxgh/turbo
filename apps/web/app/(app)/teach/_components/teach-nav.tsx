@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import {
+  BookOpen,
   ExternalLink,
   FilePlus2,
   FileStack,
@@ -17,6 +18,7 @@ import { cn } from '@repo/ui/lib/utils'
 const LINKS = [
   { href: '/teach', label: 'Tổng quan', icon: LayoutDashboard },
   { href: '/teach/tests', label: 'Bộ đề', icon: FileStack },
+  { href: '/teach/lessons', label: 'Bài học', icon: BookOpen },
   { href: '/teach/items', label: 'Ngân hàng câu hỏi', icon: ListChecks },
   { href: '/teach/ai', label: 'Sinh bằng AI', icon: FilePlus2 },
   { href: '/teach/import', label: 'Nhập dữ liệu', icon: Upload },
@@ -43,7 +45,9 @@ export function TeachNav() {
         Lingo · Khu ra đề
       </p>
       {LINKS.map(({ href, label, icon: Icon }) => {
-        const active = pathname === href
+        const active =
+          pathname === href ||
+          (href !== '/teach' && pathname.startsWith(`${href}/`))
         return (
           <Link
             key={href}

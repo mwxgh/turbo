@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 
-import { LESSON_IDS } from './lessons/plan'
 import {
   PLAN_WEEKS,
   TOEIC_PLAN,
@@ -45,10 +44,13 @@ describe('study plan', () => {
     }
   })
 
-  it('links only lessons of the course', () => {
-    const known = new Set(Object.values(LESSON_IDS).flat())
-    for (const week of TOEIC_PLAN)
-      for (const id of week.lessons) expect(known.has(id), id).toBe(true)
+  it('links only the planned lessons that are published', () => {
+    const titles = new Map([['verb-tense', 'Thì của động từ']])
+    const week = buildStudyPlan(null, [], 800, day(0), titles).weeks[0]!
+    expect(TOEIC_PLAN[0]!.lessons).toContain('verb-tense')
+    expect(week.lessons).toEqual([
+      { id: 'verb-tense', title: 'Thì của động từ' },
+    ])
   })
 
   it('starts on the day of the placement test, 00:00 UTC', () => {

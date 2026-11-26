@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common'
 
 import { FilesModule } from '../files/files.module'
+import { AdminLessonsController } from './admin-lessons.controller'
+import { AdminLessonsService } from './admin-lessons.service'
 import { AdminTestsController } from './admin-tests.controller'
 import { AdminController } from './admin.controller'
 import { AdminService } from './admin.service'
@@ -29,6 +31,7 @@ import { VocabService } from './vocab.service'
     ChatController,
     TestsController,
     AdminTestsController,
+    AdminLessonsController,
   ],
   providers: [
     LingoService,
@@ -42,6 +45,7 @@ import { VocabService } from './vocab.service'
     ArkModel,
     RoadmapService,
     LessonsService,
+    AdminLessonsService,
   ],
 })
 export class LingoModule {}

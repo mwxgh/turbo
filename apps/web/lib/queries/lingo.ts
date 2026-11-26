@@ -8,6 +8,8 @@ import type {
   LingoChatMessage,
   LingoDeck,
   LingoItem,
+  LingoLesson,
+  LingoLessonModule,
   LingoQuestion,
   LingoTest,
 } from '@repo/types'
@@ -247,13 +249,8 @@ export interface Course {
 
 /** GET /lingo/lessons/:exam/:id */
 export interface Lesson extends LessonSummary {
-  module: string
-  sections: {
-    heading: string
-    paragraphs: string[]
-    bullets?: string[]
-    examples?: { en: string; vi: string; note?: string }[]
-  }[]
+  /** Markdown (GFM) */
+  content: string
   keyPoints: string[]
   previous: { id: string; title: string } | null
   next: { id: string; title: string } | null
@@ -327,6 +324,10 @@ export const lingoKeys = {
   adminTests: (query: ListQuery) =>
     [...lingoKeys.all, 'admin', 'tests', query] as const,
   adminTest: (id: string) => [...lingoKeys.all, 'admin', 'test', id] as const,
+  adminCourse: (exam: string) =>
+    [...lingoKeys.all, 'admin', 'course', exam] as const,
+  adminLesson: (id: string) =>
+    [...lingoKeys.all, 'admin', 'lesson', id] as const,
   chats: () => [...lingoKeys.all, 'chats'] as const,
   chat: (id: string) => [...lingoKeys.all, 'chats', id] as const,
 }
@@ -411,6 +412,42 @@ export const lessonQueryOptions = (code: string, id: string) =>
       get<Lesson>(
         `/lingo/lessons/${encodeURIComponent(code)}/${encodeURIComponent(id)}`,
       ),
+  })
+
+/** GET /lingo/admin/courses/:exam: every module with all its lessons (drafts too) */
+export type AdminCourse = (LingoLessonModule & {
+  lessons: Pick<
+    LingoLesson,
+    | 'id'
+    | 'slug'
+    | 'title'
+    | 'status'
+    | 'order'
+    | 'minutes'
+    | 'parts'
+    | 'practicePart'
+    | 'practiceSkillTag'
+    | 'updatedAt'
+  >[]
+})[]
+
+/** GET /lingo/admin/lessons/:id */
+export type AdminLesson = LingoLesson & {
+  module: Pick<LingoLessonModule, 'id' | 'exam' | 'slug' | 'title'>
+}
+
+export const adminCourseQueryOptions = (exam: string) =>
+  queryOptions({
+    queryKey: lingoKeys.adminCourse(exam),
+    queryFn: () =>
+      get<AdminCourse>(`/lingo/admin/courses/${encodeURIComponent(exam)}`),
+  })
+
+export const adminLessonQueryOptions = (id: string) =>
+  queryOptions({
+    queryKey: lingoKeys.adminLesson(id),
+    queryFn: () =>
+      get<AdminLesson>(`/lingo/admin/lessons/${encodeURIComponent(id)}`),
   })
 
 /** The learner's attempts, newest first. */

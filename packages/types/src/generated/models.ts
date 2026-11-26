@@ -254,6 +254,47 @@ export interface LingoTestItem {
   order: number
 }
 
+/** A module of a course (grammar, listening…): its lessons in study order */
+export interface LingoLessonModule {
+  id: string
+  exam: string
+  /** URL key inside the exam, lowercase kebab-case */
+  slug: string
+  title: string
+  description: string
+  order: number
+  createdAt: string
+  updatedAt: string
+  lessons?: LimitDepth<LingoLesson, 2>[]
+}
+
+/** A theory lesson (Markdown) with a checklist and an optional practice of one skill. Progress is
+ * not stored: it comes from the learner's answers to questions of `practiceSkillTag` */
+export interface LingoLesson {
+  id: string
+  moduleId: string
+  module?: LimitDepth<LingoLessonModule, 2>
+  /** URL key, lowercase kebab-case; the 12-week plan links lessons by it */
+  slug: string
+  title: string
+  summary: string
+  /** Markdown (GFM) */
+  content: string
+  /** Checklist shown under the lesson ("Nhớ khi làm bài") */
+  keyPoints: string[]
+  /** Parts the lesson is about (P1…P7) */
+  parts: string[]
+  minutes: number
+  /** Practice draws published questions of this part… */
+  practicePart: string | null
+  /** …tagged with this skill, when set */
+  practiceSkillTag: string | null
+  order: number
+  status: LingoContentStatus
+  createdAt: string
+  updatedAt: string
+}
+
 /** One job on a user's planner: shown on the board (by `status`) and, when `date` is set, on the
  * calendar (all day, or at `startMinute` for `durationMinutes` when it has a time). */
 export interface PlannerTask {
