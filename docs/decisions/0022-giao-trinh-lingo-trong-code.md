@@ -1,7 +1,7 @@
 ---
 title: '0022: Giáo trình Lingo định nghĩa trong code, tiến độ theo dạng câu'
 status: draft
-decision: accepted
+decision: superseded by 0031
 date: 2026-11-22
 ---
 

@@ -1,7 +1,13 @@
 'use server'
 
 // Writes of Lingo. Callers toast the outcome and invalidate `lingoKeys` (see use-lingo-actions).
-import type { LingoBatch, LingoChat, LingoTest } from '@repo/types'
+import type {
+  LingoBatch,
+  LingoChat,
+  LingoLesson,
+  LingoLessonModule,
+  LingoTest,
+} from '@repo/types'
 
 import { run } from '@/lib/action-result'
 import { apiFetch } from '@/lib/api'
@@ -223,5 +229,78 @@ export async function createChat() {
 export async function deleteChat(id: string) {
   return run(() =>
     post<null>(`/lingo/chats/${encodeURIComponent(id)}`, undefined, 'DELETE'),
+  )
+}
+
+// ─── Admin: course (lesson modules and lessons) ─────────────────────────────
+
+export interface LessonModuleInput {
+  exam: string
+  slug: string
+  title: string
+  description?: string
+  order?: number
+}
+
+export interface LessonInput {
+  moduleId: string
+  slug: string
+  title: string
+  summary?: string
+  /** Markdown (GFM) */
+  content?: string
+  keyPoints?: string[]
+  parts?: string[]
+  minutes?: number
+  practicePart?: string | null
+  practiceSkillTag?: string | null
+  order?: number
+  status?: 'DRAFT' | 'PUBLISHED'
+}
+
+export async function saveLessonModule(
+  id: string | null,
+  input: LessonModuleInput,
+) {
+  return run(() =>
+    id
+      ? post<LingoLessonModule>(
+          `/lingo/admin/lesson-modules/${encodeURIComponent(id)}`,
+          input,
+          'PUT',
+        )
+      : post<LingoLessonModule>('/lingo/admin/lesson-modules', input),
+  )
+}
+
+export async function deleteLessonModule(id: string) {
+  return run(() =>
+    post<null>(
+      `/lingo/admin/lesson-modules/${encodeURIComponent(id)}`,
+      undefined,
+      'DELETE',
+    ),
+  )
+}
+
+export async function saveLesson(id: string | null, input: LessonInput) {
+  return run(() =>
+    id
+      ? post<LingoLesson>(
+          `/lingo/admin/lessons/${encodeURIComponent(id)}`,
+          input,
+          'PUT',
+        )
+      : post<LingoLesson>('/lingo/admin/lessons', input),
+  )
+}
+
+export async function deleteLesson(id: string) {
+  return run(() =>
+    post<null>(
+      `/lingo/admin/lessons/${encodeURIComponent(id)}`,
+      undefined,
+      'DELETE',
+    ),
   )
 }

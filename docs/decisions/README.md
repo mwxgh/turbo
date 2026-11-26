@@ -26,7 +26,7 @@ Mỗi file ghi một quyết định: bối cảnh → quyết định → hệ 
 | 0019 | [Lingo tách khu ra đề và phòng thi trong cùng app web](0019-lingo-tach-khu-ra-de-va-phong-thi.md) | accepted | 2026-11-21 |
 | 0020 | [Lộ trình Lingo định nghĩa trong code, tiến độ tính từ hoạt động](0020-lo-trinh-lingo-tinh-tu-hoat-dong.md) | accepted | 2026-11-21 |
 | 0021 | [Lịch học Lingo 12 tuần định nghĩa trong code, đo theo từng tuần](0021-lich-hoc-12-tuan-tinh-theo-tuan.md) | accepted | 2026-11-22 |
-| 0022 | [Giáo trình Lingo định nghĩa trong code, tiến độ theo dạng câu](0022-giao-trinh-lingo-trong-code.md) | accepted | 2026-11-22 |
+| 0022 | [Giáo trình Lingo định nghĩa trong code, tiến độ theo dạng câu](0022-giao-trinh-lingo-trong-code.md) | superseded by 0031 | 2026-11-22 |
 | 0023 | [Từ vựng Lingo gộp theo chủ đề, học tuần tự; dùng nội bộ được chép tài liệu có bản quyền](0023-tu-vung-lingo-gop-theo-chu-de-hoc-tuan-tu.md) | accepted | 2026-11-23 |
 | 0024 | [Chỉ tự deploy prod, dev và kiểm tra ở máy local](0024-chi-tu-deploy-prod-dev-o-local.md) | accepted | 2026-11-23 |
 | 0025 | [Tìm kiếm full-text bằng Elasticsearch qua @repo/elasticsearch](0025-tim-kiem-full-text-bang-elasticsearch.md) | accepted | 2026-11-23 |
@@ -35,5 +35,6 @@ Mỗi file ghi một quyết định: bối cảnh → quyết định → hệ 
 | 0028 | [Hạ tầng gom thành một package @repo/infra, mỗi dịch vụ một subpath](0028-ha-tang-mot-package-repo-infra.md) | accepted | 2026-11-23 |
 | 0029 | [Nội dung học của Studio lưu trong DB, soạn ở trang admin](0029-noi-dung-studio-trong-db.md) | accepted | 2026-11-25 |
 | 0030 | [Icon động bằng pulsoicon-react thay lucide-react](0030-icon-dong-bang-pulsoicon.md) | accepted | 2026-11-26 |
+| 0031 | [Giáo trình Lingo lưu trong DB, soạn ở khu ra đề](0031-giao-trinh-lingo-trong-db.md) | accepted | 2026-11-26 |
 
 `Ngày` của 0002–0007 = ngày commit đưa quyết định vào code (ADR viết lại sau, ngày 2026-11-11). `UNKNOWN` trong ADR = không có tài liệu về lý do; ai biết thì bổ sung.

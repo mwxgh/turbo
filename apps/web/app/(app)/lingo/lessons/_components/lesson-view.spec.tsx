@@ -18,19 +18,12 @@ vi.mock('@/lib/lingo-actions', () => ({
 
 const lesson: Lesson = {
   id: 'word-form',
-  module: 'grammar',
   title: 'Từ loại và vị trí trong câu',
   summary: 'Nhìn chỗ trống',
   minutes: 15,
   parts: ['P5', 'P6'],
-  sections: [
-    {
-      heading: 'Bốn vị trí',
-      paragraphs: ['Xác định từ trước và sau'],
-      bullets: ['Sau mạo từ → danh từ'],
-      examples: [{ en: 'a -------- increase', vi: 'tăng', note: 'tính từ' }],
-    },
-  ],
+  content:
+    '## Bốn vị trí\n\nXác định từ trước và sau\n\n- Sau mạo từ → danh từ\n\n> **a -------- increase**',
   keyPoints: ['Nhìn hai bên chỗ trống'],
   practice: { part: 'P5', skillTag: 'grammar.word-form' },
   progress: { answered: 12, correct: 9, accuracy: 0.75, done: false },
@@ -51,12 +44,13 @@ function renderLesson() {
 }
 
 describe('LessonView', () => {
-  it('shows the sections, examples and key points', () => {
+  it('shows the Markdown content and key points', () => {
     renderLesson()
     expect(
       screen.getByRole('heading', { level: 1, name: lesson.title }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Bốn vị trí' })).toBeVisible()
+    expect(screen.getByText('Sau mạo từ → danh từ')).toBeVisible()
     expect(screen.getByText('a -------- increase')).toBeVisible()
     expect(screen.getByText('Nhìn hai bên chỗ trống')).toBeVisible()
     expect(screen.getByText('Đúng 75% trên 12 câu gần nhất')).toBeVisible()
