@@ -103,6 +103,10 @@ export const StudioCategory = {
   PATTERN: 'PATTERN',
   FUNDAMENTAL: 'FUNDAMENTAL',
   TOOL: 'TOOL',
+  DATABASE: 'DATABASE',
+  DEVOPS: 'DEVOPS',
+  CS: 'CS',
+  SECURITY: 'SECURITY',
 } as const
 
 export type StudioCategory = (typeof StudioCategory)[keyof typeof StudioCategory]

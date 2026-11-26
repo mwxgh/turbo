@@ -32,6 +32,30 @@ export const CATEGORIES = [
     label: 'Công cụ',
     description: 'Docker và các công cụ dùng hằng ngày.',
   },
+  {
+    segment: 'databases',
+    category: 'DATABASE',
+    label: 'Cơ sở dữ liệu',
+    description: 'SQL, thiết kế bảng, index, transaction và NoSQL.',
+  },
+  {
+    segment: 'devops',
+    category: 'DEVOPS',
+    label: 'DevOps & Cloud',
+    description: 'Linux, CI/CD, Kubernetes, cloud và giám sát hệ thống.',
+  },
+  {
+    segment: 'computer-science',
+    category: 'CS',
+    label: 'Khoa học máy tính',
+    description: 'Cấu trúc dữ liệu, giải thuật và thiết kế hệ thống.',
+  },
+  {
+    segment: 'security',
+    category: 'SECURITY',
+    label: 'Bảo mật',
+    description: 'Xác thực, OWASP Top 10 và bảo vệ API.',
+  },
 ] as const satisfies readonly {
   segment: string
   category: StudioCategory
