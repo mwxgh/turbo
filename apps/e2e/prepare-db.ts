@@ -20,7 +20,7 @@ function apiTestEnv(): Record<string, string | undefined> {
 }
 
 /**
- * Creates (if needed) and migrates the e2e database. Refuses anything but a local server:
+ * Creates (if needed) and migrates the e2e database, then adds the Studio starter content. Refuses anything but a local server:
  * the tests register users and write data. E2E_DATABASE_URL_OK=1 accepts a remote one on purpose.
  *
  * Run by Playwright before it starts the api (`node prepare-db.ts && …`, see playwright.config.ts):
@@ -34,14 +34,21 @@ function prepareDatabase() {
     'DATABASE_URL (apps/api/.env.test)',
     'E2E_DATABASE_URL_OK',
   )
+  const env = {
+    ...process.env,
+    DATABASE_URL: url,
+    PRISMA_HIDE_UPDATE_MESSAGE: '1',
+  }
   execFileSync('node_modules/.bin/prisma', ['migrate', 'deploy'], {
     cwd: dbDir,
     stdio: 'pipe',
-    env: {
-      ...process.env,
-      DATABASE_URL: url,
-      PRISMA_HIDE_UPDATE_MESSAGE: '1',
-    },
+    env,
+  })
+  // Studio pages need lessons to open (adds only missing tracks / roadmaps)
+  execFileSync('node_modules/.bin/tsx', ['prisma/seed.ts', 'studio'], {
+    cwd: dbDir,
+    stdio: 'pipe',
+    env,
   })
 }
 

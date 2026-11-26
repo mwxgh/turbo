@@ -62,6 +62,8 @@ model User {
 
   plannerTasks PlannerTask[]
 
+  studioProgress StudioProgress[]
+
   @@map("users")
 }
 
@@ -477,4 +479,134 @@ model PlannerTask {
   @@index([userId, date])
   @@index([userId, status, position])
   @@map("planner_tasks")
+}
+
+// ─── Studio: learn programming (docs/product/studio.md) ────────────────────────────────────────
+
+/// Menu group of a track
+enum StudioCategory {
+  LANGUAGE
+  FRAMEWORK
+  PATTERN
+  FUNDAMENTAL
+  TOOL
+}
+
+/// Only PUBLISHED reaches learners
+enum StudioStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// One subject to learn ("TypeScript", "NestJS", "Observer"): an ordered list of lessons
+model StudioTrack {
+  id        String         @id @default(uuid(7)) @db.Uuid
+  /// URL key, lowercase kebab-case
+  slug      String         @unique @db.VarChar(80)
+  category  StudioCategory
+  title     String         @db.VarChar(120)
+  summary   String         @default("") @db.VarChar(500)
+  /// Order inside its category, ascending
+  order     Int            @default(0)
+  status    StudioStatus   @default(DRAFT)
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  lessons StudioLesson[]
+  steps   StudioRoadmapStep[]
+
+  @@index([category, status, order])
+  @@map("studio_tracks")
+}
+
+/// One lesson of a track: Markdown with code blocks, then a short quiz
+model StudioLesson {
+  id        String       @id @default(uuid(7)) @db.Uuid
+  trackId   String       @map("track_id") @db.Uuid
+  track     StudioTrack  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  /// URL key inside the track, lowercase kebab-case
+  slug      String       @db.VarChar(80)
+  title     String       @db.VarChar(160)
+  summary   String       @default("") @db.VarChar(500)
+  /// Markdown (GFM)
+  content   String       @default("")
+  minutes   Int          @default(10)
+  order     Int          @default(0)
+  status    StudioStatus @default(DRAFT)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  questions StudioQuizQuestion[]
+  progress  StudioProgress[]
+
+  @@unique([trackId, slug])
+  @@index([trackId, order])
+  @@map("studio_lessons")
+}
+
+/// A single-choice question at the end of a lesson. `answer` and `explanation` are sent to a
+/// learner only after the quiz is submitted
+model StudioQuizQuestion {
+  id          String       @id @default(uuid(7)) @db.Uuid
+  lessonId    String       @map("lesson_id") @db.Uuid
+  lesson      StudioLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  order       Int          @default(0)
+  prompt      String       @db.VarChar(1000)
+  choices     String[]
+  /// Index into `choices`
+  answer      Int
+  explanation String       @default("") @db.VarChar(2000)
+
+  @@index([lessonId, order])
+  @@map("studio_quiz_questions")
+}
+
+/// A learning path ("Frontend", "Backend"): ordered steps, most of them pointing at a track
+model StudioRoadmap {
+  id        String       @id @default(uuid(7)) @db.Uuid
+  slug      String       @unique @db.VarChar(80)
+  title     String       @db.VarChar(120)
+  summary   String       @default("") @db.VarChar(500)
+  order     Int          @default(0)
+  status    StudioStatus @default(DRAFT)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  steps StudioRoadmapStep[]
+
+  @@index([status, order])
+  @@map("studio_roadmaps")
+}
+
+model StudioRoadmapStep {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  roadmapId   String        @map("roadmap_id") @db.Uuid
+  roadmap     StudioRoadmap @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  order       Int           @default(0)
+  title       String        @db.VarChar(160)
+  description String        @default("") @db.VarChar(1000)
+  /// The track that teaches this step; null: a step without lessons yet
+  trackId     String?       @map("track_id") @db.Uuid
+  track       StudioTrack?  @relation(fields: [trackId], references: [id], onDelete: SetNull)
+
+  @@index([roadmapId, order])
+  @@map("studio_roadmap_steps")
+}
+
+/// A learner's state on one lesson. Track and roadmap progress are counted from these rows
+model StudioProgress {
+  userId      String       @map("user_id") @db.Uuid
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String       @map("lesson_id") @db.Uuid
+  lesson      StudioLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  /// Set by "done" or by a passed quiz; null: opened or quizzed, not finished
+  completedAt DateTime?    @map("completed_at") @db.Timestamptz(3)
+  /// Best quiz result so far
+  quizScore   Int?         @map("quiz_score")
+  quizTotal   Int?         @map("quiz_total")
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@id([userId, lessonId])
+  @@index([userId, updatedAt])
+  @@map("studio_progress")
 }
