@@ -1,5 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 
+import type { StudioCategory } from '@repo/types'
+
 import { apiFetch } from '@/lib/api'
 
 /** Shapes of the Studio API (apps/api/src/studio). */
@@ -48,9 +50,164 @@ export interface StudioCatalog {
 /** path → content of a generated project. */
 export type FileTree = Record<string, string>
 
-export const studioKeys = {
-  options: ['studio', 'options'] as const,
+// ─── Learning (apps/api/src/studio/learn.*) ───────────────────────────────────────────────────
+
+export interface TrackSummary {
+  id: string
+  slug: string
+  category: StudioCategory
+  title: string
+  summary: string
+  lessons: number
+  done: number
 }
+
+export interface TrackLesson {
+  id: string
+  slug: string
+  title: string
+  summary: string
+  minutes: number
+  done: boolean
+  quizScore: number | null
+  quizTotal: number | null
+}
+
+export interface TrackDetail extends Omit<TrackSummary, 'lessons' | 'done'> {
+  lessons: TrackLesson[]
+}
+
+export interface LessonLink {
+  slug: string
+  title: string
+}
+
+export interface LessonDetail {
+  id: string
+  slug: string
+  title: string
+  summary: string
+  /** Markdown (GFM) */
+  content: string
+  minutes: number
+  updatedAt: string
+  /** Without answers: they come back with the quiz result */
+  questions: { id: string; prompt: string; choices: string[] }[]
+  track: { id: string; slug: string; title: string; category: StudioCategory }
+  done: boolean
+  quizScore: number | null
+  quizTotal: number | null
+  previous: LessonLink | null
+  next: LessonLink | null
+}
+
+export interface QuizResult {
+  score: number
+  total: number
+  passed: boolean
+  done: boolean
+  results: {
+    id: string
+    chosen: number
+    answer: number
+    correct: boolean
+    explanation: string
+  }[]
+}
+
+export interface RoadmapSummary {
+  slug: string
+  title: string
+  summary: string
+  steps: number
+  lessons: number
+  done: number
+}
+
+export interface RoadmapDetail {
+  slug: string
+  title: string
+  summary: string
+  steps: {
+    id: string
+    title: string
+    description: string
+    track: {
+      slug: string
+      title: string
+      category: StudioCategory
+      lessons: number
+      done: number
+    } | null
+  }[]
+}
+
+export interface StudioOverview {
+  done: number
+  recent: {
+    track: { slug: string; title: string }
+    slug: string
+    title: string
+    done: boolean
+    updatedAt: string
+  }[]
+}
+
+export const studioKeys = {
+  all: ['studio'] as const,
+  options: ['studio', 'options'] as const,
+  /** Everything that shows the learner's progress */
+  learn: ['studio', 'learn'] as const,
+  overview: () => [...studioKeys.learn, 'overview'] as const,
+  tracks: () => [...studioKeys.learn, 'tracks'] as const,
+  track: (slug: string) => [...studioKeys.learn, 'tracks', slug] as const,
+  lesson: (track: string, lesson: string) =>
+    [...studioKeys.learn, 'tracks', track, 'lessons', lesson] as const,
+  roadmaps: () => [...studioKeys.learn, 'roadmaps'] as const,
+  roadmap: (slug: string) => [...studioKeys.learn, 'roadmaps', slug] as const,
+}
+
+const get = <T>(path: string) => apiFetch<T>(path, { cache: 'no-store' })
+const enc = encodeURIComponent
+
+export const overviewQueryOptions = () =>
+  queryOptions({
+    queryKey: studioKeys.overview(),
+    queryFn: () => get<StudioOverview>('/studio/overview'),
+  })
+
+export const tracksQueryOptions = () =>
+  queryOptions({
+    queryKey: studioKeys.tracks(),
+    queryFn: () => get<TrackSummary[]>('/studio/tracks'),
+  })
+
+export const trackQueryOptions = (slug: string) =>
+  queryOptions({
+    queryKey: studioKeys.track(slug),
+    queryFn: () => get<TrackDetail>(`/studio/tracks/${enc(slug)}`),
+  })
+
+export const lessonQueryOptions = (track: string, lesson: string) =>
+  queryOptions({
+    queryKey: studioKeys.lesson(track, lesson),
+    queryFn: () =>
+      get<LessonDetail>(`/studio/tracks/${enc(track)}/lessons/${enc(lesson)}`),
+  })
+
+export const roadmapsQueryOptions = () =>
+  queryOptions({
+    queryKey: studioKeys.roadmaps(),
+    queryFn: () => get<RoadmapSummary[]>('/studio/roadmaps'),
+  })
+
+export const roadmapQueryOptions = (slug: string) =>
+  queryOptions({
+    queryKey: studioKeys.roadmap(slug),
+    queryFn: () => get<RoadmapDetail>(`/studio/roadmaps/${enc(slug)}`),
+  })
+
+// ─── Project generator (apps/api/src/studio/scaffold) ────────────────────────────────────────
 
 export const studioOptionsQueryOptions = () =>
   queryOptions({

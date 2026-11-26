@@ -67,7 +67,7 @@ export const APPS: AppEntry[] = [
     id: 'studio',
     name: 'Studio',
     description:
-      'Pick a stack, database first, and preview the monorepo it generates',
+      'Learn programming: roadmaps, languages, frameworks, design patterns; and generate a project',
     icon: LayoutTemplate,
     tone: 'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300',
     status: 'ready',

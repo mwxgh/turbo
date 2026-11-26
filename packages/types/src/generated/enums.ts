@@ -95,3 +95,22 @@ export const PlannerPriority = {
 } as const
 
 export type PlannerPriority = (typeof PlannerPriority)[keyof typeof PlannerPriority]
+
+/** Menu group of a track */
+export const StudioCategory = {
+  LANGUAGE: 'LANGUAGE',
+  FRAMEWORK: 'FRAMEWORK',
+  PATTERN: 'PATTERN',
+  FUNDAMENTAL: 'FUNDAMENTAL',
+  TOOL: 'TOOL',
+} as const
+
+export type StudioCategory = (typeof StudioCategory)[keyof typeof StudioCategory]
+
+/** Only PUBLISHED reaches learners */
+export const StudioStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+} as const
+
+export type StudioStatus = (typeof StudioStatus)[keyof typeof StudioStatus]
