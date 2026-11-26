@@ -9,6 +9,7 @@ export interface SignInProvider {
   /** As in `/auth/oauth/:provider` and `GET /auth/methods`. */
   id: string
   label: string
+  /** Logo for mobile (web uses the pulsoicon brand icon when there is one) */
   icon: ProviderIconPath[]
 }
 
