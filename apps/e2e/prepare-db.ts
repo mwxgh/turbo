@@ -7,6 +7,9 @@ import { assertLocalUrl } from '@repo/vitest-config/test-env'
 
 const apiDir = fileURLToPath(new URL('../api/', import.meta.url))
 const dbDir = fileURLToPath(new URL('../../packages/db/', import.meta.url))
+const fixture = fileURLToPath(
+  new URL('fixtures/studio-content.json', import.meta.url),
+)
 
 /** apps/api/.env.test, overridden by .env.test.local – exactly what `start:e2e` loads. */
 function apiTestEnv(): Record<string, string | undefined> {
@@ -20,7 +23,7 @@ function apiTestEnv(): Record<string, string | undefined> {
 }
 
 /**
- * Creates (if needed) and migrates the e2e database, then adds the Studio starter content. Refuses anything but a local server:
+ * Creates (if needed) and migrates the e2e database, then loads the Studio test content (fixtures/). Refuses anything but a local server:
  * the tests register users and write data. E2E_DATABASE_URL_OK=1 accepts a remote one on purpose.
  *
  * Run by Playwright before it starts the api (`node prepare-db.ts && …`, see playwright.config.ts):
@@ -44,12 +47,12 @@ function prepareDatabase() {
     stdio: 'pipe',
     env,
   })
-  // Studio pages need lessons to open (adds only missing tracks / roadmaps)
-  execFileSync('node_modules/.bin/tsx', ['prisma/seed.ts', 'studio'], {
-    cwd: dbDir,
-    stdio: 'pipe',
-    env,
-  })
+  // Studio pages need lessons to open: test content, loaded like real content (ADR 0032)
+  execFileSync(
+    'node_modules/.bin/tsx',
+    ['scripts/content-import.ts', fixture, '--remote'],
+    { cwd: apiDir, stdio: 'pipe', env },
+  )
 }
 
 prepareDatabase()

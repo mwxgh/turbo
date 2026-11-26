@@ -17,7 +17,7 @@ date: 2026-11-18
 
 - Mọi nội dung đi qua `AdminService.importItems`: kiểm tra schema của Part → `DRAFT` → admin duyệt → `PUBLISHED`.
   Người học chỉ thấy `PUBLISHED`. Mỗi lần nhập ghi một `LingoBatch` (nguồn, file, số dòng thành công / lỗi).
-- Nguồn bản đầu: form / file JSON (câu hỏi), file CSV (từ vựng), dữ liệu mẫu (`POST /api/lingo/admin/samples`).
+- Nguồn bản đầu: form / file JSON (câu hỏi), file CSV (từ vựng), ~~dữ liệu mẫu (`POST /api/lingo/admin/samples`)~~ (bỏ theo ADR 0032: file nội dung qua `content:import`).
   AI sinh đề sau này là một nguồn thêm (`LingoBatchSource.AI`), **PHẢI** đi qua cùng đường và cùng bước duyệt.
 - Câu trùng nội dung (`contentHash`) bị bỏ qua. Đáp án và giải thích **KHÔNG ĐƯỢC** trả cho người học trước khi nộp bài.
 

@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Check,
-  Database,
   FileJson,
   FileSpreadsheet,
   ImageUp,
@@ -28,7 +27,6 @@ import {
   createDeck,
   importCards,
   importItems,
-  loadSamples,
   setItemImage,
   setItemStatus,
 } from '@/lib/lingo-actions'
@@ -74,48 +72,6 @@ const ITEM_EXAMPLE = `[
 
 const CSV_EXAMPLE = `term,pos,reading,meaningVi,example,exampleVi,topic
 deadline,n,/ˈdedlaɪn/,hạn chót,The deadline is May 1.,Hạn chót là ngày 1/5.,Office`
-
-export function SamplesPanel() {
-  const queryClient = useQueryClient()
-  const [busy, setBusy] = useState(false)
-  async function run() {
-    setBusy(true)
-    try {
-      const res = await loadSamples()
-      if (res.data) {
-        toast.success('Đã nạp dữ liệu mẫu', {
-          description: `${res.data.items.succeeded} câu, ${res.data.cards.succeeded} thẻ mới`,
-        })
-        await queryClient.invalidateQueries({ queryKey: lingoKeys.all })
-      } else
-        toast.error('Không nạp được', { description: res.errors?.join(' · ') })
-    } finally {
-      setBusy(false)
-    }
-  }
-  return (
-    <Panel
-      icon={Database}
-      title="Dữ liệu mẫu"
-      description="40 câu mẫu Part 2–7 (đã xuất bản), một đề mẫu, bộ 30 từ cơ bản và 6 bộ từ vựng theo chủ đề (240 từ). Chạy lại không tạo trùng."
-    >
-      <Button
-        variant="outline"
-        className="self-start"
-        onClick={() => void run()}
-        disabled={busy}
-      >
-        {busy && (
-          <Loader2
-            aria-hidden="true"
-            className="animate-spin motion-reduce:animate-none"
-          />
-        )}
-        Nạp dữ liệu mẫu
-      </Button>
-    </Panel>
-  )
-}
 
 export function ImportItemsPanel({ exam }: { exam: string }) {
   const queryClient = useQueryClient()

@@ -33,8 +33,9 @@ Mỗi file ghi một quyết định: bối cảnh → quyết định → hệ 
 | 0026 | [Package hạ tầng nằm trong packages/infra/](0026-package-ha-tang-trong-packages-infra.md) | superseded by 0028 | 2026-11-23 |
 | 0027 | [Auth gộp vào @repo/nest-common](0027-auth-gop-vao-nest-common.md) | accepted | 2026-11-23 |
 | 0028 | [Hạ tầng gom thành một package @repo/infra, mỗi dịch vụ một subpath](0028-ha-tang-mot-package-repo-infra.md) | accepted | 2026-11-23 |
-| 0029 | [Nội dung học của Studio lưu trong DB, soạn ở trang admin](0029-noi-dung-studio-trong-db.md) | accepted | 2026-11-25 |
+| 0029 | [Nội dung học của Studio lưu trong DB, soạn ở trang admin](0029-noi-dung-studio-trong-db.md) | accepted (seed: superseded by 0032) | 2026-11-25 |
 | 0030 | [Icon động bằng pulsoicon-react thay lucide-react](0030-icon-dong-bang-pulsoicon.md) | accepted | 2026-11-26 |
 | 0031 | [Giáo trình Lingo lưu trong DB, soạn ở khu ra đề](0031-giao-trinh-lingo-trong-db.md) | accepted | 2026-11-26 |
+| 0032 | [Nội dung học chỉ nằm trong DB, nạp bằng content:import sau khi audit](0032-noi-dung-hoc-chi-nam-trong-db.md) | accepted | 2026-11-27 |
 
 `Ngày` của 0002–0007 = ngày commit đưa quyết định vào code (ADR viết lại sau, ngày 2026-11-11). `UNKNOWN` trong ADR = không có tài liệu về lý do; ai biết thì bổ sung.

@@ -18,7 +18,7 @@ date: 2026-11-25
 - Nội dung **PHẢI** nằm trong các bảng `studio_tracks`, `studio_lessons`, `studio_quiz_questions`, `studio_roadmaps`, `studio_roadmap_steps`. Bài viết bằng Markdown (GFM).
 - Người học chỉ thấy bản `PUBLISHED`. Đáp án và giải thích của quiz **KHÔNG ĐƯỢC** gửi trước khi người học nộp bài.
 - Tiến độ lưu theo bài (`studio_progress`). Tiến độ của chủ đề và lộ trình **KHÔNG ĐƯỢC** lưu riêng: tính từ số bài đã xong. Một bài tính là xong khi người học bấm "Đã học xong" hoặc làm quiz đúng từ 70%.
-- Nội dung khởi đầu nằm trong `packages/db/prisma/studio-content.ts`. Seed chỉ thêm chủ đề hoặc lộ trình có slug chưa tồn tại, nên không ghi đè bài admin đã sửa.
+- ~~Nội dung khởi đầu nằm trong `packages/db/prisma/studio-content.ts`, nạp bằng seed.~~ Thay bởi ADR 0032: nội dung chỉ nằm trong DB, nạp bằng `content:import`.
 - API: `/api/studio/*` cho người học, `/api/studio/admin/*` (`@Roles('ADMIN')`) để soạn nội dung.
 
 ## Hệ quả

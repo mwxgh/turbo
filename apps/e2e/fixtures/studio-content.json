@@ -1,0 +1,58 @@
+{
+  "studio": {
+    "tracks": [
+      {
+        "slug": "javascript",
+        "category": "LANGUAGE",
+        "title": "JavaScript",
+        "summary": "e2e track",
+        "lessons": [
+          {
+            "slug": "bien-va-kieu",
+            "title": "Biến và kiểu dữ liệu",
+            "summary": "e2e lesson",
+            "content": "## Khai báo biến\n\n~~~js\nconst name = 'Lan'\n~~~\n",
+            "questions": [
+              {
+                "prompt": "Khai báo nào không gán lại được?",
+                "choices": ["var", "let", "const"],
+                "answer": 2
+              },
+              {
+                "prompt": "Kết quả của '1' === 1 là gì?",
+                "choices": ["true", "false", "Lỗi"],
+                "answer": 1
+              },
+              {
+                "prompt": "typeof null trả về gì?",
+                "choices": ["'null'", "'undefined'", "'object'"],
+                "answer": 2
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "slug": "behavioral-patterns",
+        "category": "PATTERN",
+        "title": "Pattern hành vi",
+        "summary": "e2e track",
+        "lessons": [
+          {
+            "slug": "observer",
+            "title": "Observer",
+            "content": "## Observer\n"
+          }
+        ]
+      }
+    ],
+    "roadmaps": [
+      {
+        "slug": "frontend",
+        "title": "Frontend",
+        "summary": "e2e roadmap",
+        "steps": [{ "title": "JavaScript", "track": "javascript" }]
+      }
+    ]
+  }
+}

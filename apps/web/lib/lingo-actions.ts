@@ -134,12 +134,6 @@ export async function importCards(
   )
 }
 
-export async function loadSamples() {
-  return run(() =>
-    post<{ items: ImportResult; cards: ImportResult }>('/lingo/admin/samples'),
-  )
-}
-
 // ─── Admin: tests and AI ────────────────────────────────────────────────────
 
 type Kind = 'FULL' | 'MINI'

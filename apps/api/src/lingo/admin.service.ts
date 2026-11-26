@@ -17,13 +17,8 @@ import { type ListQuery, paginated } from '@repo/utils'
 
 import { CardSearchService } from './card-search.service'
 import { itemCreateData, itemHash } from './content'
+import type { DeckContent, LingoContent, TestContent } from './content-file'
 import type { CreateDeckDto } from './dto/admin.dto'
-import { SAMPLE_TESTS } from './fixtures/index'
-import { TOEIC_EXTRA_SAMPLES } from './fixtures/toeic-extra'
-import { TOEIC_MORE_SAMPLES } from './fixtures/toeic-more'
-import { TOEIC_PART5_SAMPLES } from './fixtures/toeic-part5'
-import type { TestFixture } from './fixtures/types'
-import { LEGACY_DECK_TITLES, VOCAB_DECKS } from './fixtures/vocab'
 import { itemListSpec } from './lingo.list-spec'
 import { findPart, getExam, getPart } from './specs'
 import { parseCsv } from './specs/csv'
@@ -43,13 +38,11 @@ export interface ImportResult {
   errors: RowError[]
 }
 
-const SAMPLE_TEST_TITLE = 'Đề mẫu Lingo 01'
-
 @Injectable()
 export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
-    // Absent in scripts (lingo-seed): the api re-indexes at start
+    // Absent in scripts (content-import): the api re-indexes at start
     @Optional() private readonly search?: CardSearchService,
   ) {}
 
@@ -258,146 +251,104 @@ export class AdminService {
   }
 
   /**
-   * Loads the built-in TOEIC samples (published items of Parts 2–7, the sample tests and the
-   * vocabulary curriculum) so a fresh environment has something to practise. Safe to run twice.
+   * Loads a content file (`scripts/content-import.ts`): its items PUBLISHED, then each test (its
+   * items first), then the decks. Safe to run twice: stored items, tests (by title) and cards (by
+   * term) are kept, a card of a deck is updated from the file.
    */
-  async loadSamples(userId: string) {
-    const samples: Record<string, object[]> = { P5: TOEIC_PART5_SAMPLES }
-    for (const more of [TOEIC_MORE_SAMPLES, TOEIC_EXTRA_SAMPLES])
-      for (const [part, partItems] of Object.entries(more))
-        samples[part] = [...(samples[part] ?? []), ...partItems]
+  async importContent(userId: string, content: LingoContent) {
+    const exam = getExam(content.exam)
     const items = {
       succeeded: 0,
       duplicates: 0,
       failed: 0,
       errors: [] as ImportResult['errors'],
     }
-    const add = (r: ImportResult) => {
-      items.succeeded += r.succeeded
-      items.duplicates += r.duplicates
-      items.failed += r.failed
-      items.errors.push(...r.errors)
-    }
     const importParts = async (
-      parts: Record<string, object[]>,
+      parts: Record<string, unknown[]>,
       fileName: string,
     ) => {
-      for (const [part, partItems] of Object.entries(parts))
-        add(
-          await this.importItems(userId, {
-            exam: 'TOEIC_LR',
-            part,
-            items: partItems,
-            fileName,
-            status: LingoContentStatus.PUBLISHED,
-          }),
-        )
+      for (const [part, partItems] of Object.entries(parts)) {
+        const r = await this.importItems(userId, {
+          exam: exam.code,
+          part,
+          items: partItems,
+          fileName,
+          status: LingoContentStatus.PUBLISHED,
+        })
+        items.succeeded += r.succeeded
+        items.duplicates += r.duplicates
+        items.failed += r.failed
+        items.errors.push(...r.errors)
+      }
     }
-    await importParts(samples, 'samples')
-    const tests = [
-      await this.publishedTest(userId, {
-        title: SAMPLE_TEST_TITLE,
-        description:
-          'Đề mẫu rút gọn từ các câu mẫu của Lingo (chưa có Part 1).',
-        items: samples,
-      }),
-    ]
-    for (const test of SAMPLE_TESTS) {
+    await importParts(content.items, 'content')
+    const tests: { id: string; title: string }[] = []
+    for (const test of content.tests) {
       await importParts(test.items, `test: ${test.title}`)
-      tests.push(await this.publishedTest(userId, test))
+      tests.push(await this.publishedTest(userId, exam.code, test))
     }
-
-    const cards = await this.syncDecks()
+    const cards = { succeeded: 0, duplicates: 0, failed: 0, decks: 0 }
+    for (const deck of content.decks) {
+      const r = await this.importDeck(exam.code, deck)
+      cards.succeeded += r.succeeded
+      cards.duplicates += r.duplicates
+      cards.decks++
+    }
     await this.search?.reindexAll()
     return { items, cards, tests }
   }
 
-  /**
-   * The vocabulary curriculum as system decks in study order (one card per term). Cards of earlier
-   * system decks with the same term move into it, so learners keep their progress; old decks left
-   * empty are removed. Safe to run twice.
-   */
-  private async syncDecks() {
-    const existing = await this.prisma.lingoCard.findMany({
-      where: {
-        deck: {
-          ownerId: null,
-          title: {
-            in: [...VOCAB_DECKS.map((d) => d.title), ...LEGACY_DECK_TITLES],
-          },
+  /** A system deck found by title (made once); its cards upserted by term. */
+  private async importDeck(examCode: string, { cards, ...deck }: DeckContent) {
+    const { id: deckId } =
+      (await this.prisma.lingoDeck.findFirst({
+        where: { ownerId: null, title: deck.title },
+      })) ??
+      (await this.prisma.lingoDeck.create({
+        data: {
+          exam: examCode,
+          title: deck.title,
+          description: deck.description,
+          language: 'en',
         },
-      },
-      select: { id: true, term: true, _count: { select: { states: true } } },
-    })
-    const byTerm = new Map<string, typeof existing>()
-    for (const card of existing) {
-      const key = card.term.toLowerCase()
-      byTerm.set(key, [...(byTerm.get(key) ?? []), card])
-    }
-    const cards = { succeeded: 0, duplicates: 0, failed: 0, decks: 0 }
-    for (const fixture of VOCAB_DECKS) {
-      const deck = await this.systemDeck(fixture.title, fixture.description)
-      const fresh: Prisma.LingoCardCreateManyInput[] = []
-      for (const row of fixture.cards) {
-        const data = {
-          ...cardRowSchema.parse({ ...row, topic: fixture.topic }),
-          deckId: deck.id,
-        }
-        // The copy with the most learner progress stays; the others go
-        const [keep, ...extra] = (
-          byTerm.get(row.term.toLowerCase()) ?? []
-        ).sort((a, b) => b._count.states - a._count.states)
-        if (!keep) {
-          fresh.push(data)
-          continue
-        }
-        if (extra.length)
-          await this.prisma.lingoCard.deleteMany({
-            where: { id: { in: extra.map((c) => c.id) } },
-          })
+      }))
+    const stored = new Map(
+      (
+        await this.prisma.lingoCard.findMany({
+          where: { deckId },
+          select: { id: true, term: true },
+        })
+      ).map((c) => [c.term.toLowerCase(), c.id]),
+    )
+    const fresh: Prisma.LingoCardCreateManyInput[] = []
+    for (const card of cards) {
+      const data = { ...card, topic: deck.topic, deckId }
+      const id = stored.get(card.term.toLowerCase())
+      if (!id) fresh.push(data)
+      else
         await this.prisma.lingoCard.update({
-          where: { id: keep.id },
+          where: { id },
           data: { ...data, extensions: data.extensions ?? Prisma.DbNull },
         })
-        cards.duplicates++
-      }
-      const { count } = await this.prisma.lingoCard.createMany({ data: fresh })
-      cards.succeeded += count
-      cards.decks++
     }
-    await this.prisma.lingoDeck.deleteMany({
-      where: {
-        ownerId: null,
-        title: { in: LEGACY_DECK_TITLES },
-        cards: { none: {} },
-      },
-    })
-    return cards
+    const { count } = await this.prisma.lingoCard.createMany({ data: fresh })
+    return { succeeded: count, duplicates: cards.length - count }
   }
-
-  /** A system deck of the TOEIC samples, found by title (made once). */
-  private async systemDeck(title: string, description: string) {
-    return (
-      (await this.prisma.lingoDeck.findFirst({
-        where: { ownerId: null, title },
-      })) ??
-      this.prisma.lingoDeck.create({
-        data: { exam: 'TOEIC_LR', title, description, language: 'en' },
-      })
-    )
-  }
-
   /**
-   * A published MINI test of built-in items, found by title (made once). Items are matched by
+   * A published test of imported items, found by title (made once). Items are matched by
    * content hash, so the test also gets items that were already imported elsewhere.
    */
-  private async publishedTest(userId: string, fixture: TestFixture) {
+  private async publishedTest(
+    userId: string,
+    examCode: string,
+    fixture: TestContent,
+  ) {
     const existing = await this.prisma.lingoTest.findFirst({
-      where: { exam: 'TOEIC_LR', title: fixture.title },
+      where: { exam: examCode, title: fixture.title },
       select: { id: true, title: true },
     })
     if (existing) return existing
-    const exam = getExam('TOEIC_LR')
+    const exam = getExam(examCode)
     const hashes = exam.sections.flatMap((section) =>
       section.parts.flatMap((part) =>
         (fixture.items[part.code] ?? []).flatMap((raw) => {

@@ -39,7 +39,7 @@ cp apps/mobile/.env.example apps/mobile/.env
 
 pnpm infra:up       # start PostgreSQL + Redis + Elasticsearch + S3 local (RustFS, tự tạo bucket turbo-dev; đợi healthy)
 pnpm db:deploy      # apply migrations (pnpm build sẽ tự generate Prisma client)
-pnpm db:seed        # dữ liệu mẫu
+pnpm db:seed        # admin đầu tiên (nội dung học: pnpm --filter api content:import, ADR 0032)
 
 pnpm dev            # chạy tất cả (build các package trước)
 pnpm dev:api        # chỉ api

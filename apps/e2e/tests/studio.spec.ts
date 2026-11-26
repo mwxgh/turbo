@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-// Content comes from the Studio seed (prepare-db.ts); progress is per user and shared between runs
+// Content comes from fixtures/studio-content.json (prepare-db.ts); progress is per user and shared between runs
 test.describe('Studio', () => {
   test('follows a roadmap to a lesson and passes its quiz', async ({
     page,

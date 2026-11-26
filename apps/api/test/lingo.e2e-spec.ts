@@ -8,7 +8,10 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { PrismaService } from '@repo/db/nest'
 import { AccessTokens } from '@repo/nest-common/auth'
 
+import { AdminService } from '../src/lingo/admin.service'
+import { lingoContentSchema } from '../src/lingo/content-file'
 import { createApp } from './create-app'
+import { toeicTestContent } from './lingo-content'
 
 interface Question {
   id: string
@@ -106,60 +109,43 @@ describe('Lingo (e2e)', () => {
   })
 
   it('keeps admin routes for admins', async () => {
-    await as(learner).post('/admin/samples').expect(403)
+    await as(learner).post('/admin/items/import', {}).expect(403)
     await as(learner).get('/admin/items').expect(403)
   })
 
-  it('loads the samples once', async () => {
-    // A system deck of an earlier release: its card moves into the curriculum (same id)
-    const legacy = await prisma.lingoDeck.create({
-      data: {
-        exam: 'TOEIC_LR',
-        title: 'TOEIC 01 · Văn phòng & cuộc họp',
-        language: 'en',
-        cards: { create: { term: 'attend', meaningVi: 'tham dự' } },
-      },
-      include: { cards: true },
+  it('imports a content file once', async () => {
+    const service = app.get(AdminService)
+    const { id: adminId } = await prisma.user.findFirstOrThrow({
+      where: { role: 'ADMIN' },
+      orderBy: { createdAt: 'desc' },
     })
-    const first = await as(admin).post('/admin/samples').expect(200)
-    expect(first.body).toMatchObject({
-      items: { succeeded: 606, failed: 0 },
-      // One card per term in 48 topic decks
-      cards: { succeeded: 1425, duplicates: 1, failed: 0, decks: 48 },
+    const content = lingoContentSchema.parse(toeicTestContent())
+    const total = Object.values(content.items).flat().length
+    const first = await service.importContent(adminId, content)
+    expect(first).toMatchObject({
+      items: { succeeded: total, failed: 0 },
+      cards: { succeeded: 7, duplicates: 0, decks: 1 },
+      tests: [{ title: 'e2e mini test' }],
     })
-    const moved = await prisma.lingoCard.findUniqueOrThrow({
-      where: { id: legacy.cards[0]!.id },
-      include: { deck: true },
+    const again = await service.importContent(adminId, content)
+    expect(again).toMatchObject({
+      // The test's 3 items are imported again too
+      items: { succeeded: 0, duplicates: total + 3 },
+      cards: { succeeded: 0, duplicates: 7 },
+      tests: [{ id: first.tests[0]!.id }],
     })
-    expect(moved.deck.title).toMatch(/^Bài \d\d · /)
-    expect(
-      await prisma.lingoDeck.findUnique({ where: { id: legacy.id } }),
-    ).toBeNull()
     const library = (await as(learner).get('/exams/TOEIC_LR/tests').expect(200))
-      .body as { items: { id: string; title: string; questions: number }[] }
-    // …and the published sample tests, each made once
-    expect(library.items.map((t) => [t.title, t.questions]).sort()).toEqual([
-      ['Lingo Full Test 01', 194],
-      ['Lingo Full Test 02', 194],
-      ['Lingo Full Test 03', 194],
-      ['Lingo Full Test 04', 194],
-      ['Lingo Full Test 05', 194],
-      ['Lingo Mini Test 01', 93],
-      ['Lingo Mini Test 02', 93],
-      ['Đề mẫu Lingo 01', 40],
+      .body as { items: { title: string; questions: number }[] }
+    expect(library.items.map((t) => [t.title, t.questions])).toEqual([
+      ['e2e mini test', 3],
     ])
-    const again = await as(admin).post('/admin/samples').expect(200)
-    expect(again.body).toMatchObject({
-      items: { succeeded: 0, duplicates: 606 },
-      cards: { succeeded: 0, duplicates: 1426 },
-    })
     const exam = await as(learner).get('/exams/TOEIC_LR').expect(200)
     const parts = (
       exam.body as {
         sections: { parts: { code: string; published: number }[] }[]
       }
     ).sections.flatMap((s) => s.parts)
-    expect(parts.find((p) => p.code === 'P5')?.published).toBe(192)
+    expect(parts.find((p) => p.code === 'P5')?.published).toBe(30)
   })
 
   it('serves the course and practises one lesson’s skill', async () => {
@@ -375,7 +361,7 @@ describe('Lingo (e2e)', () => {
         .expect(201)
     ).body as Attempt & { mode: string; parts: string[]; timeLimitSec: number }
     expect(placement.mode).toBe('PLACEMENT')
-    // No Part 1 sample: every other part, a few questions each
+    // No Part 1 content: every other part, a few questions each
     expect(placement.parts).toEqual(['P2', 'P3', 'P4', 'P5', 'P6', 'P7'])
     expect(placement.total).toBeGreaterThanOrEqual(20)
     expect(placement.timeLimitSec).toBeGreaterThan(0)
@@ -442,7 +428,6 @@ describe('Lingo (e2e)', () => {
     const card = await prisma.lingoCard.findFirstOrThrow({
       where: { term: 'accept', deck: { ownerId: null } },
     })
-    // Book and handout extensions of "accept", merged
     const words = (card.extensions as { term?: string }[]).filter(
       (e) => e.term,
     ).length
