@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Loader2, Play, Timer } from 'lucide-react'
+import { ArrowLeft, Loader2, Play, Timer } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'

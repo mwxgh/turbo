@@ -467,7 +467,7 @@ Version dùng chung được khai báo **một lần** trong `catalog:` (một d
 | Next            | `next`, `@next/eslint-plugin-next`                                                                          | `web`, `@repo/eslint-config`             |
 | Tailwind        | `tailwindcss`, `@tailwindcss/postcss`                                                                       | `web`, `mobile`, `@repo/tailwind-config` |
 | TanStack        | `@tanstack/react-query`, `react-query-devtools`, `react-form`                                               | `web`, `mobile`, `@repo/ui`              |
-| UI / realtime   | `date-fns`, `lucide-react`, `next-themes`, `nuqs`, `socket.io`, `socket.io-client`                          | nhiều app/package                        |
+| UI / realtime   | `date-fns`, `pulsoicon-react`, `motion`, `next-themes`, `nuqs`, `socket.io`, `socket.io-client`             | nhiều app/package                        |
 | Unit test React | `@testing-library/*`, `jsdom`                                                                               | `web`, `@repo/ui`                        |
 
 - Nâng version (vd. Nest 13): sửa trong catalog → `pnpm install`. Renovate gom PR theo nhóm tên package (`renovate.json5`).

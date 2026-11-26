@@ -25,7 +25,7 @@ import {
   Send,
   Timer,
   X,
-} from 'lucide-react'
+} from 'pulsoicon-react'
 
 import { Button, buttonVariants } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'

@@ -1,19 +1,14 @@
-import {
-  BookOpen,
-  CalendarDays,
-  Code,
-  Dumbbell,
-  type LucideIcon,
-} from 'lucide-react'
+import type { PulsoIcon } from 'pulsoicon-react'
 
 import { GrowingTree } from '@/components/growing-tree'
+import { BookOpen, CalendarDays, Code, Dumbbell } from '@/components/icons'
 import { Wordmark } from '@/components/wordmark'
 
 /** Areas of personal growth the product is about. */
 const AREAS: {
   name: string
   detail: string
-  icon: LucideIcon
+  icon: PulsoIcon
   tile: string
 }[] = [
   {

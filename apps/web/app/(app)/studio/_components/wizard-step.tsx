@@ -1,8 +1,8 @@
 import type { ReactNode, Ref } from 'react'
 
-import { Check } from 'lucide-react'
-
 import { Button } from '@repo/ui/components/button'
+
+import { Check } from '@/components/icons'
 
 /** Keycap for the keyboard hint */
 function Key({ children }: { children: ReactNode }) {

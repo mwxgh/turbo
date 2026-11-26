@@ -5,7 +5,7 @@ import { useEffect, useId, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { Bot, Maximize2, Plus, X } from 'lucide-react'
+import { Bot, Maximize2, Plus, X } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import { IconButton } from '@repo/ui/components/icon-button'

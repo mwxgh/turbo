@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { useQuery } from '@tanstack/react-query'
-import { Loader2, RotateCcw } from 'lucide-react'
+import { Loader2, RotateCcw } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'

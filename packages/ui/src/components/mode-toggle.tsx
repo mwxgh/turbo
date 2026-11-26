@@ -1,6 +1,6 @@
 'use client'
 
-import { Moon, Sun } from 'lucide-react'
+import { Moon, Sun } from 'pulsoicon-react'
 
 import { IconButton } from '@repo/ui/components/icon-button'
 import { useTheme } from '@repo/ui/components/theme'

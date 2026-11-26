@@ -5,7 +5,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 import { useQuery } from '@tanstack/react-query'
-import { ChevronRight, Play } from 'lucide-react'
+import { ChevronRight, Play } from 'pulsoicon-react'
 
 import { buttonVariants } from '@repo/ui/components/button'
 import { cn } from '@repo/ui/lib/utils'

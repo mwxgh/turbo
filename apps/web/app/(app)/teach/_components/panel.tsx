@@ -1,6 +1,6 @@
 'use client'
 
-import type { LucideIcon } from 'lucide-react'
+import type { PulsoIcon } from 'pulsoicon-react'
 
 import { cn } from '@repo/ui/lib/utils'
 
@@ -71,7 +71,7 @@ export function Panel({
   description,
   children,
 }: {
-  icon: LucideIcon
+  icon: PulsoIcon
   title: string
   description: string
   children: React.ReactNode

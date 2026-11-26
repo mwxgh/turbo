@@ -13,7 +13,7 @@ import {
   rowSortingFeature,
   tableFeatures,
 } from '@tanstack/react-table'
-import { MoreHorizontal } from 'lucide-react'
+import { MoreHorizontal } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import {

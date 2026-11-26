@@ -3,7 +3,7 @@
 import Link from 'next/link'
 
 import { useQuery } from '@tanstack/react-query'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'pulsoicon-react'
 
 import {
   adminItemsQueryOptions,

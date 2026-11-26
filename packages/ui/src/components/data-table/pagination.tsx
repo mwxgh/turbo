@@ -6,7 +6,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-} from 'lucide-react'
+} from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import type { ListTable } from '@repo/ui/components/data-table/use-list-table'

@@ -11,7 +11,7 @@ import {
   ImageUp,
   Loader2,
   X,
-} from 'lucide-react'
+} from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import { FileUploadDialog } from '@repo/ui/components/file-upload'

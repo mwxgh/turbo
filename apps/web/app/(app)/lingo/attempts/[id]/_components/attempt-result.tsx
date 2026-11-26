@@ -14,7 +14,7 @@ import {
   RotateCcw,
   Route,
   X,
-} from 'lucide-react'
+} from 'pulsoicon-react'
 
 import { Badge } from '@repo/ui/components/badge'
 import { Button, buttonVariants } from '@repo/ui/components/button'

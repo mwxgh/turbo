@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 import { useQueryClient } from '@tanstack/react-query'
-import { ListPlus } from 'lucide-react'
+import { ListPlus } from 'pulsoicon-react'
 
 import { Button } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'

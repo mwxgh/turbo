@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { Search } from 'lucide-react'
+import { Search } from 'pulsoicon-react'
 
 import { Input } from '@repo/ui/components/input'
 

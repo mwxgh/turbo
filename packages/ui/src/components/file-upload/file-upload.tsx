@@ -12,7 +12,7 @@ import {
   RotateCw,
   Trash2,
   X,
-} from 'lucide-react'
+} from 'pulsoicon-react'
 import {
   type Accept,
   ErrorCode,

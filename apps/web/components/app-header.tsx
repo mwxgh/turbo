@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'pulsoicon-react'
 
 import type { User } from '@repo/types'
 import { ModeToggle } from '@repo/ui/components/mode-toggle'

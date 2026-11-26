@@ -5,7 +5,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 import { useQuery } from '@tanstack/react-query'
-import { CircleCheck } from 'lucide-react'
+import { CircleCheck } from 'pulsoicon-react'
 
 import { cn } from '@repo/ui/lib/utils'
 

@@ -9,7 +9,7 @@ import {
   Flame,
   Layers,
   Target,
-} from 'lucide-react'
+} from 'pulsoicon-react'
 
 import { buttonVariants } from '@repo/ui/components/button'
 import { formatDate } from '@repo/utils'

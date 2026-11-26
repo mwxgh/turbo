@@ -2,7 +2,7 @@
 
 import { type DragEvent, useState } from 'react'
 
-import { CircleCheck, CircleDashed, CircleDot, Plus } from 'lucide-react'
+import { CircleCheck, CircleDashed, CircleDot, Plus } from 'pulsoicon-react'
 
 import type { PlannerStatus, PlannerTask } from '@repo/types'
 import { cn } from '@repo/ui/lib/utils'

@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarDays, Check, Clock, Flag } from 'lucide-react'
+import { CalendarDays, Check, Clock, Flag } from 'pulsoicon-react'
 
 import type { PlannerTask } from '@repo/types'
 import { cn } from '@repo/ui/lib/utils'
