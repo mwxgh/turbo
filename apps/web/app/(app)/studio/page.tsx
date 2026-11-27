@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 
 import {
+  gardenQueryOptions,
   overviewQueryOptions,
   roadmapsQueryOptions,
   tracksQueryOptions,
@@ -41,6 +42,7 @@ export default async function StudioPage({
   const queryClient = getQueryClient()
   await Promise.all([
     queryClient.prefetchQuery(overviewQueryOptions()),
+    queryClient.prefetchQuery(gardenQueryOptions()),
     queryClient.prefetchQuery(tracksQueryOptions()),
     queryClient.prefetchQuery(roadmapsQueryOptions()),
   ])

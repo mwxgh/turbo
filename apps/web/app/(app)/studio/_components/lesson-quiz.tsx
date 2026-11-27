@@ -9,6 +9,7 @@ import { Button } from '@repo/ui/components/button'
 import { toast } from '@repo/ui/components/sonner'
 import { cn } from '@repo/ui/lib/utils'
 
+import { InlineCode } from '@/components/inline-code'
 import type { LessonDetail, QuizResult } from '@/lib/queries/studio'
 import { studioKeys } from '@/lib/queries/studio'
 import { submitQuiz } from '@/lib/studio-actions'
@@ -81,7 +82,7 @@ export function LessonQuiz({ lesson }: { lesson: LessonDetail }) {
                 <span className="mr-2 text-muted-foreground tabular-nums">
                   {qi + 1}.
                 </span>
-                {question.prompt}
+                <InlineCode text={question.prompt} />
               </legend>
               {question.choices.map((choice, ci) => {
                 const chosen = answers[qi] === ci
@@ -117,7 +118,7 @@ export function LessonQuiz({ lesson }: { lesson: LessonDetail }) {
                       }
                       className="accent-primary"
                     />
-                    <span className="flex-1">{choice}</span>
+                    <InlineCode text={choice} className="flex-1" />
                     {right && (
                       <Check
                         aria-label="Đáp án đúng"
@@ -139,7 +140,7 @@ export function LessonQuiz({ lesson }: { lesson: LessonDetail }) {
                   <span className="font-medium text-foreground">
                     Giải thích:{' '}
                   </span>
-                  {graded.explanation}
+                  <InlineCode text={graded.explanation} />
                 </p>
               )}
             </fieldset>

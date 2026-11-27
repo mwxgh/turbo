@@ -1,4 +1,4 @@
-import type { StudioCategory } from '@repo/types'
+import type { StudioCategory, StudioLevel } from '@repo/types'
 
 /** Menu groups of Studio: URL segment ↔ API category, with their labels. */
 export const CATEGORIES = [
@@ -78,3 +78,29 @@ export const lessonHref = (track: string, lesson: string) =>
 /** Share done as a whole percent; 0 for an empty list. */
 export const donePercent = (done: number, total: number) =>
   total ? Math.round((done / total) * 100) : 0
+
+/** Lesson difficulty levels, easiest first, with their labels. */
+export const LEVELS = [
+  { level: 'BASIC', label: 'Cơ bản', rank: 1 },
+  { level: 'INTERMEDIATE', label: 'Trung cấp', rank: 2 },
+  { level: 'ADVANCED', label: 'Nâng cao', rank: 3 },
+] as const satisfies readonly {
+  level: StudioLevel
+  label: string
+  rank: number
+}[]
+
+export type LevelInfo = (typeof LEVELS)[number]
+
+export const levelOf = (level: StudioLevel): LevelInfo =>
+  LEVELS.find((l) => l.level === level) ?? LEVELS[0]
+
+/** Items split by level, easiest first; empty levels are left out. Keeps order inside a level. */
+export function byLevel<T extends { level: StudioLevel }>(
+  items: T[],
+): { info: LevelInfo; items: T[] }[] {
+  return LEVELS.flatMap((info) => {
+    const inLevel = items.filter((item) => item.level === info.level)
+    return inLevel.length ? [{ info, items: inLevel }] : []
+  })
+}

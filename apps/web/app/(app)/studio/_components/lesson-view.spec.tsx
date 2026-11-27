@@ -22,6 +22,7 @@ const lesson: LessonDetail = {
   content:
     '## Vấn đề\n\nDùng `T`:\n\n~~~ts\nfunction first<T>(items: T[]) {}\n~~~',
   minutes: 12,
+  level: 'ADVANCED',
   updatedAt: '2026-11-25T00:00:00Z',
   questions: [
     { id: 'q1', prompt: 'T là gì?', choices: ['Biến', 'Tham số kiểu'] },

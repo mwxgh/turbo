@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 
-import type { StudioCategory } from '@repo/types'
+import type { StudioCategory, StudioLevel } from '@repo/types'
 
 import { apiFetch } from '@/lib/api'
 
@@ -60,6 +60,8 @@ export interface TrackSummary {
   summary: string
   lessons: number
   done: number
+  /** Counts per level present in the track, easiest first */
+  levels: { level: StudioLevel; lessons: number; done: number }[]
 }
 
 export interface TrackLesson {
@@ -68,12 +70,16 @@ export interface TrackLesson {
   title: string
   summary: string
   minutes: number
+  level: StudioLevel
   done: boolean
   quizScore: number | null
   quizTotal: number | null
 }
 
-export interface TrackDetail extends Omit<TrackSummary, 'lessons' | 'done'> {
+export interface TrackDetail extends Omit<
+  TrackSummary,
+  'lessons' | 'done' | 'levels'
+> {
   lessons: TrackLesson[]
 }
 
@@ -90,6 +96,7 @@ export interface LessonDetail {
   /** Markdown (GFM) */
   content: string
   minutes: number
+  level: StudioLevel
   updatedAt: string
   /** Without answers: they come back with the quiz result */
   questions: { id: string; prompt: string; choices: string[] }[]
@@ -124,22 +131,54 @@ export interface RoadmapSummary {
   done: number
 }
 
+/** A learner's state on one lesson: finished, opened or quizzed, not touched. */
+export type LessonState = 'done' | 'started' | 'todo'
+
+export interface RoadmapStep {
+  id: string
+  title: string
+  description: string
+  track: {
+    slug: string
+    title: string
+    category: StudioCategory
+    lessons: number
+    done: number
+    /** Published lessons in order, with the learner's state */
+    items: { slug: string; title: string; state: LessonState }[]
+  } | null
+}
+
 export interface RoadmapDetail {
   slug: string
   title: string
   summary: string
-  steps: {
-    id: string
+  steps: RoadmapStep[]
+}
+
+/** GET /api/studio/garden: what the learner's tree is made of. */
+export interface StudioGarden {
+  /** One per finished lesson, oldest first */
+  leaves: {
+    track: { slug: string; title: string }
+    slug: string
     title: string
-    description: string
-    track: {
-      slug: string
-      title: string
-      category: StudioCategory
-      lessons: number
-      done: number
-    } | null
+    completedAt: string
   }[]
+  /** Tracks with every lesson finished */
+  flowers: { slug: string; title: string }[]
+  /** Roadmaps with every lesson finished */
+  fruits: { slug: string; title: string }[]
+  streak: {
+    current: number
+    best: number
+    activeDays: number
+    studiedToday: boolean
+    /** Days since the last study day; null: never studied */
+    idleDays: number | null
+    /** The last 7 days, today last; `date` is yyyy-MM-dd */
+    week: { date: string; studied: boolean }[]
+  }
 }
 
 export interface StudioOverview {
@@ -159,6 +198,7 @@ export const studioKeys = {
   /** Everything that shows the learner's progress */
   learn: ['studio', 'learn'] as const,
   overview: () => [...studioKeys.learn, 'overview'] as const,
+  garden: () => [...studioKeys.learn, 'garden'] as const,
   tracks: () => [...studioKeys.learn, 'tracks'] as const,
   track: (slug: string) => [...studioKeys.learn, 'tracks', slug] as const,
   lesson: (track: string, lesson: string) =>
@@ -174,6 +214,12 @@ export const overviewQueryOptions = () =>
   queryOptions({
     queryKey: studioKeys.overview(),
     queryFn: () => get<StudioOverview>('/studio/overview'),
+  })
+
+export const gardenQueryOptions = () =>
+  queryOptions({
+    queryKey: studioKeys.garden(),
+    queryFn: () => get<StudioGarden>('/studio/garden'),
   })
 
 export const tracksQueryOptions = () =>

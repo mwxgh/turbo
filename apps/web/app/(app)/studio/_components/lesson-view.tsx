@@ -15,6 +15,7 @@ import { lessonQueryOptions, studioKeys } from '@/lib/queries/studio'
 import { lessonHref, trackHref } from '@/lib/studio'
 import { setLessonDone } from '@/lib/studio-actions'
 
+import { LevelBadge } from './learn-ui'
 import { LessonQuiz } from './lesson-quiz'
 
 /** One lesson: Markdown content, quiz, the done mark, previous / next lesson. */
@@ -63,6 +64,7 @@ export function LessonView({
           className="flex flex-wrap items-center gap-3 text-sm
             text-muted-foreground"
         >
+          <LevelBadge level={lesson.level} />
           <span className="tabular-nums">{lesson.minutes} phút</span>
           {lesson.done && (
             <span
