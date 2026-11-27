@@ -111,6 +111,15 @@ export const StudioCategory = {
 
 export type StudioCategory = (typeof StudioCategory)[keyof typeof StudioCategory]
 
+/** Difficulty of a Studio lesson; a track lists its lessons from BASIC up */
+export const StudioLevel = {
+  BASIC: 'BASIC',
+  INTERMEDIATE: 'INTERMEDIATE',
+  ADVANCED: 'ADVANCED',
+} as const
+
+export type StudioLevel = (typeof StudioLevel)[keyof typeof StudioLevel]
+
 /** Only PUBLISHED reaches learners */
 export const StudioStatus = {
   DRAFT: 'DRAFT',
