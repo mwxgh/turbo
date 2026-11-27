@@ -1,6 +1,6 @@
 import { OmitType } from '@nestjs/swagger'
 
-import { StudioCategory, StudioStatus } from '@repo/db'
+import { StudioCategory, StudioLevel, StudioStatus } from '@repo/db'
 import {
   BooleanField,
   ClassField,
@@ -74,6 +74,10 @@ export class LessonDto {
 
   @IntField({ min: 1, max: 600, optional: true })
   minutes?: number
+
+  /** Difficulty; a track lists its lessons by level, then by order. Default BASIC */
+  @EnumField(StudioLevel, { optional: true })
+  level?: StudioLevel
 
   @IntField({ min: 0, optional: true })
   order?: number

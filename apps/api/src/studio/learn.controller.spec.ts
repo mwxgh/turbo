@@ -16,6 +16,7 @@ describe('Studio learn controllers', () => {
   let admin: AdminLearnController
   const learnService = {
     overview: vi.fn(),
+    garden: vi.fn(),
     tracks: vi.fn(),
     track: vi.fn(),
     lesson: vi.fn(),
@@ -51,10 +52,12 @@ describe('Studio learn controllers', () => {
     await learn.lesson(user, 'ts', 'intro')
     await learn.setDone(user, ID, { done: true })
     await learn.submitQuiz(user, ID, { answers: [0, 1] })
+    await learn.garden(user)
 
     expect(learnService.lesson).toHaveBeenCalledWith(ID, 'ts', 'intro')
     expect(learnService.setDone).toHaveBeenCalledWith(ID, ID, true)
     expect(learnService.submitQuiz).toHaveBeenCalledWith(ID, ID, [0, 1])
+    expect(learnService.garden).toHaveBeenCalledWith(ID)
   })
 
   it('delegates admin routes', async () => {

@@ -48,19 +48,37 @@ describe('LearnService', () => {
 
   it('counts finished lessons per track', async () => {
     prisma.studioTrack.findMany.mockResolvedValue([
-      { id: 't1', slug: 'ts', lessons: [{ id: 'a' }, { id: 'b' }] },
+      {
+        id: 't1',
+        slug: 'ts',
+        lessons: [
+          { id: 'a', level: 'BASIC' },
+          { id: 'b', level: 'ADVANCED' },
+          { id: 'c', level: 'BASIC' },
+        ],
+      },
       { id: 't2', slug: 'go', lessons: [] },
     ])
     prisma.studioProgress.findMany.mockResolvedValue([{ lessonId: 'b' }])
 
     await expect(service.tracks(USER)).resolves.toEqual([
-      { id: 't1', slug: 'ts', lessons: 2, done: 1 },
-      { id: 't2', slug: 'go', lessons: 0, done: 0 },
+      {
+        id: 't1',
+        slug: 'ts',
+        lessons: 3,
+        done: 1,
+        // Easiest first, only the levels the track has
+        levels: [
+          { level: 'BASIC', lessons: 2, done: 0 },
+          { level: 'ADVANCED', lessons: 1, done: 1 },
+        ],
+      },
+      { id: 't2', slug: 'go', lessons: 0, done: 0, levels: [] },
     ])
     expect(prisma.studioProgress.findMany).toHaveBeenCalledWith({
       where: {
         userId: USER,
-        lessonId: { in: ['a', 'b'] },
+        lessonId: { in: ['a', 'b', 'c'] },
         completedAt: { not: null },
       },
       select: { lessonId: true },
@@ -185,5 +203,165 @@ describe('LearnService', () => {
         done: 1,
       },
     ])
+  })
+
+  it('gives each roadmap lesson its state, counting published tracks only', async () => {
+    prisma.studioRoadmap.findFirst.mockResolvedValue({
+      slug: 'backend',
+      title: 'Backend',
+      summary: '',
+      steps: [
+        {
+          id: 's1',
+          title: 'Ngôn ngữ',
+          description: '',
+          track: {
+            slug: 'ts',
+            title: 'TypeScript',
+            category: 'LANGUAGE',
+            status: 'PUBLISHED',
+            lessons: [
+              { id: 'a', slug: 'a', title: 'A' },
+              { id: 'b', slug: 'b', title: 'B' },
+              { id: 'c', slug: 'c', title: 'C' },
+            ],
+          },
+        },
+        {
+          id: 's2',
+          title: 'Nháp',
+          description: '',
+          track: {
+            slug: 'x',
+            title: 'X',
+            category: 'TOOL',
+            status: 'DRAFT',
+            lessons: [{ id: 'd', slug: 'd', title: 'D' }],
+          },
+        },
+      ],
+    })
+    prisma.studioProgress.findMany.mockResolvedValue([
+      { lessonId: 'a', completedAt: new Date() },
+      { lessonId: 'b', completedAt: null },
+    ])
+
+    const roadmap = await service.roadmap(USER, 'backend')
+
+    expect(roadmap.steps[0]!.track).toEqual({
+      slug: 'ts',
+      title: 'TypeScript',
+      category: 'LANGUAGE',
+      lessons: 3,
+      done: 1,
+      items: [
+        { slug: 'a', title: 'A', state: 'done' },
+        { slug: 'b', title: 'B', state: 'started' },
+        { slug: 'c', title: 'C', state: 'todo' },
+      ],
+    })
+    expect(roadmap.steps[1]!.track).toBeNull()
+    expect(prisma.studioProgress.findMany).toHaveBeenCalledWith({
+      where: { userId: USER, lessonId: { in: ['a', 'b', 'c'] } },
+      select: { lessonId: true, completedAt: true },
+    })
+  })
+
+  describe('garden', () => {
+    // 12:00 on 2026-11-18 in Vietnam
+    const now = new Date('2026-11-18T05:00:00Z')
+    const at = (iso: string) => new Date(iso)
+    const lesson = (slug: string) => ({
+      slug,
+      title: slug.toUpperCase(),
+      track: { slug: 'ts', title: 'TypeScript' },
+    })
+
+    it('grows a leaf per finished lesson, a flower per track, a fruit per roadmap', async () => {
+      prisma.studioProgress.findMany.mockImplementation(
+        ({ select }: { select: Record<string, unknown> }) =>
+          Promise.resolve(
+            'lesson' in select
+              ? [
+                  // finished later, touched earlier: leaves follow completion order
+                  {
+                    completedAt: at('2026-11-17T03:00:00Z'),
+                    updatedAt: at('2026-11-16T03:00:00Z'),
+                    lesson: lesson('b'),
+                  },
+                  {
+                    completedAt: at('2026-11-16T02:00:00Z'),
+                    updatedAt: at('2026-11-17T04:00:00Z'),
+                    lesson: lesson('a'),
+                  },
+                  // opened, not finished: a study day, no leaf
+                  {
+                    completedAt: null,
+                    updatedAt: at('2026-11-18T01:00:00Z'),
+                    lesson: lesson('c'),
+                  },
+                ]
+              : [{ lessonId: 'a' }, { lessonId: 'b' }],
+          ),
+      )
+      prisma.studioTrack.findMany.mockResolvedValue([
+        {
+          id: 't1',
+          slug: 'ts',
+          title: 'TypeScript',
+          lessons: [{ id: 'a' }, { id: 'b' }],
+        },
+        { id: 't2', slug: 'go', title: 'Go', lessons: [{ id: 'c' }] },
+        { id: 't3', slug: 'empty', title: 'Trống', lessons: [] },
+      ])
+      prisma.studioRoadmap.findMany.mockResolvedValue([
+        {
+          slug: 'mini',
+          title: 'Mini',
+          summary: '',
+          steps: [{ track: { status: 'PUBLISHED', lessons: [{ id: 'a' }] } }],
+        },
+      ])
+
+      const garden = await service.garden(USER, now)
+
+      expect(garden.leaves.map((leaf) => leaf.slug)).toEqual(['a', 'b'])
+      expect(garden.flowers).toEqual([{ slug: 'ts', title: 'TypeScript' }])
+      expect(garden.fruits).toEqual([{ slug: 'mini', title: 'Mini' }])
+      expect(garden.streak).toMatchObject({
+        current: 3,
+        best: 3,
+        activeDays: 3,
+        studiedToday: true,
+        idleDays: 0,
+      })
+      expect(garden.streak.week).toHaveLength(7)
+      expect(garden.streak.week.at(-1)).toEqual({
+        date: '2026-11-18',
+        studied: true,
+      })
+      expect(garden.streak.week.filter((d) => d.studied)).toHaveLength(3)
+    })
+
+    it('counts idle days and an empty garden', async () => {
+      prisma.studioTrack.findMany.mockResolvedValue([])
+      prisma.studioRoadmap.findMany.mockResolvedValue([])
+      prisma.studioProgress.findMany.mockResolvedValueOnce([
+        {
+          completedAt: at('2026-11-14T02:00:00Z'),
+          updatedAt: at('2026-11-14T02:00:00Z'),
+          lesson: lesson('a'),
+        },
+      ])
+      await expect(service.garden(USER, now)).resolves.toMatchObject({
+        streak: { current: 0, best: 1, studiedToday: false, idleDays: 4 },
+      })
+
+      prisma.studioProgress.findMany.mockResolvedValueOnce([])
+      await expect(service.garden(USER, now)).resolves.toMatchObject({
+        leaves: [],
+        streak: { current: 0, best: 0, activeDays: 0, idleDays: null },
+      })
+    })
   })
 })

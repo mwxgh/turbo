@@ -1,11 +1,12 @@
 import Link from 'next/link'
 
+import type { StudioLevel } from '@repo/types'
 import { Progress } from '@repo/ui/components/progress'
 import { cn } from '@repo/ui/lib/utils'
 
 import { Check, ChevronRight } from '@/components/icons'
 import type { TrackSummary } from '@/lib/queries/studio'
-import { donePercent, trackHref } from '@/lib/studio'
+import { LEVELS, donePercent, levelOf, trackHref } from '@/lib/studio'
 
 /** Page frame shared by the learning pages. */
 export function LearnPage({
@@ -71,7 +72,68 @@ export function DoneBar({
   )
 }
 
-/** One track as a card: title, summary, progress. */
+/** Colour of each level, easy → hard: green, amber, rose. */
+export const LEVEL_STYLE: Record<
+  StudioLevel,
+  { badge: string; bar: string; text: string }
+> = {
+  BASIC: {
+    badge: `border-emerald-600/30 bg-emerald-500/10 text-emerald-700
+      dark:border-emerald-400/30 dark:text-emerald-300`,
+    bar: 'bg-emerald-500 dark:bg-emerald-400',
+    text: 'text-emerald-700 dark:text-emerald-300',
+  },
+  INTERMEDIATE: {
+    badge: `border-amber-600/30 bg-amber-500/10 text-amber-700
+      dark:border-amber-400/30 dark:text-amber-300`,
+    bar: 'bg-amber-500 dark:bg-amber-400',
+    text: 'text-amber-700 dark:text-amber-300',
+  },
+  ADVANCED: {
+    badge: `border-rose-600/30 bg-rose-500/10 text-rose-700
+      dark:border-rose-400/30 dark:text-rose-300`,
+    bar: 'bg-rose-500 dark:bg-rose-400',
+    text: 'text-rose-700 dark:text-rose-300',
+  },
+}
+
+/** "Cơ bản ▮▯▯": the level name with as many filled bars as its difficulty. */
+export function LevelBadge({
+  level,
+  className,
+}: {
+  level: StudioLevel
+  className?: string
+}) {
+  const info = levelOf(level)
+  const style = LEVEL_STYLE[level]
+  return (
+    <span
+      className={cn(
+        `inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2
+        py-0.5 text-xs font-medium`,
+        style.badge,
+        className,
+      )}
+    >
+      {info.label}
+      <span aria-hidden className="flex items-end gap-0.5">
+        {LEVELS.map((step) => (
+          <span
+            key={step.level}
+            className={cn(
+              'w-1 rounded-sm',
+              step.rank === 1 ? 'h-1.5' : step.rank === 2 ? 'h-2' : 'h-2.5',
+              step.rank <= info.rank ? style.bar : 'bg-current opacity-20',
+            )}
+          />
+        ))}
+      </span>
+    </span>
+  )
+}
+
+/** One track as a card: title, summary, then a progress row per level, easiest first. */
 export function TrackCard({ track }: { track: TrackSummary }) {
   const finished = track.lessons > 0 && track.done === track.lessons
   return (
@@ -98,7 +160,25 @@ export function TrackCard({ track }: { track: TrackSummary }) {
       <span className="text-sm text-pretty text-muted-foreground">
         {track.summary}
       </span>
-      <DoneBar done={track.done} total={track.lessons} className="mt-auto" />
+      {track.levels.length > 1 ? (
+        <ol className="mt-auto flex flex-col gap-2">
+          {track.levels.map((level) => (
+            <li key={level.level} className="flex items-center gap-3">
+              <LevelBadge
+                level={level.level}
+                className="w-24 justify-between"
+              />
+              <DoneBar
+                done={level.done}
+                total={level.lessons}
+                className="flex-1"
+              />
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <DoneBar done={track.done} total={track.lessons} className="mt-auto" />
+      )}
     </Link>
   )
 }

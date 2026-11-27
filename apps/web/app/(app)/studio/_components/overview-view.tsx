@@ -12,9 +12,10 @@ import {
 } from '@/lib/queries/studio'
 import { CATEGORIES, lessonHref } from '@/lib/studio'
 
+import { GardenView } from './garden-view'
 import { DoneBar, PageHeading, TrackGrid } from './learn-ui'
 
-/** Studio home: lessons to continue, roadmaps, then every group with its first tracks. */
+/** Studio home: the learner's garden, lessons to continue, roadmaps, then every group. */
 export function OverviewView() {
   const { data: overview } = useQuery(overviewQueryOptions())
   const { data: tracks = [] } = useQuery(tracksQueryOptions())
@@ -27,12 +28,9 @@ export function OverviewView() {
           Học lập trình theo lộ trình: ngôn ngữ, framework, design pattern và
           kiến thức nền tảng. Mỗi bài có ví dụ code và quiz ngắn.
         </p>
-        {overview && overview.done > 0 && (
-          <p className="mt-1 text-sm tabular-nums">
-            Bạn đã học xong {overview.done} bài.
-          </p>
-        )}
       </PageHeading>
+
+      <GardenView />
 
       {overview && overview.recent.length > 0 && (
         <section

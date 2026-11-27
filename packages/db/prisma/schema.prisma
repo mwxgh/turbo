@@ -545,6 +545,13 @@ enum StudioCategory {
   SECURITY
 }
 
+/// Difficulty of a Studio lesson; a track lists its lessons from BASIC up
+enum StudioLevel {
+  BASIC
+  INTERMEDIATE
+  ADVANCED
+}
+
 /// Only PUBLISHED reaches learners
 enum StudioStatus {
   DRAFT
@@ -584,6 +591,8 @@ model StudioLesson {
   /// Markdown (GFM)
   content   String       @default("")
   minutes   Int          @default(10)
+  /// Lessons are listed by level, then by order inside the level
+  level     StudioLevel  @default(BASIC)
   order     Int          @default(0)
   status    StudioStatus @default(DRAFT)
   createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)

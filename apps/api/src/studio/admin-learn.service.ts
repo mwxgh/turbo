@@ -49,12 +49,13 @@ export class AdminLearnService {
       where: { id },
       include: {
         lessons: {
-          orderBy: [{ order: 'asc' }, { title: 'asc' }],
+          orderBy: [{ level: 'asc' }, { order: 'asc' }, { title: 'asc' }],
           select: {
             id: true,
             slug: true,
             title: true,
             status: true,
+            level: true,
             order: true,
             minutes: true,
             updatedAt: true,

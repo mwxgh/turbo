@@ -104,3 +104,51 @@ export function fromNow(input: DateInput, now: DateInput = new Date()): string {
     locale: vi,
   })
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/** Whole calendar days from day key `from` to day key `to` (`yyyy-MM-dd`); negative if before. */
+export function daysBetween(from: string, to: string): number {
+  const utc = (key: string) => {
+    const [y, m, d] = key.split('-').map(Number)
+    return Date.UTC(y!, m! - 1, d)
+  }
+  return Math.round((utc(to) - utc(from)) / DAY_MS)
+}
+
+/** The day key `n` calendar days after `key` (`yyyy-MM-dd`); `n` may be negative. */
+export function addDaysToKey(key: string, n: number): string {
+  const [y, m, d] = key.split('-').map(Number)
+  return new Date(Date.UTC(y!, m! - 1, d! + n)).toISOString().slice(0, 10)
+}
+
+/**
+ * Consecutive days in `days` (day keys) ending today, or ending yesterday so a streak survives
+ * until today ends.
+ */
+export function dayStreak(
+  days: ReadonlySet<string>,
+  now: DateInput = new Date(),
+  timeZone: string = DEFAULT_TIME_ZONE,
+): number {
+  let cursor = toDateKey(now, timeZone)
+  if (!days.has(cursor)) cursor = addDaysToKey(cursor, -1)
+  let count = 0
+  while (days.has(cursor)) {
+    count++
+    cursor = addDaysToKey(cursor, -1)
+  }
+  return count
+}
+
+/** Longest run of consecutive days in `days` (day keys). */
+export function longestDayStreak(days: Iterable<string>): number {
+  const sorted = [...new Set(days)].sort()
+  let best = 0
+  let run = 0
+  sorted.forEach((key, i) => {
+    run = i > 0 && daysBetween(sorted[i - 1]!, key) === 1 ? run + 1 : 1
+    best = Math.max(best, run)
+  })
+  return best
+}

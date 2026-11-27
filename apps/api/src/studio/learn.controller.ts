@@ -30,6 +30,11 @@ export class LearnController {
     return this.learn.overview(user.id)
   }
 
+  @Get('garden')
+  garden(@CurrentUser() user: AuthUser) {
+    return this.learn.garden(user.id)
+  }
+
   @Get('tracks')
   tracks(@CurrentUser() user: AuthUser) {
     return this.learn.tracks(user.id)

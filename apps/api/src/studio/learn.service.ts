@@ -4,17 +4,38 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 
-import { StudioStatus } from '@repo/db'
+import { StudioLevel, StudioStatus } from '@repo/db'
 import { PrismaService } from '@repo/db/nest'
+import {
+  addDaysToKey,
+  dayStreak,
+  daysBetween,
+  longestDayStreak,
+  toDateKey,
+} from '@repo/utils'
 
 /** Share of quiz answers that must be right to finish a lesson by its quiz. */
 export const PASS_RATIO = 0.7
 
 const published = { status: StudioStatus.PUBLISHED }
-const lessonOrder = [{ order: 'asc' as const }, { title: 'asc' as const }]
+/** Easiest level first (enum order), then the order inside the level. */
+const lessonOrder = [
+  { level: 'asc' as const },
+  { order: 'asc' as const },
+  { title: 'asc' as const },
+]
 
 export const quizPassed = (score: number, total: number) =>
   total > 0 && score / total >= PASS_RATIO
+
+/** Days shown in the garden's week strip, ending today. */
+export const GARDEN_WEEK = 7
+
+/** A learner's state on one lesson, as a roadmap shows it. */
+export type LessonState = 'done' | 'started' | 'todo'
+
+const finished = (item: { lessons: number; done: number }) =>
+  item.lessons > 0 && item.done === item.lessons
 
 /** Learner side of Studio: published tracks, lessons and roadmaps, with the learner's progress. */
 @Injectable()
@@ -46,7 +67,7 @@ export class LearnService {
         category: true,
         title: true,
         summary: true,
-        lessons: { where: published, select: { id: true } },
+        lessons: { where: published, select: { id: true, level: true } },
       },
     })
     const done = await this.doneIds(
@@ -57,6 +78,19 @@ export class LearnService {
       ...track,
       lessons: lessons.length,
       done: lessons.filter((lesson) => done.has(lesson.id)).length,
+      /** Lesson and done counts per level present in the track, easiest first */
+      levels: Object.values(StudioLevel).flatMap((level) => {
+        const inLevel = lessons.filter((lesson) => lesson.level === level)
+        return inLevel.length
+          ? [
+              {
+                level,
+                lessons: inLevel.length,
+                done: inLevel.filter((lesson) => done.has(lesson.id)).length,
+              },
+            ]
+          : []
+      }),
     }))
   }
 
@@ -78,6 +112,7 @@ export class LearnService {
             title: true,
             summary: true,
             minutes: true,
+            level: true,
           },
         },
       },
@@ -131,6 +166,7 @@ export class LearnService {
           summary: true,
           content: true,
           minutes: true,
+          level: true,
           updatedAt: true,
           questions: {
             orderBy: { order: 'asc' },
@@ -222,7 +258,11 @@ export class LearnService {
                 title: true,
                 category: true,
                 status: true,
-                lessons: { where: published, select: { id: true } },
+                lessons: {
+                  where: published,
+                  orderBy: lessonOrder,
+                  select: { id: true, slug: true, title: true },
+                },
               },
             },
           },
@@ -233,14 +273,31 @@ export class LearnService {
     const visible = roadmap.steps.map((step) =>
       step.track?.status === StudioStatus.PUBLISHED ? step.track : null,
     )
-    const done = await this.doneIds(
-      userId,
-      visible.flatMap((track) => track?.lessons.map((l) => l.id) ?? []),
+    const lessonIds = visible.flatMap(
+      (track) => track?.lessons.map((l) => l.id) ?? [],
+    )
+    const progress = lessonIds.length
+      ? await this.prisma.studioProgress.findMany({
+          where: { userId, lessonId: { in: lessonIds } },
+          select: { lessonId: true, completedAt: true },
+        })
+      : []
+    const stateOf = new Map<string, LessonState>(
+      progress.map((row) => [
+        row.lessonId,
+        row.completedAt ? 'done' : 'started',
+      ]),
     )
     return {
       ...roadmap,
       steps: roadmap.steps.map((step, i) => {
         const track = visible[i]
+        const lessons =
+          track?.lessons.map(({ id, slug, title }) => ({
+            slug,
+            title,
+            state: stateOf.get(id) ?? 'todo',
+          })) ?? []
         return {
           id: step.id,
           title: step.title,
@@ -249,8 +306,9 @@ export class LearnService {
             slug: track.slug,
             title: track.title,
             category: track.category,
-            lessons: track.lessons.length,
-            done: track.lessons.filter((l) => done.has(l.id)).length,
+            lessons: lessons.length,
+            done: lessons.filter((l) => l.state === 'done').length,
+            items: lessons,
           },
         }
       }),
@@ -290,6 +348,80 @@ export class LearnService {
         done: Boolean(completedAt),
         updatedAt,
       })),
+    }
+  }
+
+  /**
+   * The learner's achievements for the Studio garden: a leaf per finished lesson, a flower per
+   * finished track, a fruit per finished roadmap, and the study-day streak (days in the business
+   * time zone with a finished or touched lesson).
+   */
+  async garden(userId: string, now = new Date()) {
+    const visible = { ...published, track: published }
+    const [rows, tracks, roadmaps] = await Promise.all([
+      this.prisma.studioProgress.findMany({
+        where: { userId, lesson: visible },
+        orderBy: { updatedAt: 'asc' },
+        select: {
+          completedAt: true,
+          updatedAt: true,
+          lesson: {
+            select: {
+              slug: true,
+              title: true,
+              track: { select: { slug: true, title: true } },
+            },
+          },
+        },
+      }),
+      this.tracks(userId),
+      this.roadmaps(userId),
+    ])
+
+    const leaves = rows
+      .flatMap(({ lesson, completedAt }) =>
+        completedAt
+          ? [
+              {
+                track: lesson.track,
+                slug: lesson.slug,
+                title: lesson.title,
+                completedAt,
+              },
+            ]
+          : [],
+      )
+      .sort((a, b) => a.completedAt.getTime() - b.completedAt.getTime())
+
+    const days = new Set(
+      rows.flatMap(({ completedAt, updatedAt }) => [
+        toDateKey(updatedAt),
+        ...(completedAt ? [toDateKey(completedAt)] : []),
+      ]),
+    )
+    const today = toDateKey(now)
+    const last = [...days].sort().at(-1)
+
+    return {
+      leaves,
+      flowers: tracks
+        .filter(finished)
+        .map(({ slug, title }) => ({ slug, title })),
+      fruits: roadmaps
+        .filter(finished)
+        .map(({ slug, title }) => ({ slug, title })),
+      streak: {
+        current: dayStreak(days, now),
+        best: longestDayStreak(days),
+        activeDays: days.size,
+        studiedToday: days.has(today),
+        /** Days since the last study day; null: never studied */
+        idleDays: last ? daysBetween(last, today) : null,
+        week: Array.from({ length: GARDEN_WEEK }, (_, i) => {
+          const date = addDaysToKey(today, i - GARDEN_WEEK + 1)
+          return { date, studied: days.has(date) }
+        }),
+      },
     }
   }
 
