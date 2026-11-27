@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 
 import { LingoContentStatus } from '@repo/db'
 import { PrismaService } from '@repo/db/nest'
-import { dayRange, toDateKey } from '@repo/utils'
+import { dayStreak, toDateKey } from '@repo/utils'
 
 import type { UpdateGoalDto } from './dto/goal.dto'
 import { EXAMS, type ExamSpec, getExam } from './specs'
@@ -204,14 +204,5 @@ export class LingoService {
 }
 
 /** Consecutive study days ending today (or yesterday, so the streak survives until tonight). */
-export function streak(days: Set<string>, now = new Date()): number {
-  const day = 24 * 60 * 60 * 1000
-  let cursor = dayRange(now).start
-  if (!days.has(toDateKey(cursor))) cursor = new Date(cursor.getTime() - day)
-  let count = 0
-  while (days.has(toDateKey(cursor))) {
-    count++
-    cursor = new Date(cursor.getTime() - day)
-  }
-  return count
-}
+export const streak = (days: Set<string>, now = new Date()): number =>
+  dayStreak(days, now)

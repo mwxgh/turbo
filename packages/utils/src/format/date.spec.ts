@@ -3,11 +3,15 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'vitest'
 
 import {
+  addDaysToKey,
   dayRange,
+  dayStreak,
+  daysBetween,
   formatDate,
   formatDateTime,
   fromNow,
   isValidDate,
+  longestDayStreak,
   parseDate,
   toDate,
   toDateKey,
@@ -51,5 +55,38 @@ describe('date', () => {
 
   it('formats relative time in Vietnamese', () => {
     assert.equal(fromNow('2026-10-20T17:25:00.000Z', INSTANT), '5 phút trước')
+  })
+})
+
+describe('day streaks', () => {
+  // 12:00 on 2026-11-18 in Vietnam
+  const now = '2026-11-18T05:00:00Z'
+  const ago = (n: number) => addDaysToKey('2026-11-18', -n)
+
+  it('counts calendar days between day keys, across months and years', () => {
+    assert.equal(daysBetween('2026-11-30', '2026-12-01'), 1)
+    assert.equal(daysBetween('2026-12-31', '2027-01-02'), 2)
+    assert.equal(daysBetween('2026-11-18', '2026-11-18'), 0)
+    assert.equal(addDaysToKey('2024-02-28', 1), '2024-02-29')
+  })
+
+  it('counts consecutive days ending today', () => {
+    assert.equal(dayStreak(new Set([ago(0), ago(1), ago(2), ago(4)]), now), 3)
+  })
+
+  it("keeps yesterday's streak alive until today ends", () => {
+    assert.equal(dayStreak(new Set([ago(1), ago(2)]), now), 2)
+  })
+
+  it('is 0 after a missed day', () => {
+    assert.equal(dayStreak(new Set([ago(2), ago(3)]), now), 0)
+  })
+
+  it('finds the longest run in any order', () => {
+    assert.equal(
+      longestDayStreak([ago(0), ago(9), ago(7), ago(8), ago(10), ago(2)]),
+      4,
+    )
+    assert.equal(longestDayStreak([]), 0)
   })
 })
