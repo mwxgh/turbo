@@ -5,9 +5,11 @@ import type { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { StudioCategory } from '@repo/db'
 import type { PrismaService } from '@repo/db/nest'
 import { AccessTokens } from '@repo/nest-common/auth'
 
+import { AdminLearnService } from '../src/studio/admin-learn.service'
 import { bearer, createApp } from './create-app'
 
 describe('Studio learn (e2e)', () => {
@@ -121,5 +123,83 @@ describe('Studio learn (e2e)', () => {
       .set('authorization', admin)
       .send({ slug, category: 'LANGUAGE', title: 'Again' })
       .expect(409)
+  })
+
+  it('imports a content file by slug, twice without duplicates', async () => {
+    const service = app.get(AdminLearnService)
+    const track = `imp-${randomUUID().slice(0, 8)}`
+    const outline = `out-${randomUUID().slice(0, 8)}`
+    const roadmap = `rm-${randomUUID().slice(0, 8)}`
+    const content = {
+      tracks: [
+        {
+          slug: track,
+          category: StudioCategory.LANGUAGE,
+          title: 'Imported',
+          lessons: [
+            {
+              slug: 'one',
+              title: 'One',
+              content: '## One',
+              questions: [{ prompt: 'Q?', choices: ['a', 'b'], answer: 1 }],
+            },
+          ],
+        },
+        { slug: outline, category: StudioCategory.TOOL, title: 'Outline' },
+      ],
+      roadmaps: [
+        {
+          slug: roadmap,
+          title: 'Path',
+          steps: [{ title: 'Learn it', track }, { title: 'Later' }],
+        },
+      ],
+    }
+    expect(await service.importContent(content)).toEqual({
+      tracks: 2,
+      lessons: 1,
+      roadmaps: 1,
+    })
+    // Second run with a fixed lesson: updated in place, quiz replaced
+    content.tracks[0]!.lessons![0]!.title = 'One, fixed'
+    await service.importContent(content)
+
+    const stored = await prisma.studioTrack.findMany({
+      where: { slug: { in: [track, outline] } },
+      include: { lessons: { include: { questions: true } } },
+      orderBy: { slug: 'asc' },
+    })
+    expect(
+      stored.map((t) => [t.slug, t.status, t.lessons.length]).sort(),
+    ).toEqual(
+      [
+        [track, 'PUBLISHED', 1],
+        [outline, 'DRAFT', 0],
+      ].sort(),
+    )
+    const lesson = stored.find((t) => t.slug === track)!.lessons[0]!
+    expect(lesson).toMatchObject({ title: 'One, fixed', status: 'PUBLISHED' })
+    expect(lesson.questions).toHaveLength(1)
+    const path = await prisma.studioRoadmap.findUniqueOrThrow({
+      where: { slug: roadmap },
+      include: { steps: { orderBy: { order: 'asc' } } },
+    })
+    expect(path.status).toBe('PUBLISHED')
+    expect(path.steps.map((s) => [s.title, s.trackId !== null])).toEqual([
+      ['Learn it', true],
+      ['Later', false],
+    ])
+
+    await expect(
+      service.importContent({
+        roadmaps: [
+          {
+            slug: roadmap,
+            title: 'Path',
+            steps: [{ title: 'x', track: 'nope-x' }],
+          },
+        ],
+      }),
+    ).rejects.toThrow('unknown tracks: nope-x')
   })
 })

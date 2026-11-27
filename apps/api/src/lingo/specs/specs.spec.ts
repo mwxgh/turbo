@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest'
 
-import { TOEIC_MORE_SAMPLES } from '../fixtures/toeic-more'
-import {
-  TOEIC_PART5_SAMPLES,
-  TOEIC_STARTER_DECK,
-} from '../fixtures/toeic-part5'
 import { parseCsv } from './csv'
 import { findExam, findPart, getExam, getPart } from './index'
 import { cardRowSchema, itemSchema } from './schemas'
@@ -65,18 +60,6 @@ describe('itemSchema', () => {
     ['bad difficulty', { ...valid, difficulty: 'IMPOSSIBLE' }],
   ])('rejects %s', (_name, input) => {
     expect(schema.safeParse(input).success).toBe(false)
-  })
-
-  it('validates every built-in sample', () => {
-    for (const sample of TOEIC_PART5_SAMPLES)
-      expect(schema.safeParse(sample).error).toBeUndefined()
-    for (const [code, items] of Object.entries(TOEIC_MORE_SAMPLES)) {
-      const partSchema = itemSchema(toeic, getPart(toeic, code).part)
-      for (const sample of items)
-        expect(partSchema.safeParse(sample).error).toBeUndefined()
-    }
-    for (const card of TOEIC_STARTER_DECK.cards)
-      expect(cardRowSchema.safeParse(card).success).toBe(true)
   })
 })
 

@@ -1,3 +1,5 @@
+import { OmitType } from '@nestjs/swagger'
+
 import { StudioCategory, StudioStatus } from '@repo/db'
 import {
   BooleanField,
@@ -122,4 +124,48 @@ export class RoadmapDto {
     optional: true,
   })
   steps?: RoadmapStepDto[]
+}
+
+/** A track of a content file (`scripts/content-import.ts`), with its lessons. */
+export class TrackImportDto extends TrackDto {
+  @ClassField(() => LessonDto, { each: true, maxItems: 200, optional: true })
+  lessons?: LessonDto[]
+}
+
+export class RoadmapStepImportDto {
+  @StringField({ maxLength: 160 })
+  title: string
+
+  @StringField({ maxLength: 1000, optional: true })
+  description?: string
+
+  /** Slug of the track that teaches the step (in this file or already stored) */
+  @StringField({ maxLength: 80, pattern: SLUG, optional: true })
+  track?: string
+}
+
+export class RoadmapImportDto extends OmitType(RoadmapDto, ['steps']) {
+  @ClassField(() => RoadmapStepImportDto, {
+    each: true,
+    maxItems: 50,
+    optional: true,
+  })
+  steps?: RoadmapStepImportDto[]
+}
+
+/** Studio content written outside the app, loaded by slug (`scripts/content-import.ts`). */
+export class StudioContentDto {
+  @ClassField(() => TrackImportDto, {
+    each: true,
+    maxItems: 500,
+    optional: true,
+  })
+  tracks?: TrackImportDto[]
+
+  @ClassField(() => RoadmapImportDto, {
+    each: true,
+    maxItems: 100,
+    optional: true,
+  })
+  roadmaps?: RoadmapImportDto[]
 }

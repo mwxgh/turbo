@@ -10,18 +10,24 @@ App trong launcher (`/studio`). Trước đây Studio chỉ sinh project (ADR 00
 
 ## 1. Menu
 
-| Mục            | Đường                  | Nội dung                                                      |
-| -------------- | ---------------------- | ------------------------------------------------------------- |
-| Tổng quan      | `/studio`              | Bài học dở, các lộ trình, các nhóm chủ đề                     |
-| Lộ trình       | `/studio/roadmaps`     | Frontend, Backend…: các bước theo thứ tự, mỗi bước một chủ đề |
-| Ngôn ngữ       | `/studio/languages`    | JavaScript, TypeScript, Python, Go…                           |
-| Framework      | `/studio/frameworks`   | React, Next.js, NestJS…                                       |
-| Design pattern | `/studio/patterns`     | Pattern khởi tạo, hành vi…                                    |
-| Nền tảng       | `/studio/fundamentals` | Git, HTTP…                                                    |
-| Công cụ        | `/studio/tools`        | Docker…                                                       |
-| Hỏi AI         | `/studio/chat`         | Hỏi đáp lập trình, có thể hỏi trong ngữ cảnh một bài          |
-| Tạo project    | `/studio/generator`    | Bộ sinh project (ADR 0018)                                    |
-| Quản lý        | `/studio/manage`       | Chỉ admin: soạn chủ đề, bài, quiz, lộ trình                   |
+| Mục            | Đường                      | Nội dung                                                      |
+| -------------- | -------------------------- | ------------------------------------------------------------- |
+| Tổng quan      | `/studio`                  | Bài học dở, các lộ trình, các nhóm chủ đề                     |
+| Lộ trình       | `/studio/roadmaps`         | Frontend, Backend…: các bước theo thứ tự, mỗi bước một chủ đề |
+| Ngôn ngữ       | `/studio/languages`        | JavaScript, TypeScript, Python, Go…                           |
+| Framework      | `/studio/frameworks`       | React, Next.js, NestJS…                                       |
+| Design pattern | `/studio/patterns`         | Pattern khởi tạo, hành vi…                                    |
+| Nền tảng       | `/studio/fundamentals`     | Git, HTTP…                                                    |
+| Công cụ        | `/studio/tools`            | Docker…                                                       |
+| Cơ sở dữ liệu  | `/studio/databases`        | SQL, PostgreSQL, Redis, MongoDB…                              |
+| DevOps & Cloud | `/studio/devops`           | Linux, CI/CD, Kubernetes, cloud, giám sát…                    |
+| Khoa học MT    | `/studio/computer-science` | Cấu trúc dữ liệu, giải thuật, thiết kế hệ thống               |
+| Bảo mật        | `/studio/security`         | OWASP, xác thực và phân quyền…                                |
+| Hỏi AI         | `/studio/chat`             | Hỏi đáp lập trình, có thể hỏi trong ngữ cảnh một bài          |
+| Tạo project    | `/studio/generator`        | Bộ sinh project (ADR 0018)                                    |
+| Quản lý        | `/studio/manage`           | Chỉ admin: soạn chủ đề, bài, quiz, lộ trình                   |
+
+Menu là sidebar bên trái (nhóm Học / Chủ đề / Công cụ): thu gọn còn icon trên máy tính, mở dạng sheet trên điện thoại.
 
 ## 2. Mô hình
 
@@ -39,7 +45,9 @@ Progress (người học × bài): đã xong lúc nào, điểm quiz cao nhất
 ## 3. Nội dung
 
 - Tiếng Việt, ví dụ code thật, tự viết (không chép sách hay khoá học).
-- Nội dung khởi đầu: `packages/db/prisma/studio-content.ts`, nạp bằng `pnpm db:seed`. Seed chỉ thêm slug chưa có.
+- Lộ trình (Frontend, Backend, Full Stack, DevOps, Khoa học máy tính) tham khảo cách chia bước phổ biến của [roadmap.sh](https://roadmap.sh). License của roadmap.sh không cho dùng lại nội dung, nên chỉ lấy thứ tự chủ đề, mọi chữ đều tự viết.
+- Chủ đề chưa có bài được nạp ở trạng thái `DRAFT`: bước lộ trình vẫn hiện nhưng chưa có link, cho tới khi soạn bài và xuất bản.
+- Nội dung chỉ nằm trong DB (ADR 0032): file JSON ngoài repo → audit → `pnpm --filter api content:import <file>` vào DB local, rồi prod. Chạy lại cập nhật theo slug.
 - Sửa, thêm bài: dùng trang Quản lý ([ADR 0029](../decisions/0029-noi-dung-studio-trong-db.md)).
 
 ## 4. Phạm vi

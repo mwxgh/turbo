@@ -8,8 +8,11 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type { PrismaService } from '@repo/db/nest'
 import { AccessTokens } from '@repo/nest-common/auth'
 
+import { AdminService } from '../src/lingo/admin.service'
 import { type ArkMessage, ArkModel } from '../src/lingo/ark-model'
+import { lingoContentSchema } from '../src/lingo/content-file'
 import { createApp } from './create-app'
+import { toeicTestContent } from './lingo-content'
 
 const options = (n: number) =>
   Array.from({ length: n }, (_, i) => `option ${i} ${randomUUID()}`)
@@ -180,7 +183,13 @@ describe('Lingo tests and AI generation (e2e)', () => {
     await prisma.lingoBatch.deleteMany()
     admin = await userToken('ADMIN')
     learner = await userToken('USER')
-    await as(admin).post('/admin/samples').expect(200)
+    const { id: adminId } = await prisma.user.findFirstOrThrow({
+      where: { role: 'ADMIN' },
+      orderBy: { createdAt: 'desc' },
+    })
+    await app
+      .get(AdminService)
+      .importContent(adminId, lingoContentSchema.parse(toeicTestContent()))
   })
 
   beforeEach(() => {
@@ -205,7 +214,7 @@ describe('Lingo tests and AI generation (e2e)', () => {
       shortfall: Record<string, number>
     }
     expect(test.status).toBe('DRAFT')
-    // Built-in content covers Parts 2–7; Part 1 needs real photos
+    // Test content covers Parts 2–7; Part 1 needs real photos
     expect(shortfall).toEqual({ P1: 3 })
 
     const detail = (await as(admin).get(`/admin/tests/${test.id}`).expect(200))

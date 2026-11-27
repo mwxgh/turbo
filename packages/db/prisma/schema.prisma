@@ -539,6 +539,10 @@ enum StudioCategory {
   PATTERN
   FUNDAMENTAL
   TOOL
+  DATABASE
+  DEVOPS
+  CS
+  SECURITY
 }
 
 /// Only PUBLISHED reaches learners

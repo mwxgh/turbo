@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 
-import { type Prisma, toPrismaListArgs } from '@repo/db'
+import { type Prisma, StudioStatus, toPrismaListArgs } from '@repo/db'
 import { PrismaService } from '@repo/db/nest'
 import { type ListQuery, paginated } from '@repo/utils'
 
@@ -8,6 +8,7 @@ import type {
   LessonDto,
   QuizQuestionDto,
   RoadmapDto,
+  StudioContentDto,
   TrackDto,
 } from './dto/learn.dto'
 import { roadmapListSpec, trackListSpec } from './learn.list-spec'
@@ -168,5 +169,111 @@ export class AdminLearnService {
 
   async removeRoadmap(id: string) {
     await this.prisma.studioRoadmap.delete({ where: { id } })
+  }
+
+  /**
+   * Loads a content file in one transaction: tracks and roadmaps by slug, lessons by track + slug
+   * (stored ones not in the file are kept), a lesson's quiz and a roadmap's steps replaced.
+   * Defaults: lessons and roadmaps PUBLISHED, a track PUBLISHED once it has a published lesson
+   * (an outline step stays DRAFT). An omitted `order` keeps the stored one; new rows go last.
+   */
+  async importContent({ tracks = [], roadmaps = [] }: StudioContentDto) {
+    const result = { tracks: 0, lessons: 0, roadmaps: 0 }
+    await this.prisma.$transaction(
+      async (tx) => {
+        for (const { lessons = [], ...track } of tracks) {
+          const { id } = await tx.studioTrack.upsert({
+            where: { slug: track.slug },
+            create: {
+              ...track,
+              order:
+                track.order ??
+                (await tx.studioTrack.count({
+                  where: { category: track.category },
+                })),
+            },
+            update: track,
+          })
+          let next =
+            ((
+              await tx.studioLesson.aggregate({
+                where: { trackId: id },
+                _max: { order: true },
+              })
+            )._max.order ?? -1) + 1
+          for (const { questions, ...lesson } of lessons) {
+            const data = {
+              ...lesson,
+              status: lesson.status ?? StudioStatus.PUBLISHED,
+              ...(questions && {
+                questions: { deleteMany: {}, create: questionRows(questions) },
+              }),
+            }
+            await tx.studioLesson.upsert({
+              where: { trackId_slug: { trackId: id, slug: lesson.slug } },
+              create: {
+                ...data,
+                trackId: id,
+                order: lesson.order ?? next++,
+                questions: { create: questionRows(questions ?? []) },
+              },
+              update: data,
+            })
+          }
+          if (!track.status) {
+            const published = await tx.studioLesson.count({
+              where: { trackId: id, status: StudioStatus.PUBLISHED },
+            })
+            await tx.studioTrack.update({
+              where: { id },
+              data: {
+                status: published ? StudioStatus.PUBLISHED : StudioStatus.DRAFT,
+              },
+            })
+          }
+          result.tracks++
+          result.lessons += lessons.length
+        }
+
+        const slugs = roadmaps.flatMap((r) =>
+          (r.steps ?? []).flatMap((s) => s.track ?? []),
+        )
+        const found = await tx.studioTrack.findMany({
+          where: { slug: { in: slugs } },
+          select: { id: true, slug: true },
+        })
+        const idOf = new Map(found.map((t) => [t.slug, t.id]))
+        const missing = [...new Set(slugs.filter((s) => !idOf.has(s)))]
+        if (missing.length)
+          throw new BadRequestException(
+            `Roadmap steps point at unknown tracks: ${missing.join(', ')}`,
+          )
+        for (const { steps, ...roadmap } of roadmaps) {
+          const create = steps && {
+            create: steps.map(({ track, ...step }, order) => ({
+              ...step,
+              order,
+              trackId: track ? idOf.get(track)! : null,
+            })),
+          }
+          await tx.studioRoadmap.upsert({
+            where: { slug: roadmap.slug },
+            create: {
+              ...roadmap,
+              status: roadmap.status ?? StudioStatus.PUBLISHED,
+              order: roadmap.order ?? (await tx.studioRoadmap.count()),
+              steps: create,
+            },
+            update: {
+              ...roadmap,
+              ...(create && { steps: { deleteMany: {}, ...create } }),
+            },
+          })
+          result.roadmaps++
+        }
+      },
+      { timeout: 120_000 },
+    )
+    return result
   }
 }

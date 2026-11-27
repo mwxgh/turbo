@@ -74,10 +74,4 @@ export class AdminController {
   ) {
     return this.admin.importCards(id, body.csv)
   }
-
-  @Post('samples')
-  @HttpCode(HttpStatus.OK)
-  loadSamples(@CurrentUser() user: AuthUser) {
-    return this.admin.loadSamples(user.id)
-  }
 }
